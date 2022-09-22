@@ -1,1 +1,1 @@
-Read me
+You can move pawns forward by one square by typing the number assigned to the pawn you wanna move.
