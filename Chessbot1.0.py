@@ -25,6 +25,18 @@ def piecemove(n, x0, y0, x1, y1):
             if bishopmove(n, x0, y0, x1, y1):
                 return True
             return False
+        if abs(n) < 40 and abs(n) >= 30:
+            if rookmove(n, x0, y0, x1, y1):
+                return True
+            return False
+        if abs(n) < 50 and abs(n) >= 40:
+            if queenmove(n, x0, y0, x1, y1):
+                return True
+            return False
+        if abs(n) >= 50:
+            if kingmove(n, x0, y0, x1, y1):
+                return True
+            return False
         return False
     return False
 
@@ -51,28 +63,65 @@ def knightmove(n, x0, y0, x1, y1):
         return False
     return False
 
-def bishopmove(n, x0, y0, x1, y1):
-    if(abs(x1-x0) == abs(y1-y0)):
-        if(n > 0):
-            for i in range(1, 8):
-                if(x0 + math.copysign(1,x1-x0)*i == x1 and y0 + math.copysign(1,y1-y0)*i == y1 and board[x1][y1] <= 0):
-                    return True
-                if(board[x0 + int(math.copysign(1,x1-x0))*i][y0 + int(math.copysign(1,y1-y0))*i] != 0):
-                    return False
-            print('??')
-            return False
-        if(n < 0):
-            for i in range(1, 8):
-                if(x0 + math.copysign(1,x1-x0)*i == x1 and y0 + math.copysign(1,y1-y0)*i == y1 and board[x1][y1] >= 0):
-                    return True
-                if(board[x0 + int(math.copysign(1,x1-x0))*i][y0 + int(math.copysign(1,y1-y0))*i] != 0):
-                    return False
-            print('??')
-            return False
+
+#longmove checks if there is anything in the way when moving bishops, rooks and queens
+
+def longmove(n, x0, y0, x1, y1):
+    if(n > 0):
+        for i in range(1, 8):
+            if(x0 + math.copysign((x1-x0 != 0),x1-x0)*i == x1 and y0 + 
+               math.copysign((y1-y0 != 0),y1-y0)*i == y1 and board[x1][y1] <= 0):
+                return True
+            if(board[x0 + int(math.copysign((x1-x0 != 0),x1-x0))*i][y0 + int(math.copysign((y1-y0 != 0),y1-y0))*i] != 0):
+                return False
+        print('??')
+        return False
+    if(n < 0):
+        for i in range(1, 8):
+            if(x0 + math.copysign((x1-x0 != 0),x1-x0)*i == x1 and y0 + 
+               math.copysign((y1-y0!=0),y1-y0)*i == y1 and board[x1][y1] >= 0):
+                return True
+            if(board[x0 + int(math.copysign((x1-x0 != 0),x1-x0))*i][y0 + int(math.copysign((y1-y0 != 0),y1-y0))*i] != 0):
+                return False
+        print('??')
         return False
     return False
 
-def movepawn():
+def bishopmove(n, x0, y0, x1, y1):
+    if(abs(x1-x0) == abs(y1-y0)):
+        if longmove(n, x0, y0, x1, y1):
+            return True
+        return False
+    return False
+
+def rookmove(n, x0, y0, x1, y1):
+    if (x1-x0 != 0 and y1-y0 == 0) or (x1-x0 == 0 and y1-y0 != 0):
+        if longmove(n, x0, y0, x1, y1):
+            return True
+        return False
+    return False
+
+def queenmove(n, x0, y0, x1, y1):
+    if bishopmove(n, x0, y0, x1, y1) or rookmove(n, x0, y0, x1, y1):
+        return True
+    return False
+
+def kingmove(n, x0, y0, x1, y1):
+    if abs(x1-x0) <= 1 and abs(y1-y0) <= 1 and not (x1 == x0 and y1 == y0):
+        if n > 0 and board[x1][y1] <= 0:
+            return True
+        if n < 0 and board[x1][y1] >= 0:
+            return True
+        return False
+    return False
+
+def checkmate(n):
+    for i in range(8):
+        if n in board[i]:
+            return False
+    return True
+
+def movepiece():
     global turn
     move = int(input())
     movetox = int(input())
@@ -102,5 +151,11 @@ def movepawn():
 
 printboard()
 for i in range(100):
-    movepawn()
+    movepiece()
+    if checkmate(-50):
+        print('White won')
+        turn = -1
+    if checkmate(50):
+        print('Black won')
+        turn = -1
 
