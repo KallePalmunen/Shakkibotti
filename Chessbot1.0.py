@@ -1,9 +1,9 @@
 
-from itertools import filterfalse
+import math
 
 
-board = [[0,10,0,0,0,0,11,0], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-         [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[0,-10,0,0,0,0,-11,0]]
+board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+         [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
 
 turn = 0
 
@@ -19,6 +19,10 @@ def piecemove(n, x0, y0, x1, y1):
             return False
         if abs(n) < 20 and abs(n) >= 10:
             if knightmove(n, x0, y0, x1, y1):
+                return True
+            return False
+        if abs(n) < 30 and abs(n) >= 20:
+            if bishopmove(n, x0, y0, x1, y1):
                 return True
             return False
         return False
@@ -44,6 +48,27 @@ def knightmove(n, x0, y0, x1, y1):
             return True
         if n < 0 and (board[x1][y1] == 0 or board[x1][y1] > 0):
             return True
+        return False
+    return False
+
+def bishopmove(n, x0, y0, x1, y1):
+    if(abs(x1-x0) == abs(y1-y0)):
+        if(n > 0):
+            for i in range(1, 8):
+                if(x0 + math.copysign(1,x1-x0)*i == x1 and y0 + math.copysign(1,y1-y0)*i == y1 and board[x1][y1] <= 0):
+                    return True
+                if(board[x0 + int(math.copysign(1,x1-x0))*i][y0 + int(math.copysign(1,y1-y0))*i] != 0):
+                    return False
+            print('??')
+            return False
+        if(n < 0):
+            for i in range(1, 8):
+                if(x0 + math.copysign(1,x1-x0)*i == x1 and y0 + math.copysign(1,y1-y0)*i == y1 and board[x1][y1] >= 0):
+                    return True
+                if(board[x0 + int(math.copysign(1,x1-x0))*i][y0 + int(math.copysign(1,y1-y0))*i] != 0):
+                    return False
+            print('??')
+            return False
         return False
     return False
 
