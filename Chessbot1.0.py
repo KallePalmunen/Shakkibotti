@@ -116,10 +116,82 @@ def kingmove(n, x0, y0, x1, y1):
     return False
 
 def checkmate(n):
-    for i in range(8):
-        if n in board[i]:
-            return False
-    return True
+    if not check(n):
+        return False
+    if n > 0:
+        for i in range(1, 51):
+            for ii in range(8):
+                if i in board[ii]:
+                    piecex0 = ii
+                    piecey0 = board[ii].index(i)
+                    for j in range(8):
+                        for jj in range(8):
+                            if piecemove(i, piecex0, piecey0, j, jj):
+                                board[piecex0][piecey0] = 0
+                                movetosquare = board[j][jj]
+                                board[j][jj] = i
+                                if not check(n):
+                                    board[piecex0][piecey0] = i
+                                    board[j][jj] = movetosquare
+                                    return False
+                                board[piecex0][piecey0] = i
+                                board[j][jj] = movetosquare
+                    break
+        return True
+    if n < 0:
+        for i in range(1, 51):
+            for ii in range(8):
+                if -i in board[ii]:
+                    piecex0 = ii
+                    piecey0 = board[ii].index(-i)
+                    for j in range(8):
+                        for jj in range(8):
+                            if piecemove(-i, piecex0, piecey0, j, jj):
+                                board[piecex0][piecey0] = 0
+                                movetosquare = board[j][jj]
+                                board[j][jj] = -i
+                                if not check(n):
+                                    board[piecex0][piecey0] = -i
+                                    board[j][jj] = movetosquare
+                                    return False
+                                board[piecex0][piecey0] = -i
+                                board[j][jj] = movetosquare
+                    break
+        return True
+
+
+def check(n):
+    if n < 0:
+        for i in range(8):
+            if n in board[i]:
+                kingx = i
+                kingy = board[i].index(n)
+                break
+        else:
+            return True
+        for i in range(1, 50):
+            for ii in range(8):
+                if i in board[ii]:
+                    if piecemove(i, ii, board[ii].index(i), kingx, kingy):
+                        return True
+                    break
+        return False
+    if n > 0:
+        for i in range(8):
+            if n in board[i]:
+                kingx = i
+                kingy = board[i].index(n)
+                break
+        else:
+            return True
+        for i in range(1, 50):
+            for ii in range(8):
+                if -i in board[ii]:
+                    if piecemove(-i, ii, board[ii].index(-i), kingx, kingy):
+                        return True
+                    break
+        return False
+    return False
 
 def movepiece():
     global turn
@@ -153,6 +225,7 @@ def movepiece():
     printboard()
 
 printboard()
+
 for i in range(100):
     movepiece()
     if checkmate(-50):
