@@ -123,9 +123,12 @@ def checkmate(n):
 
 def movepiece():
     global turn
-    move = int(input())
-    movetox = int(input())
-    movetoy = int(input())
+    try:
+        move = int(input())
+        movetox = int(input())
+        movetoy = int(input())
+    except ValueError:
+        return
     if (move > 0 and turn == 0) or (move < 0 and turn == 1):
         for i in range(8):
             if move in board[i]:
