@@ -7,6 +7,8 @@ board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0
 
 turn = 0
 
+pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
+
 def printboard():
     for i in range(8):
         print(board[i])
@@ -115,6 +117,14 @@ def kingmove(n, x0, y0, x1, y1):
         return False
     return False
 
+def promote(n, x1):
+    if n < 10 and n > 0:
+        if x1 == 7:
+            return True
+    if n > -10 and n < 0:
+        if x1 == 0:
+            return True
+
 def checkmate(n):
     if not check(n):
         return False
@@ -207,7 +217,17 @@ def movepiece():
                 if piecemove(move, i, board[i].index(move), movetox, movetoy):
                     piecefile = board[i].index(move)
                     board[i][piecefile] = 0
-                    board[movetox][movetoy] = move
+                    if promote(move, movetox):
+                        print('Type 1 for knight, 2 for bishope, 3 for rook, 4 for queen')
+                        try:
+                            promoteto = int(input())
+                        except ValueError:
+                            print('Invalid input, promoting to queen')
+                            promoteto = 4
+                        board[movetox][movetoy] = int(math.copysign(1, move))*(promoteto*10+pieces[promoteto][(move < 0)])
+                        pieces[promoteto][(move < 0)] += 1
+                    else:
+                        board[movetox][movetoy] = move
                     break
                 else:
                     print('Illegal move')
