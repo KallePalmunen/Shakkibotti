@@ -203,6 +203,18 @@ def check(n):
         return False
     return False
 
+def pin(n, x0, y0, x1, y1):
+    board[x0][y0] = 0
+    movetosquare = board[x1][y1]
+    board[x1][y1] = n
+    if not check(int(math.copysign(50,n))):
+        board[x0][y0] = n
+        board[x1][y1] = movetosquare
+        return False
+    board[x0][y0] = n
+    board[x1][y1] = movetosquare
+    return True
+
 def movepiece():
     global turn
     try:
@@ -214,7 +226,8 @@ def movepiece():
     if (move > 0 and turn == 0) or (move < 0 and turn == 1):
         for i in range(8):
             if move in board[i]:
-                if piecemove(move, i, board[i].index(move), movetox, movetoy):
+                if (piecemove(move, i, board[i].index(move), movetox, movetoy) 
+                    and not pin(move, i, board[i].index(move), movetox, movetoy)):
                     piecefile = board[i].index(move)
                     board[i][piecefile] = 0
                     if promote(move, movetox):
