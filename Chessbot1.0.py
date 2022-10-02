@@ -9,6 +9,9 @@ turn = 0
 
 pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
 
+kingmoved = [0, 0]
+rookmoved = [[0, 0], [0, 0]]
+
 def printboard():
     for i in range(8):
         print(board[i])
@@ -109,6 +112,8 @@ def queenmove(n, x0, y0, x1, y1):
     return False
 
 def kingmove(n, x0, y0, x1, y1):
+    if castle(n, x0, y0, x1, y1):
+        return True
     if abs(x1-x0) <= 1 and abs(y1-y0) <= 1 and not (x1 == x0 and y1 == y0):
         if n > 0 and board[x1][y1] <= 0:
             return True
@@ -215,6 +220,25 @@ def pin(n, x0, y0, x1, y1):
     board[x1][y1] = movetosquare
     return True
 
+def castle(n, x0, y0, x1, y1):
+    if(kingmoved[(n > 0)] == 1) or rookmoved[(n > 0)][(y1 > 4)]:
+        return False
+    if(x1 == x0 and (y1 == 1 or y1 == 5) and not check(n)) and board[x0][(y1 > 4)*7] == int(math.copysign(30 + (y1 > 4), n)):
+        for i in range(1, 3 + (y1 > 4)):
+            if board[x0][y0 + i*int(math.copysign(1, y1-y0))] != 0:
+                return False
+            board[x0][y0] = 0
+            board[x0][y0 + i*int(math.copysign(1, y1-y0))] = n
+            if i < 3 and check(n):
+                board[x0][y0] = n
+                board[x0][y0 + i*int(math.copysign(1, y1-y0))] = 0
+                return False
+            board[x0][y0] = n
+            board[x0][y0 + i*int(math.copysign(1, y1-y0))] = 0
+        return True
+    return False
+
+
 def movepiece():
     global turn
     try:
@@ -228,8 +252,16 @@ def movepiece():
             if move in board[i]:
                 if (piecemove(move, i, board[i].index(move), movetox, movetoy) 
                     and not pin(move, i, board[i].index(move), movetox, movetoy)):
+                    if(abs(move) == 50):
+                        if abs(movetoy - board[i].index(move)) > 1:
+                            castled = int(math.copysign(30 + (movetoy > 4), move))
+                            board[movetox][board[movetox].index(castled)] = 0
+                            board[movetox][movetoy + int(math.copysign(1, 4-movetoy))] = castled
+                        kingmoved[(move > 0)] = 1
                     piecefile = board[i].index(move)
                     board[i][piecefile] = 0
+                    if(abs(move) == 30 or abs(move) == 31):
+                        rookmoved[(move >0)][abs(move)-30] = 1
                     if promote(move, movetox):
                         print('Type 1 for knight, 2 for bishope, 3 for rook, 4 for queen')
                         try:
@@ -259,7 +291,7 @@ def movepiece():
 
 printboard()
 
-for i in range(100):
+while turn >= 0:
     movepiece()
     if checkmate(-50):
         print('White won')
@@ -268,3 +300,4 @@ for i in range(100):
         print('Black won')
         turn = -1
 
+input()
