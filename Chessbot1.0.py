@@ -80,7 +80,6 @@ def longmove(n, x0, y0, x1, y1):
                 return True
             if(board[x0 + int(math.copysign((x1-x0 != 0),x1-x0))*i][y0 + int(math.copysign((y1-y0 != 0),y1-y0))*i] != 0):
                 return False
-        print('??')
         return False
     if(n < 0):
         for i in range(1, 8):
@@ -89,7 +88,6 @@ def longmove(n, x0, y0, x1, y1):
                 return True
             if(board[x0 + int(math.copysign((x1-x0 != 0),x1-x0))*i][y0 + int(math.copysign((y1-y0 != 0),y1-y0))*i] != 0):
                 return False
-        print('??')
         return False
     return False
 
@@ -239,6 +237,23 @@ def castle(n, x0, y0, x1, y1):
         return True
     return False
 
+def movesomewhere(n, x0, y0):
+    for i in range(8):
+        for ii in range(8):
+            if piecemove(n, x0, y0, i, ii) and not pin(n, x0, y0, i, ii):
+                return True
+    return False
+
+def stalemate(n):
+    if check(n):
+        return False
+    for i in range(1, 51):
+        for ii in range(8):
+            if int(math.copysign(i, n)) in board[ii]:
+                if movesomewhere(int(math.copysign(i, n)), ii, board[ii].index(int(math.copysign(i, n)))):
+                    return False
+                break
+    return True
 
 def movepiece():
     global turn
@@ -299,6 +314,9 @@ while turn >= 0:
         turn = -1
     if checkmate(50):
         print('Black won')
+        turn = -1
+    if (turn == 0 and stalemate(50)) or (turn == 1 and stalemate(-50)):
+        print('Draw')
         turn = -1
 
 input()
