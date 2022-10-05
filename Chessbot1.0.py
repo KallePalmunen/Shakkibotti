@@ -60,13 +60,13 @@ def pawnmove(n, x0, y0, x1, y1):
     if n > 0:
         if ((y1 == y0 and (x1-x0 == 1 or (x1-x0 == 2 and x0 == 1 and board[x1-1][y1] == 0)) and board[x1][y1] == 0) or 
             (x1-x0 == 1 and board[x1][y1] < 0 and (y1 - y0 == 1 or y1 - y0 == -1)) 
-            or (y1*8+x0+int(math.copysign(1, x1 - x0)) == enpassant)):
+            or (y1*8+x1 == enpassant and abs(y1-y0) == 1 and x1 - x0 == 1)):
             return True
         return False
     elif n < 0:
         if ((y1 == y0 and (x0-x1 == 1 or (x0-x1 == 2 and x0 == 6 and board[x1+1][y1] == 0)) and board[x1][y1] == 0) or
             (x0-x1 == 1 and board[x1][y1] > 0 and (y1 - y0 == 1 or y1 - y0 == -1)) 
-            or (y1*8+x0+int(math.copysign(1, x1 - x0)) == enpassant)):
+            or (y1*8+x1 == enpassant and abs(y1-y0) == 1 and x0 - x1 == 1)):
             return True
         return False
     return False
@@ -324,7 +324,7 @@ def movepiece():
                     if abs(move) < 10 and abs(movetox - i) > 1:
                         enpassant = movetoy*8+i+int(math.copysign(1, movetox - i))
                     else:
-                        enpassant = 0
+                        enpassant = -1
                     moves += 1
                     positions.append(deepcopy(board))
                     break
