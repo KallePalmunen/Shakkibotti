@@ -13,6 +13,8 @@ positions = [[[]]]
 positions[0] = deepcopy(board)
 
 turn = 0
+enpassant = -1
+enpassented = -1
 
 pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
 
@@ -57,12 +59,14 @@ def piecemove(n, x0, y0, x1, y1):
 def pawnmove(n, x0, y0, x1, y1):
     if n > 0:
         if ((y1 == y0 and (x1-x0 == 1 or (x1-x0 == 2 and x0 == 1 and board[x1-1][y1] == 0)) and board[x1][y1] == 0) or 
-            (x1-x0 == 1 and board[x1][y1] < 0 and (y1 - y0 == 1 or y1 - y0 == -1))):
+            (x1-x0 == 1 and board[x1][y1] < 0 and (y1 - y0 == 1 or y1 - y0 == -1)) 
+            or (y1*8+x0+int(math.copysign(1, x1 - x0)) == enpassant)):
             return True
         return False
     elif n < 0:
         if ((y1 == y0 and (x0-x1 == 1 or (x0-x1 == 2 and x0 == 6 and board[x1+1][y1] == 0)) and board[x1][y1] == 0) or
-            (x0-x1 == 1 and board[x1][y1] > 0 and (y1 - y0 == 1 or y1 - y0 == -1))):
+            (x0-x1 == 1 and board[x1][y1] > 0 and (y1 - y0 == 1 or y1 - y0 == -1)) 
+            or (y1*8+x0+int(math.copysign(1, x1 - x0)) == enpassant)):
             return True
         return False
     return False
@@ -282,6 +286,7 @@ def repetition(n):
 def movepiece():
     global turn
     global moves
+    global enpassant
     try:
         move = int(input())
         movetox = int(input())
@@ -314,6 +319,12 @@ def movepiece():
                         pieces[promoteto][(move < 0)] += 1
                     else:
                         board[movetox][movetoy] = move
+                    if enpassant >= 0 and movetoy*8+movetox == enpassant:
+                        board[movetox-int(math.copysign(1, movetox - i))][movetoy] = 0
+                    if abs(move) < 10 and abs(movetox - i) > 1:
+                        enpassant = movetoy*8+i+int(math.copysign(1, movetox - i))
+                    else:
+                        enpassant = 0
                     moves += 1
                     positions.append(deepcopy(board))
                     break
