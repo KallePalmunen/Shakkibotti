@@ -20,8 +20,10 @@ kingmoved = [0, 0]
 rookmoved = [[0, 0], [0, 0]]
 
 def printboard():
+    print()
     for i in range(8):
-        print(board[i])
+        print("{0:5}{1:5}{2:5}{3:5}{4:5}{5:5}{6:5}{7:5}"\
+            .format(board[i][0], board[i][1], board[i][2], board[i][3], board[i][4], board[i][5], board[i][6], board[i][7]))
 
 def piecemove(n, x0, y0, x1, y1):
     if x1 < 8 and y1 < 8 and y1 >= 0 and x1 >= 0:
