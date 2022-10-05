@@ -1,10 +1,16 @@
 
 import math
 
+from copy import copy, deepcopy
+
 #Guten tag
 
 board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
          [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
+
+moves = 0
+positions = [[[]]]
+positions[0] = deepcopy(board)
 
 turn = 0
 
@@ -255,8 +261,25 @@ def stalemate(n):
                 break
     return True
 
+def compareposition(n):
+    for j in range(8):
+        for jj in range(8):
+            if positions[n][j][jj] != board[j][jj]:
+                return False
+    return True
+
+def repetition(n):
+    repetitions = 0
+    for i in range(n):
+        if compareposition(i):
+            repetitions += 1
+            if(repetitions >= 2):
+                return True
+    return False
+
 def movepiece():
     global turn
+    global moves
     try:
         move = int(input())
         movetox = int(input())
@@ -289,6 +312,8 @@ def movepiece():
                         pieces[promoteto][(move < 0)] += 1
                     else:
                         board[movetox][movetoy] = move
+                    moves += 1
+                    positions.append(deepcopy(board))
                     break
                 else:
                     print('Illegal move')
@@ -315,7 +340,7 @@ while turn >= 0:
     if checkmate(50):
         print('Black won')
         turn = -1
-    if (turn == 0 and stalemate(50)) or (turn == 1 and stalemate(-50)):
+    if (turn == 0 and stalemate(50)) or (turn == 1 and stalemate(-50)) or repetition(moves):
         print('Draw')
         turn = -1
 
