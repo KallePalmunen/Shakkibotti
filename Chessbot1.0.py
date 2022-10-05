@@ -1,6 +1,6 @@
 
 import math
-
+import random
 from copy import copy, deepcopy
 
 #Guten tag
@@ -15,6 +15,7 @@ positions[0] = deepcopy(board)
 turn = 0
 enpassant = -1
 enpassented = -1
+bot = 2
 
 pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
 
@@ -283,6 +284,39 @@ def repetition(n):
                 return True
     return False
 
+def movepieceto(n, x0, y0, x1, y1):
+    global turn
+    global moves
+    global enpassant
+    if(abs(n) == 50):
+        if abs(y1 - y0) > 1:
+            castled = int(math.copysign(30 + (y1 > 4), n))
+            board[x1][board[x1].index(castled)] = 0
+            board[x1][y1 + int(math.copysign(1, 4-y1))] = castled
+        kingmoved[(n > 0)] = 1
+    board[x0][y0] = 0
+    if(abs(n) == 30 or abs(n) == 31):
+        rookmoved[(n >0)][abs(n)-30] = 1
+    if promote(n, x1):
+        print('Type 1 for knight, 2 for bishope, 3 for rook, 4 for queen')
+        try:
+            promoteto = int(input())
+        except ValueError:
+            print('Invalid input, promoting to queen')
+            promoteto = 4
+        board[x1][y1] = int(math.copysign(1, n))*(promoteto*10+pieces[promoteto][(n < 0)])
+        pieces[promoteto][(n < 0)] += 1
+    else:
+        board[x1][y1] = n
+    if enpassant >= 0 and y1*8+x1 == enpassant:
+        board[x1-int(math.copysign(1, x1 - x0))][y1] = 0
+    if abs(n) < 10 and abs(x1 - x0) > 1:
+        enpassant = y1*8+x0+int(math.copysign(1, x1 - x0))
+    else:
+        enpassant = -1
+    moves += 1
+    positions.append(deepcopy(board))
+
 def movepiece():
     global turn
     global moves
@@ -298,35 +332,7 @@ def movepiece():
             if move in board[i]:
                 if (piecemove(move, i, board[i].index(move), movetox, movetoy) 
                     and not pin(move, i, board[i].index(move), movetox, movetoy)):
-                    if(abs(move) == 50):
-                        if abs(movetoy - board[i].index(move)) > 1:
-                            castled = int(math.copysign(30 + (movetoy > 4), move))
-                            board[movetox][board[movetox].index(castled)] = 0
-                            board[movetox][movetoy + int(math.copysign(1, 4-movetoy))] = castled
-                        kingmoved[(move > 0)] = 1
-                    piecefile = board[i].index(move)
-                    board[i][piecefile] = 0
-                    if(abs(move) == 30 or abs(move) == 31):
-                        rookmoved[(move >0)][abs(move)-30] = 1
-                    if promote(move, movetox):
-                        print('Type 1 for knight, 2 for bishope, 3 for rook, 4 for queen')
-                        try:
-                            promoteto = int(input())
-                        except ValueError:
-                            print('Invalid input, promoting to queen')
-                            promoteto = 4
-                        board[movetox][movetoy] = int(math.copysign(1, move))*(promoteto*10+pieces[promoteto][(move < 0)])
-                        pieces[promoteto][(move < 0)] += 1
-                    else:
-                        board[movetox][movetoy] = move
-                    if enpassant >= 0 and movetoy*8+movetox == enpassant:
-                        board[movetox-int(math.copysign(1, movetox - i))][movetoy] = 0
-                    if abs(move) < 10 and abs(movetox - i) > 1:
-                        enpassant = movetoy*8+i+int(math.copysign(1, movetox - i))
-                    else:
-                        enpassant = -1
-                    moves += 1
-                    positions.append(deepcopy(board))
+                    movepieceto(move, i, board[i].index(move), movetox, movetoy)
                     break
                 else:
                     print('Illegal move')
@@ -343,10 +349,36 @@ def movepiece():
         return
     printboard()
 
+def botmove():
+    global turn
+    while turn == bot:
+        move = int(random.random()*51*math.copysign(1, 0.5-bot))
+        movetox = int(random.random()*8)
+        movetoy = int(random.random()*8)
+        for i in range(8):
+            if move in board[i]:
+                if (piecemove(move, i, board[i].index(move), movetox, movetoy) 
+                    and not pin(move, i, board[i].index(move), movetox, movetoy)):
+                    movepieceto(move, i, board[i].index(move), movetox, movetoy)
+                    turn = (bot == 0)
+                    printboard()
+                    return
+                else:
+                    return
+
 printboard()
 
-while turn >= 0:
-    movepiece()
+print('Type 1 to play as white, 0 to play as black, or 2 for player vs player')
+try:
+    bot = int(input())
+except ValueError:
+    bot = 2
+
+if not(bot == 0 or bot == 1):
+    bot = 2
+
+def gameend():
+    global turn
     if checkmate(-50):
         print('White won')
         turn = -1
@@ -356,5 +388,13 @@ while turn >= 0:
     if (turn == 0 and stalemate(50)) or (turn == 1 and stalemate(-50)) or repetition(moves):
         print('Draw')
         turn = -1
+
+while turn >= 0:
+    if turn == bot:
+        botmove()
+    gameend()
+    if turn != bot:
+        movepiece()
+    gameend()
 
 input()
