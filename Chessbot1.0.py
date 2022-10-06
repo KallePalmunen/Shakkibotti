@@ -14,12 +14,13 @@ positions[0] = deepcopy(board)
 
 turn = 0
 enpassant = -1
-enpassented = -1
 bot = 2
 
+#pawns, knights, bishops, rooks, queens and kings (W,B)
 pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
-
+#black, white
 kingmoved = [0, 0]
+#black left, right - white left, right
 rookmoved = [[0, 0], [0, 0]]
 
 def printboard():
@@ -29,6 +30,8 @@ def printboard():
             .format(board[i][0], board[i][1], board[i][2], board[i][3], board[i][4], board[i][5], board[i][6], board[i][7]))
 
 def piecemove(n, x0, y0, x1, y1):
+    #checks if a certain piece can move (also there is specific functions for each piece like pawnmove, knightmove etc.)
+    #n=unique piece, x0, y0 = starting coordinates, x1, y1 = ending coordinates
     if x1 < 8 and y1 < 8 and y1 >= 0 and x1 >= 0:
         if abs(n) < 10:
             if pawnmove(n, x0, y0, x1, y1):
@@ -83,7 +86,7 @@ def knightmove(n, x0, y0, x1, y1):
     return False
 
 
-#longmove checks if there is anything in the way when moving bishops, rooks and queens
+#longmove checks if there is anything in the way when moving bishops, rooks and queens. It also checks whether there is a piece in the endsquare
 
 def longmove(n, x0, y0, x1, y1):
     if(n > 0):
@@ -268,16 +271,16 @@ def stalemate(n):
                 break
     return True
 
-def compareposition(n):
+def compareposition(m):
     for j in range(8):
         for jj in range(8):
-            if positions[n][j][jj] != board[j][jj]:
+            if positions[m][j][jj] != board[j][jj]:
                 return False
     return True
 
-def repetition(n):
+def repetition(m):
     repetitions = 0
-    for i in range(n):
+    for i in range(m):
         if compareposition(i):
             repetitions += 1
             if(repetitions >= 2):
@@ -290,9 +293,9 @@ def movepieceto(n, x0, y0, x1, y1):
     global enpassant
     if(abs(n) == 50):
         if abs(y1 - y0) > 1:
-            castled = int(math.copysign(30 + (y1 > 4), n))
-            board[x1][board[x1].index(castled)] = 0
-            board[x1][y1 + int(math.copysign(1, 4-y1))] = castled
+            whichrook = int(math.copysign(30 + (y1 > 4), n))
+            board[x1][board[x1].index(whichrook)] = 0
+            board[x1][y1 + int(math.copysign(1, 4-y1))] = whichrook
         kingmoved[(n > 0)] = 1
     board[x0][y0] = 0
     if(abs(n) == 30 or abs(n) == 31):
@@ -364,7 +367,7 @@ def botmove():
                     printboard()
                     return
                 else:
-                    return
+                    break
 
 printboard()
 
