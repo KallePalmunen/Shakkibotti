@@ -1,9 +1,16 @@
 import pygame
+import pygame_menu
 import os
 from pygame.locals import *
 import sys
+import time
 
 pygame.init()
+pygame.display.set_caption('LGG Chessbot')
+
+firstmenu = True
+
+menufont = pygame.font.SysFont("Arial", 60)
 
 # Set up the drawing window
 x=600
@@ -20,19 +27,52 @@ blackpawnimg.set_colorkey((123, 0, 0))
 running = True
 while running:
 
-    # Did the user click the window close button?
+    #Menu 
+    while firstmenu:
+        screen.fill((0,255,255))
+        playwhitebtn = menufont.render("White", 1, (100,100,100), (0,255,255))
+        whiterect = playwhitebtn.get_rect()
+        whiterect.center = (x/2, y/4)
+
+        playblackbtn = menufont.render("Black", 1, (100,100,100), (0,255,255))
+        blackrect = playblackbtn.get_rect()
+        blackrect.center = (x/2, y/2)
+
+        h2hbtn = menufont.render("Player vs Player", 1, (100,100,100), (0,255,255))
+        h2hrect = h2hbtn.get_rect()
+        h2hrect.center = (x/2, y/1.33)
+
+        screen.blit(playwhitebtn, whiterect)
+        screen.blit(playblackbtn, blackrect)
+        screen.blit(h2hbtn, h2hrect)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                firstmenu = False
+                running = False
+                break
+            if event.type == pygame.MOUSEBUTTONDOWN and whiterect.collidepoint(pygame.mouse.get_pos()):
+                firstmenu = False
+                break
+            if event.type == pygame.MOUSEBUTTONDOWN and blackrect.collidepoint(pygame.mouse.get_pos()):
+                firstmenu = False
+                break
+            if event.type == pygame.MOUSEBUTTONDOWN and h2hrect.collidepoint(pygame.mouse.get_pos()):
+                firstmenu = False
+                break
+
+        pygame.display.flip()
+
+    #Event handlers
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             pawnx = int(pygame.mouse.get_pos()[0]/75)*75
             pawny = int(pygame.mouse.get_pos()[1]/75)*75
-    # Fill the background with white
+    # Drawing the board
     screen.blit(boardimg,(0,0))
     screen.blit(blackpawnimg,(pawnx,pawny))
-
-    # Draw a solid blue circle in the center
-    #pygame.draw.circle(screen, (200, 100, 255), (250, 250), 75)
 
     # Flip the display
     pygame.display.flip()
