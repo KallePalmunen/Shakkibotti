@@ -14,13 +14,66 @@ menufont = pygame.font.SysFont("Arial", 60)
 # Set up the drawing window
 x=600
 y=600
-pawnx = 0
-pawny = 0
+board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+         [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
 screen = pygame.display.set_mode([x, y])
 
 boardimg = pygame.image.load("Images/board.png").convert()
-blackpawnimg = pygame.image.load("Images/blackpawn.png").convert()
-blackpawnimg.set_colorkey((123, 0, 0))
+bpawnimg = pygame.image.load("Images/blackpawn.png").convert()
+wpawnimg = pygame.image.load("Images/whitepawn.png").convert()
+wknightimg = pygame.image.load("Images/whiteknight.png").convert()
+wbishopimg = pygame.image.load("Images/whitebishop.png").convert()
+wrookimg = pygame.image.load("Images/whiterook.png").convert()
+wqueenimg = pygame.image.load("Images/whitequeen.png").convert()
+wkingimg = pygame.image.load("Images/whiteking.png").convert()
+bknightimg = pygame.image.load("Images/blackknight.png").convert()
+bbishopimg = pygame.image.load("Images/blackbishop.png").convert()
+brookimg = pygame.image.load("Images/blackrook.png").convert()
+bqueenimg = pygame.image.load("Images/blackqueen.png").convert()
+bkingimg = pygame.image.load("Images/blackking.png").convert()
+
+bpawnimg.set_colorkey((123, 0, 0))
+wpawnimg.set_colorkey((123, 0, 0))
+wknightimg.set_colorkey((123, 0, 0))
+wbishopimg.set_colorkey((123, 0, 0))
+wrookimg.set_colorkey((123, 0, 0))
+wqueenimg.set_colorkey((123, 0, 0))
+wkingimg.set_colorkey((123, 0, 0))
+bknightimg.set_colorkey((123, 0, 0))
+bbishopimg.set_colorkey((123, 0, 0))
+brookimg.set_colorkey((123, 0, 0))
+bqueenimg.set_colorkey((123, 0, 0))
+bkingimg.set_colorkey((123, 0, 0))
+
+# Draws pieces to their coordinates
+
+def drawpieces():
+    for i in range(8):
+        for ii in range(8):
+            if board[i][ii] > 0 and board[i][ii] < 10:
+                screen.blit(wpawnimg, (ii*75, i*75))
+            elif board[i][ii] < 0 and board[i][ii] > -10:
+                screen.blit(bpawnimg, (ii*75, i*75))
+            elif board[i][ii] > 9 and board[i][ii] < 20:
+                screen.blit(wknightimg, (ii*75, i*75))
+            elif board[i][ii] > 19 and board[i][ii] < 30:
+                screen.blit(wbishopimg, (ii*75, i*75))
+            elif board[i][ii] > 29 and board[i][ii] < 40:
+                screen.blit(wrookimg, (ii*75, i*75))
+            elif board[i][ii] > 39 and board[i][ii] < 50:
+                screen.blit(wqueenimg, (ii*75, i*75))
+            elif board[i][ii] > 49:
+                screen.blit(wkingimg, (ii*75, i*75))
+            elif board[i][ii] < -9 and board[i][ii] > -20:
+                screen.blit(bknightimg, (ii*75, i*75))
+            elif board[i][ii] < -19 and board[i][ii] > -30:
+                screen.blit(bbishopimg, (ii*75, i*75))
+            elif board[i][ii] < -29 and board[i][ii] > -40:
+                screen.blit(brookimg, (ii*75, i*75))
+            elif board[i][ii] < -39 and board[i][ii] > -50:
+                screen.blit(bqueenimg, (ii*75, i*75))
+            elif board[i][ii] < -49:
+                screen.blit(bkingimg, (ii*75, i*75))
 
 # Run until the user asks to quit
 running = True
@@ -67,11 +120,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            pawnx = int(pygame.mouse.get_pos()[0]/75)*75
-            pawny = int(pygame.mouse.get_pos()[1]/75)*75
+            for i in range(8):
+                if 1 in board[i]:
+                    board[i][board[i].index(1)] = 0
+                    break
+            board[int(pygame.mouse.get_pos()[1]/75)][int(pygame.mouse.get_pos()[0]/75)] = 1
     # Drawing the board
     screen.blit(boardimg,(0,0))
-    screen.blit(blackpawnimg,(pawnx,pawny))
+    drawpieces()
 
     # Flip the display
     pygame.display.flip()
