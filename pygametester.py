@@ -9,11 +9,23 @@ pygame.display.set_caption('LGG Chessbot')
 
 firstmenu = True
 
+def piecemove(n, x0, y0, x1, y1):
+    if not (x0 == x1 and y0 == y1):
+        return True
+    return False
+
+def movepieceto(n, x0, y0, x1, y1):
+    board[x0][y0] = n
+    board[x1][y1] = 0
+
 menufont = pygame.font.SysFont("Arial", 60)
 
 # Set up the drawing window
 x=600
 y=600
+click = 0
+pselectx = -1
+pselecty = -1
 board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
          [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
 screen = pygame.display.set_mode([x, y])
@@ -120,11 +132,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            for i in range(8):
-                if 1 in board[i]:
-                    board[i][board[i].index(1)] = 0
-                    break
-            board[int(pygame.mouse.get_pos()[1]/75)][int(pygame.mouse.get_pos()[0]/75)] = 1
+            if click == 1:
+                if piecemove(board[pselectx][pselecty], int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75), pselectx, pselecty):
+                    movepieceto(board[pselectx][pselecty], int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75), pselectx, pselecty)
+            if click == 0:
+                pselectx = int(pygame.mouse.get_pos()[1]/75)
+                pselecty = int(pygame.mouse.get_pos()[0]/75)
+                if board[pselectx][pselecty] != 0:
+                    click = 1
+            else:
+                click = 0
     # Drawing the board
     screen.blit(boardimg,(0,0))
     drawpieces()
