@@ -355,7 +355,6 @@ def movepiece():
     else:
         print('Illegal move')
         return
-    printboard()
 
 def botmove():
     global turn
@@ -369,21 +368,11 @@ def botmove():
                     and not pin(move, i, board[i].index(move), movetox, movetoy)):
                     movepieceto(move, i, board[i].index(move), movetox, movetoy)
                     turn = (bot == 0)
-                    printboard()
+                    
                     return
                 else:
                     break
 
-printboard()
-
-print('Type 1 to play as white, 0 to play as black, or 2 for player vs player')
-try:
-    bot = int(input())
-except ValueError:
-    bot = 2
-
-if not(bot == 0 or bot == 1):
-    bot = 2
 
 def gameend():
     global turn
@@ -396,153 +385,3 @@ def gameend():
     if (turn == 0 and stalemate(50)) or (turn == 1 and stalemate(-50)) or repetition(moves):
         print('Draw')
         turn = -1
-        
-pygame.init()
-pygame.display.set_caption('LGG Chessbot')
-
-firstmenu = True
-
-menufont = pygame.font.SysFont("Arial", 60)
-
-# Set up the drawing window
-x=600
-y=600
-click = 0
-pselectx = -1
-pselecty = -1
-
-screen = pygame.display.set_mode([x, y])
-
-boardimg = pygame.image.load("Images/board.png").convert()
-bpawnimg = pygame.image.load("Images/blackpawn.png").convert()
-wpawnimg = pygame.image.load("Images/whitepawn.png").convert()
-wknightimg = pygame.image.load("Images/whiteknight.png").convert()
-wbishopimg = pygame.image.load("Images/whitebishop.png").convert()
-wrookimg = pygame.image.load("Images/whiterook.png").convert()
-wqueenimg = pygame.image.load("Images/whitequeen.png").convert()
-wkingimg = pygame.image.load("Images/whiteking.png").convert()
-bknightimg = pygame.image.load("Images/blackknight.png").convert()
-bbishopimg = pygame.image.load("Images/blackbishop.png").convert()
-brookimg = pygame.image.load("Images/blackrook.png").convert()
-bqueenimg = pygame.image.load("Images/blackqueen.png").convert()
-bkingimg = pygame.image.load("Images/blackking.png").convert()
-
-bpawnimg.set_colorkey((123, 0, 0))
-wpawnimg.set_colorkey((123, 0, 0))
-wknightimg.set_colorkey((123, 0, 0))
-wbishopimg.set_colorkey((123, 0, 0))
-wrookimg.set_colorkey((123, 0, 0))
-wqueenimg.set_colorkey((123, 0, 0))
-wkingimg.set_colorkey((123, 0, 0))
-bknightimg.set_colorkey((123, 0, 0))
-bbishopimg.set_colorkey((123, 0, 0))
-brookimg.set_colorkey((123, 0, 0))
-bqueenimg.set_colorkey((123, 0, 0))
-bkingimg.set_colorkey((123, 0, 0))
-
-def drawpieces():
-    for i in range(8):
-        for ii in range(8):
-            if board[i][ii] > 0 and board[i][ii] < 10:
-                screen.blit(wpawnimg, (ii*75, i*75))
-            elif board[i][ii] < 0 and board[i][ii] > -10:
-                screen.blit(bpawnimg, (ii*75, i*75))
-            elif board[i][ii] > 9 and board[i][ii] < 20:
-                screen.blit(wknightimg, (ii*75, i*75))
-            elif board[i][ii] > 19 and board[i][ii] < 30:
-                screen.blit(wbishopimg, (ii*75, i*75))
-            elif board[i][ii] > 29 and board[i][ii] < 40:
-                screen.blit(wrookimg, (ii*75, i*75))
-            elif board[i][ii] > 39 and board[i][ii] < 50:
-                screen.blit(wqueenimg, (ii*75, i*75))
-            elif board[i][ii] > 49:
-                screen.blit(wkingimg, (ii*75, i*75))
-            elif board[i][ii] < -9 and board[i][ii] > -20:
-                screen.blit(bknightimg, (ii*75, i*75))
-            elif board[i][ii] < -19 and board[i][ii] > -30:
-                screen.blit(bbishopimg, (ii*75, i*75))
-            elif board[i][ii] < -29 and board[i][ii] > -40:
-                screen.blit(brookimg, (ii*75, i*75))
-            elif board[i][ii] < -39 and board[i][ii] > -50:
-                screen.blit(bqueenimg, (ii*75, i*75))
-            elif board[i][ii] < -49:
-                screen.blit(bkingimg, (ii*75, i*75))
-
-running = True
-while running:
-
-    #Menu 
-    while firstmenu:
-        screen.fill((0,255,255))
-        playwhitebtn = menufont.render("White", 1, (100,100,100), (0,255,255))
-        whiterect = playwhitebtn.get_rect()
-        whiterect.center = (x/2, y/4)
-
-        playblackbtn = menufont.render("Black", 1, (100,100,100), (0,255,255))
-        blackrect = playblackbtn.get_rect()
-        blackrect.center = (x/2, y/2)
-
-        h2hbtn = menufont.render("Player vs Player", 1, (100,100,100), (0,255,255))
-        h2hrect = h2hbtn.get_rect()
-        h2hrect.center = (x/2, y/1.33)
-
-        screen.blit(playwhitebtn, whiterect)
-        screen.blit(playblackbtn, blackrect)
-        screen.blit(h2hbtn, h2hrect)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                firstmenu = False
-                running = False
-                break
-            if event.type == pygame.MOUSEBUTTONDOWN and whiterect.collidepoint(pygame.mouse.get_pos()):
-                firstmenu = False
-                break
-            if event.type == pygame.MOUSEBUTTONDOWN and blackrect.collidepoint(pygame.mouse.get_pos()):
-                firstmenu = False
-                break
-            if event.type == pygame.MOUSEBUTTONDOWN and h2hrect.collidepoint(pygame.mouse.get_pos()):
-                firstmenu = False
-                break
-
-        pygame.display.flip()
-    
-    if turn >= 0:
-        if turn == bot:
-            botmove()
-        gameend()
-
-    #Event handlers
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if click == 1 and turn == (bot == 0):
-                if (board[pselectx][pselecty] > 0 and turn == 0) or (board[pselectx][pselecty] < 0 and turn == 1):
-                    if piecemove(board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75),
-                        int(pygame.mouse.get_pos()[0]/75)) and not pin(board[pselectx][pselecty], pselectx, pselecty,
-                        int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75)):
-                        movepieceto(board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75), 
-                                    int(pygame.mouse.get_pos()[0]/75))
-                        if turn == 0:
-                            turn = 1
-                        else:
-                            turn = 0
-                        gameend()
-            if click == 0:
-                pselectx = int(pygame.mouse.get_pos()[1]/75)
-                pselecty = int(pygame.mouse.get_pos()[0]/75)
-                if board[pselectx][pselecty] != 0:
-                    click = 1
-            else:
-                click = 0
-    # Drawing the board
-    screen.blit(boardimg,(0,0))
-    drawpieces()
-
-    # Flip the display
-    pygame.display.flip()
-
-# Done! Time to quit.
-pygame.quit()
-

@@ -3,20 +3,17 @@ import os
 from pygame.locals import *
 import sys
 import time
+from Chessbot1 import *
+import math
+import random
+from copy import copy, deepcopy
+import Chessbot1
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
 
 firstmenu = True
 
-def piecemove(n, x0, y0, x1, y1):
-    if not (x0 == x1 and y0 == y1):
-        return True
-    return False
-
-def movepieceto(n, x0, y0, x1, y1):
-    board[x0][y0] = n
-    board[x1][y1] = 0
 
 menufont = pygame.font.SysFont("Arial", 60)
 
@@ -26,8 +23,7 @@ y=600
 click = 0
 pselectx = -1
 pselecty = -1
-board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-         [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
+
 screen = pygame.display.set_mode([x, y])
 
 boardimg = pygame.image.load("Images/board.png").convert()
@@ -62,29 +58,29 @@ bkingimg.set_colorkey((123, 0, 0))
 def drawpieces():
     for i in range(8):
         for ii in range(8):
-            if board[i][ii] > 0 and board[i][ii] < 10:
+            if Chessbot1.board[i][ii] > 0 and Chessbot1.board[i][ii] < 10:
                 screen.blit(wpawnimg, (ii*75, i*75))
-            elif board[i][ii] < 0 and board[i][ii] > -10:
+            elif Chessbot1.board[i][ii] < 0 and Chessbot1.board[i][ii] > -10:
                 screen.blit(bpawnimg, (ii*75, i*75))
-            elif board[i][ii] > 9 and board[i][ii] < 20:
+            elif Chessbot1.board[i][ii] > 9 and Chessbot1.board[i][ii] < 20:
                 screen.blit(wknightimg, (ii*75, i*75))
-            elif board[i][ii] > 19 and board[i][ii] < 30:
+            elif Chessbot1.board[i][ii] > 19 and Chessbot1.board[i][ii] < 30:
                 screen.blit(wbishopimg, (ii*75, i*75))
-            elif board[i][ii] > 29 and board[i][ii] < 40:
+            elif Chessbot1.board[i][ii] > 29 and Chessbot1.board[i][ii] < 40:
                 screen.blit(wrookimg, (ii*75, i*75))
-            elif board[i][ii] > 39 and board[i][ii] < 50:
+            elif Chessbot1.board[i][ii] > 39 and Chessbot1.board[i][ii] < 50:
                 screen.blit(wqueenimg, (ii*75, i*75))
-            elif board[i][ii] > 49:
+            elif Chessbot1.board[i][ii] > 49:
                 screen.blit(wkingimg, (ii*75, i*75))
-            elif board[i][ii] < -9 and board[i][ii] > -20:
+            elif Chessbot1.board[i][ii] < -9 and Chessbot1.board[i][ii] > -20:
                 screen.blit(bknightimg, (ii*75, i*75))
-            elif board[i][ii] < -19 and board[i][ii] > -30:
+            elif Chessbot1.board[i][ii] < -19 and Chessbot1.board[i][ii] > -30:
                 screen.blit(bbishopimg, (ii*75, i*75))
-            elif board[i][ii] < -29 and board[i][ii] > -40:
+            elif Chessbot1.board[i][ii] < -29 and Chessbot1.board[i][ii] > -40:
                 screen.blit(brookimg, (ii*75, i*75))
-            elif board[i][ii] < -39 and board[i][ii] > -50:
+            elif Chessbot1.board[i][ii] < -39 and Chessbot1.board[i][ii] > -50:
                 screen.blit(bqueenimg, (ii*75, i*75))
-            elif board[i][ii] < -49:
+            elif Chessbot1.board[i][ii] < -49:
                 screen.blit(bkingimg, (ii*75, i*75))
 
 # Run until the user asks to quit
@@ -116,29 +112,46 @@ while running:
                 running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and whiterect.collidepoint(pygame.mouse.get_pos()):
+                Chessbot1.bot=1
                 firstmenu = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and blackrect.collidepoint(pygame.mouse.get_pos()):
+                Chessbot1.bot=0
                 firstmenu = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and h2hrect.collidepoint(pygame.mouse.get_pos()):
+                Chessbot1.bot=2
                 firstmenu = False
                 break
 
         pygame.display.flip()
+
+    if Chessbot1.turn >= 0:
+        if Chessbot1.turn == Chessbot1.bot:
+            botmove()
+        gameend()
 
     #Event handlers
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if click == 1:
-                if piecemove(board[pselectx][pselecty], int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75), pselectx, pselecty):
-                    movepieceto(board[pselectx][pselecty], int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75), pselectx, pselecty)
+            if click == 1 and Chessbot1.turn == (Chessbot1.bot == 0):
+                if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
+                    if piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75),
+                        int(pygame.mouse.get_pos()[0]/75)) and not pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
+                        int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75)):
+                        movepieceto(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75), 
+                                    int(pygame.mouse.get_pos()[0]/75))
+                        if Chessbot1.turn == 0:
+                            Chessbot1.turn = 1
+                        else:
+                            Chessbot1.turn = 0
+                        gameend()
             if click == 0:
                 pselectx = int(pygame.mouse.get_pos()[1]/75)
                 pselecty = int(pygame.mouse.get_pos()[0]/75)
-                if board[pselectx][pselecty] != 0:
+                if Chessbot1.board[pselectx][pselecty] != 0:
                     click = 1
             else:
                 click = 0
