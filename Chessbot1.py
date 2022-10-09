@@ -1,12 +1,8 @@
-
 import math
 import random
 from copy import copy, deepcopy
-import pygame
-import os
 from pygame.locals import *
-import sys
-import time
+
 
 #Guten tag
 

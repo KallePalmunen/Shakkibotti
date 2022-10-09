@@ -1,11 +1,6 @@
 import pygame
-import os
 from pygame.locals import *
-import sys
 import time
-from Chessbot1 import *
-import math
-import random
 from copy import copy, deepcopy
 import Chessbot1
 
@@ -128,8 +123,8 @@ while running:
 
     if Chessbot1.turn >= 0:
         if Chessbot1.turn == Chessbot1.bot:
-            botmove()
-        gameend()
+            Chessbot1.botmove()
+        Chessbot1.gameend()
 
     #Event handlers
     for event in pygame.event.get():
@@ -138,16 +133,16 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if click == 1 and Chessbot1.turn == (Chessbot1.bot == 0):
                 if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
-                    if piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75),
-                        int(pygame.mouse.get_pos()[0]/75)) and not pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
+                    if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75),
+                        int(pygame.mouse.get_pos()[0]/75)) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
                         int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75)):
-                        movepieceto(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75), 
+                        Chessbot1.movepieceto(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75), 
                                     int(pygame.mouse.get_pos()[0]/75))
                         if Chessbot1.turn == 0:
                             Chessbot1.turn = 1
                         else:
                             Chessbot1.turn = 0
-                        gameend()
+                        Chessbot1.gameend()
             if click == 0:
                 pselectx = int(pygame.mouse.get_pos()[1]/75)
                 pselecty = int(pygame.mouse.get_pos()[0]/75)
