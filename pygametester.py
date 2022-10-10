@@ -128,7 +128,7 @@ while running:
             if botlevel == 1 and Chessbot1.bot == 0:
                 basicbot.basicbot()
             else:
-                Chessbot1.botmove()
+                Chessbot1.randommove()
         Chessbot1.gameend()
 
     #Event handlers
