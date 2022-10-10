@@ -3,6 +3,7 @@ from pygame.locals import *
 import time
 from copy import copy, deepcopy
 import Chessbot1
+import basicbot
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
@@ -18,6 +19,7 @@ y=600
 click = 0
 pselectx = -1
 pselecty = -1
+botlevel = 1
 
 screen = pygame.display.set_mode([x, y])
 
@@ -123,7 +125,10 @@ while running:
 
     if Chessbot1.turn >= 0:
         if Chessbot1.turn == Chessbot1.bot:
-            Chessbot1.botmove()
+            if botlevel == 1 and Chessbot1.bot == 0:
+                basicbot.basicbot()
+            else:
+                Chessbot1.botmove()
         Chessbot1.gameend()
 
     #Event handlers

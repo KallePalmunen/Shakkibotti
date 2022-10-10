@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3f743210-ed6d-4de6-b615-c1f357441797}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>pygametester.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Images\ball.png" />
+    <Content Include="Images\blackbishop.png" />
+    <Content Include="Images\blackking.png" />
+    <Content Include="Images\blackknight.png" />
+    <Content Include="Images\blackpawn.png" />
+    <Content Include="Images\blackqueen.png" />
+    <Content Include="Images\blackrook.png" />
+    <Content Include="Images\board.png" />
+    <Content Include="Images\whitebishop.png" />
+    <Content Include="Images\whiteking.png" />
+    <Content Include="Images\whiteknight.png" />
+    <Content Include="Images\whitepawn.png" />
+    <Content Include="Images\whitequeen.png" />
+    <Content Include="Images\whiterook.png" />
+    <Content Include="readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="basicbot.py" />
+    <Compile Include="Chessbot1.py" />
+    <Compile Include="pygametester.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Images" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
