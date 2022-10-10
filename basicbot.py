@@ -87,14 +87,12 @@ def basicbot():
                             Chessbot1.turn = (Chessbot1.bot == 0)
                         else:
                             movescore.append(-1000000)
-                        #should call restore() here but it's too slow
-                        Chessbot1.board = deepcopy(board)
+                        restore()
                 break
         else:
             for x1 in range(8):
                 for y1 in range(8):
                     movescore.append(-1000000)
-        restore()
     bestmove = movescore.index(max(movescore))
     move = int(bestmove/64)+1
     movetox = int((bestmove-math.floor(bestmove/64)*64)/8)
