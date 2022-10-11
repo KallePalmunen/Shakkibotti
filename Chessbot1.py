@@ -302,12 +302,15 @@ def movepieceto(n, x0, y0, x1, y1):
     if(abs(n) == 30 or abs(n) == 31):
         rookmoved[(n >0)][abs(n)-30] = 1
     if promote(n, x1):
-        print('Type 1 for knight, 2 for bishope, 3 for rook, 4 for queen')
-        try:
-            promoteto = int(input())
-        except ValueError:
-            print('Invalid input, promoting to queen')
+        if bot != 2:
             promoteto = 4
+        else:
+            print('Type 1 for knight, 2 for bishope, 3 for rook, 4 for queen')
+            try:
+                promoteto = int(input())
+            except ValueError:
+                print('Invalid input, promoting to queen')
+                promoteto = 4
         board[x1][y1] = int(math.copysign(1, n))*(promoteto*10+pieces[promoteto][(n < 0)])
         pieces[promoteto][(n < 0)] += 1
     else:

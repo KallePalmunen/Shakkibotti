@@ -65,11 +65,18 @@ def movepieceto(n, x0, y0, x1, y1):
 
 def evaluate():
     evaluation = 0
-    for x in range(8):
-        for y in range(8):
-            n = Chessbot1.board[x][y]
-            evaluation += math.copysign(math.ceil(abs(n)), n)\
-                + (abs(n) >= 10 and abs(n) < 50)*(x != 7*(n < 0))
+    if Chessbot1.checkmate(50):
+        return -500000
+    elif Chessbot1.checkmate(-50):
+        return 500000
+    else:
+        for x in range(8):
+            for y in range(8):
+                n = Chessbot1.board[x][y]
+                evaluation += math.copysign(math.ceil(abs(n)), n)\
+                    + (abs(n) >= 10 and abs(n) < 50)*(x != 7*(n < 0))*0.05\
+                    + (abs(n) < 9 and abs(n) > 0 and y > 2 and y < 6)*abs(x - 7*(n < 0))*0.01\
+                    + (abs(n) == 50 and (y == 1 or y == 5) and x == 7*(n < 0))*0.05
     return evaluation
 
 def basicbot():
