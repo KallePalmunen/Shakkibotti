@@ -128,7 +128,7 @@ while running:
             if botlevel == 1 and Chessbot1.bot == 0:
                 basicbot.basicbot()
             else:
-                Chessbot1.botmove()
+                Chessbot1.randommove()
         Chessbot1.gameend()
 
     #Event handlers
@@ -136,7 +136,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if click == 1 and Chessbot1.turn == (Chessbot1.bot == 0):
+            if click == 1 and Chessbot1.turn != Chessbot1.bot:
                 if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
                     if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75),
                         int(pygame.mouse.get_pos()[0]/75)) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,

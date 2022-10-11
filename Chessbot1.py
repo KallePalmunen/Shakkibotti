@@ -200,7 +200,7 @@ def check(n):
                 break
         else:
             return True
-        for i in range(1, 50):
+        for i in range(1, 51):
             for ii in range(8):
                 if i in board[ii]:
                     if piecemove(i, ii, board[ii].index(i), kingx, kingy):
@@ -215,7 +215,7 @@ def check(n):
                 break
         else:
             return True
-        for i in range(1, 50):
+        for i in range(1, 51):
             for ii in range(8):
                 if -i in board[ii]:
                     if piecemove(-i, ii, board[ii].index(-i), kingx, kingy):
@@ -352,7 +352,7 @@ def movepiece():
         print('Illegal move')
         return
 
-def botmove():
+def randommove():
     global turn
     while turn == bot:
         move = int(random.random()*51*math.copysign(1, 0.5-bot))
