@@ -33,7 +33,7 @@ def printboard():
 def piecemove(n, x0, y0, x1, y1):
     #checks if a certain piece can move (also there is specific functions for each piece like pawnmove, knightmove etc.)
     #n=unique piece, x0, y0 = starting coordinates, x1, y1 = ending coordinates
-    if x1 < 8 and y1 < 8 and y1 >= 0 and x1 >= 0:
+    if x1 < 8 and y1 < 8 and y1 >= 0 and x1 >= 0 and x0 >= 0:
         if abs(n) < 10:
             if pawnmove(n, x0, y0, x1, y1):
                 return True

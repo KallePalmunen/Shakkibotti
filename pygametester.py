@@ -4,6 +4,7 @@ import time
 from copy import copy, deepcopy
 import Chessbot1
 import basicbot
+import stockfishfanboy
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
@@ -127,6 +128,8 @@ while running:
         if Chessbot1.turn == Chessbot1.bot:
             if botlevel == 1 and Chessbot1.bot == 0:
                 basicbot.basicbot()
+            elif botlevel == 2 and Chessbot1.bot == 0:
+                stockfishfanboy.move()
             else:
                 Chessbot1.randommove()
         Chessbot1.gameend()
