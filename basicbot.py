@@ -2,40 +2,39 @@ import Chessbot1
 import random
 import math
 from copy import copy, deepcopy
+import time
 
-movescore = []
+movescore = [[],[]]
 
-turn = Chessbot1.turn
-moves = Chessbot1.moves
-enpassant = Chessbot1.enpassant
-board = deepcopy(Chessbot1.board)
-kingmoved = deepcopy(Chessbot1.kingmoved)
-rookmoved = deepcopy(Chessbot1.rookmoved)
-pieces = deepcopy(Chessbot1.pieces)
-positions = deepcopy(Chessbot1.positions)
+turn = [Chessbot1.turn, Chessbot1.turn]
+moves = [Chessbot1.moves, Chessbot1.moves]
+enpassant = [Chessbot1.enpassant, Chessbot1.enpassant]
+board = [deepcopy(Chessbot1.board), deepcopy(Chessbot1.board)]
+kingmoved = [deepcopy(Chessbot1.kingmoved), deepcopy(Chessbot1.kingmoved)]
+rookmoved = [deepcopy(Chessbot1.rookmoved), deepcopy(Chessbot1.rookmoved)]
+pieces = [deepcopy(Chessbot1.pieces), deepcopy(Chessbot1.pieces)]
+positions = [deepcopy(Chessbot1.positions), deepcopy(Chessbot1.positions)]
 
-def update():
-    global turn, moves, enpassant, board, kingmoved, rookmoved, pieces, positions
-    turn = Chessbot1.turn
-    moves = Chessbot1.moves
-    enpassant = Chessbot1.enpassant
-    board = deepcopy(Chessbot1.board)
-    kingmoved = deepcopy(Chessbot1.kingmoved)
-    rookmoved = deepcopy(Chessbot1.rookmoved)
-    pieces = deepcopy(Chessbot1.pieces)
-    positions = deepcopy(Chessbot1.positions)
-    movescore.clear()
+def update(i):
+    turn[i] = Chessbot1.turn
+    moves[i] = Chessbot1.moves
+    enpassant[i] = Chessbot1.enpassant
+    board[i] = deepcopy(Chessbot1.board)
+    kingmoved[i] = deepcopy(Chessbot1.kingmoved)
+    rookmoved[i] = deepcopy(Chessbot1.rookmoved)
+    pieces[i] = deepcopy(Chessbot1.pieces)
+    positions[i] = deepcopy(Chessbot1.positions)
+    movescore[i].clear()
 
-def restore():
-    global turn, moves, enpassant, board, kingmoved, rookmoved, pieces, positions
-    Chessbot1.turn = turn
-    Chessbot1.moves = moves
-    Chessbot1.enpassant = enpassant
-    Chessbot1.board = deepcopy(board)
-    Chessbot1.kingmoved = deepcopy(kingmoved)
-    Chessbot1.rookmoved = deepcopy(rookmoved)
-    Chessbot1.pieces = deepcopy(pieces)
-    Chessbot1.positions = deepcopy(positions)
+def restore(i):
+    Chessbot1.turn = turn[i]
+    Chessbot1.moves = moves[i]
+    Chessbot1.enpassant = enpassant[i]
+    Chessbot1.board = deepcopy(board[i])
+    Chessbot1.kingmoved = deepcopy(kingmoved[i])
+    Chessbot1.rookmoved = deepcopy(rookmoved[i])
+    Chessbot1.pieces = deepcopy(pieces[i])
+    Chessbot1.positions = deepcopy(positions[i])
 
 def movepieceto(n, x0, y0, x1, y1):
     if(abs(n) == 50):
@@ -79,9 +78,42 @@ def evaluate():
                     + (abs(n) == 50 and (y == 1 or y == 5) and x == 7*(n < 0))*0.05
     return evaluation
 
-def basicbot():
-    update()
-    global turn
+def bpawnmove():
+    for n in range(1, 9):
+        for i in range(8):
+            if -n in Chessbot1.board[i]:
+                for x1 in range(8):
+                    if x1 <= i or i - x1 <= 2:
+                        for y1 in range(8):
+                            if (Chessbot1.piecemove(-n, i, Chessbot1.board[i].index(-n), x1, y1) 
+                                and not Chessbot1.pin(-n, i, Chessbot1.board[i].index(-n), x1, y1)):
+                                movepieceto(-n, i, Chessbot1.board[i].index(-n), x1, y1)
+                                movescore[1].append(evaluate())
+                                Chessbot1.turn = Chessbot1.bot
+                                restore(1)
+
+def blackmove():
+    update(1)
+    bpawnmove()
+    for n1 in range(1, 6):
+        for n2 in range(Chessbot1.pieces[n1][1]):
+            n = n1*10+n2
+            for i in range(8):
+                if -n in Chessbot1.board[i]:
+                    for x1 in range(8):
+                        for y1 in range(8):
+                            if (Chessbot1.piecemove(-n, i, Chessbot1.board[i].index(-n), x1, y1) 
+                                and not Chessbot1.pin(-n, i, Chessbot1.board[i].index(-n), x1, y1)):
+                                movepieceto(-n, i, Chessbot1.board[i].index(-n), x1, y1)
+                                movescore[1].append(evaluate())
+                                Chessbot1.turn = Chessbot1.bot
+                                restore(1)
+                    break
+    movescore[1].append(1000000)
+    restore(1)
+    return min(movescore[1])
+
+def whitemove():
     for n in range(1, 51):
         for i in range(8):
             if n in Chessbot1.board[i]:
@@ -90,17 +122,22 @@ def basicbot():
                         if (Chessbot1.piecemove(n, i, Chessbot1.board[i].index(n), x1, y1) 
                             and not Chessbot1.pin(n, i, Chessbot1.board[i].index(n), x1, y1)):
                             movepieceto(n, i, Chessbot1.board[i].index(n), x1, y1)
-                            movescore.append(evaluate())
                             Chessbot1.turn = (Chessbot1.bot == 0)
+                            movescore[0].append(blackmove())
+                            restore(0)
                         else:
-                            movescore.append(-1000000)
-                        restore()
+                            movescore[0].append(-1000000)
                 break
         else:
-            for x1 in range(8):
-                for y1 in range(8):
-                    movescore.append(-1000000)
-    bestmove = movescore.index(max(movescore))
+            for xy in range(64):
+                movescore[0].append(-1000000)
+
+def basicbot():
+    start = time.time()
+    update(0)
+    global turn
+    whitemove()
+    bestmove = movescore[0].index(max(movescore[0]))
     move = int(bestmove/64)+1
     movetox = int((bestmove-math.floor(bestmove/64)*64)/8)
     movetoy = int(bestmove-movetox*8-(move-1)*64)
@@ -108,3 +145,6 @@ def basicbot():
         if move in Chessbot1.board[i]:
             Chessbot1.movepieceto(move, i, Chessbot1.board[i].index(move), movetox, movetoy)
             Chessbot1.turn = (Chessbot1.bot == 0)
+    end = time.time()
+    #19-20
+    print(end-start)
