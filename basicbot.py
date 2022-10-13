@@ -73,9 +73,11 @@ def evaluate():
             for y in range(8):
                 n = Chessbot1.board[x][y]
                 evaluation += math.copysign(math.ceil(abs(n)), n)\
-                    + (abs(n) >= 10 and abs(n) < 50)*(x != 7*(n < 0))*0.05\
-                    + (abs(n) < 9 and abs(n) > 0 and y > 2 and y < 6)*abs(x - 7*(n < 0))*0.01\
-                    + (abs(n) == 50 and (y == 1 or y == 5) and x == 7*(n < 0))*0.05
+                    + ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x != 7*(n < 0))*(0.05+0.001*(abs(x - 7*(n < 0)) > 1))\
+                    + (abs(n) < 9 and abs(n) > 0 and y > 2 and y < 6)*abs(x - 7*(n < 0))*((y == 5)*0.01+(y != 5)*0.05)\
+                    + (abs(n) == 50 and (y == 1 or y == 5) and x == 7*(n < 0))*0.05\
+                    + (abs(n) < 9 and abs(n) > 0)*abs(x - 7*(n < 0))*0.001\
+                    + (abs(n) >= 10 and abs(n) < 20 and y > 1 and y < 6)*0.01
     return evaluation
 
 def bpawnmove():
@@ -146,5 +148,4 @@ def basicbot():
             Chessbot1.movepieceto(move, i, Chessbot1.board[i].index(move), movetox, movetoy)
             Chessbot1.turn = (Chessbot1.bot == 0)
     end = time.time()
-    #19-20
     print(end-start)

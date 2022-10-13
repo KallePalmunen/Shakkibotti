@@ -20,6 +20,7 @@ y=600
 click = 0
 pselectx = -1
 pselecty = -1
+#botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy
 botlevel = 1
 
 screen = pygame.display.set_mode([x, y])
