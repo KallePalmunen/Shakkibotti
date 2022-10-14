@@ -150,44 +150,48 @@ def checkmate(n):
     if not check(n):
         return False
     if n > 0:
-        for i in range(1, 51):
-            for ii in range(8):
-                if i in board[ii]:
-                    piecex0 = ii
-                    piecey0 = board[ii].index(i)
-                    for j in range(8):
-                        for jj in range(8):
-                            if piecemove(i, piecex0, piecey0, j, jj):
-                                board[piecex0][piecey0] = 0
-                                movetosquare = board[j][jj]
-                                board[j][jj] = i
-                                if not check(n):
+        for n1 in range(1, 6):
+            for n2 in range(pieces[n1][0]):
+                i = n1*10+n2
+                for ii in range(8):
+                    if i in board[ii]:
+                        piecex0 = ii
+                        piecey0 = board[ii].index(i)
+                        for j in range(8):
+                            for jj in range(8):
+                                if piecemove(i, piecex0, piecey0, j, jj):
+                                    board[piecex0][piecey0] = 0
+                                    movetosquare = board[j][jj]
+                                    board[j][jj] = i
+                                    if not check(n):
+                                        board[piecex0][piecey0] = i
+                                        board[j][jj] = movetosquare
+                                        return False
                                     board[piecex0][piecey0] = i
                                     board[j][jj] = movetosquare
-                                    return False
-                                board[piecex0][piecey0] = i
-                                board[j][jj] = movetosquare
-                    break
+                        break
         return True
     if n < 0:
-        for i in range(1, 51):
-            for ii in range(8):
-                if -i in board[ii]:
-                    piecex0 = ii
-                    piecey0 = board[ii].index(-i)
-                    for j in range(8):
-                        for jj in range(8):
-                            if piecemove(-i, piecex0, piecey0, j, jj):
-                                board[piecex0][piecey0] = 0
-                                movetosquare = board[j][jj]
-                                board[j][jj] = -i
-                                if not check(n):
+        for n1 in range(1, 6):
+            for n2 in range(pieces[n1][1]):
+                i = n1*10+n2
+                for ii in range(8):
+                    if -i in board[ii]:
+                        piecex0 = ii
+                        piecey0 = board[ii].index(-i)
+                        for j in range(8):
+                            for jj in range(8):
+                                if piecemove(-i, piecex0, piecey0, j, jj):
+                                    board[piecex0][piecey0] = 0
+                                    movetosquare = board[j][jj]
+                                    board[j][jj] = -i
+                                    if not check(n):
+                                        board[piecex0][piecey0] = -i
+                                        board[j][jj] = movetosquare
+                                        return False
                                     board[piecex0][piecey0] = -i
                                     board[j][jj] = movetosquare
-                                    return False
-                                board[piecex0][piecey0] = -i
-                                board[j][jj] = movetosquare
-                    break
+                        break
         return True
 
 
