@@ -48,7 +48,8 @@ def evaluate():
                     + (abs(n) < 9 and abs(n) > 0 and y > 2 and y < 6)*abs(x - 7*(n < 0))*((y == 5)*0.01+(y != 5)*0.05)\
                     + (abs(n) == 50 and (y == 1 or y == 5) and x == 7*(n < 0))*0.05\
                     + (abs(n) < 9 and abs(n) > 0)*abs(x - 7*(n < 0))*0.001\
-                    + (abs(n) >= 10 and abs(n) < 20 and y > 1 and y < 6)*0.01
+                    + (abs(n) >= 10 and abs(n) < 20 and y > 1 and y < 6)*0.01\
+                    - (abs(n) <= 10 and abs(n) > 0 and Chessbot1.moves < 30 and y < 2)*(abs(x - 7*(n < 0)) > 2)*(-0.02)
     return evaluation
 
 
