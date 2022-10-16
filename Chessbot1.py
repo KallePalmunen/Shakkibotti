@@ -1,7 +1,7 @@
 import math
 import random
 from copy import copy, deepcopy
-from pygame.locals import *
+import numpy as np
 
 
 #Guten tag
