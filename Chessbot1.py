@@ -16,6 +16,7 @@ positions[0] = deepcopy(board)
 turn = 0
 enpassant = -1
 bot = 2
+promotemenu = False
 
 #pawns, knights, bishops, rooks, queens and kings (W,B)
 pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
@@ -296,6 +297,7 @@ def movepieceto(n, x0, y0, x1, y1):
     global turn
     global moves
     global enpassant
+    global promotemenu
     if(abs(n) == 50):
         if abs(y1 - y0) > 1:
             whichrook = int(math.copysign(30 + (y1 > 4), n))
@@ -306,15 +308,11 @@ def movepieceto(n, x0, y0, x1, y1):
     if(abs(n) == 30 or abs(n) == 31):
         rookmoved[(n >0)][abs(n)-30] = 1
     if promote(n, x1):
-        if bot != 2:
+        if bot == turn:
             promoteto = 4
         else:
-            print('Type 1 for knight, 2 for bishope, 3 for rook, 4 for queen')
-            try:
-                promoteto = int(input())
-            except ValueError:
-                print('Invalid input, promoting to queen')
-                promoteto = 4
+            promotemenu = True
+            return
         board[x1][y1] = int(math.copysign(1, n))*(promoteto*10+pieces[promoteto][(n < 0)])
         pieces[promoteto][(n < 0)] += 1
     else:

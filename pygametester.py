@@ -5,6 +5,7 @@ from copy import copy, deepcopy
 import Chessbot1
 import basicbot
 import stockfishfanboy
+import math
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
@@ -22,6 +23,7 @@ pselectx = -1
 pselecty = -1
 #botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy
 botlevel = 1
+promoteto = 0
 
 screen = pygame.display.set_mode([x, y])
 
@@ -82,6 +84,55 @@ def drawpieces():
             elif Chessbot1.board[i][ii] < -49:
                 screen.blit(bkingimg, (ii*75, i*75))
 
+def promotegui():
+    global promoteto
+    while True:
+        screen.fill((0,255,255))
+        queenbtn = menufont.render("Queen", 1, (100,100,100), (0,255,255))
+        queenrect = queenbtn.get_rect()
+        queenrect.center = (x/2, y/5)
+
+        knightbtn = menufont.render("Knight", 1, (100,100,100), (0,255,255))
+        knightrect = knightbtn.get_rect()
+        knightrect.center = (x/2, 2*y/5)
+
+        rookbtn = menufont.render("Rook", 1, (100,100,100), (0,255,255))
+        rookrect = rookbtn.get_rect()
+        rookrect.center = (x/2, 3*y/5)
+
+        bishopbtn = menufont.render("Bishop", 1, (100,100,100), (0,255,255))
+        bishoprect = bishopbtn.get_rect()
+        bishoprect.center = (x/2, 4*y/5)
+
+        screen.blit(queenbtn, queenrect)
+        screen.blit(knightbtn, knightrect)
+        screen.blit(rookbtn, rookrect)
+        screen.blit(bishopbtn, bishoprect)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                Chessbot1.promotemenu = False
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN and queenrect.collidepoint(pygame.mouse.get_pos()):
+                promoteto=4
+                Chessbot1.promotemenu = False
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN and knightrect.collidepoint(pygame.mouse.get_pos()):
+                promoteto=1
+                Chessbot1.promotemenu = False
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN and rookrect.collidepoint(pygame.mouse.get_pos()):
+                promoteto=3
+                Chessbot1.promotemenu = False
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN and bishoprect.collidepoint(pygame.mouse.get_pos()):
+                promoteto=2
+                Chessbot1.promotemenu = False
+                return
+
+        pygame.display.flip()
+
+
 # Run until the user asks to quit
 running = True
 while running:
@@ -134,6 +185,7 @@ while running:
             else:
                 Chessbot1.randommove()
         Chessbot1.gameend()
+            
 
     #Event handlers
     for event in pygame.event.get():
@@ -141,12 +193,19 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             if click == 1 and Chessbot1.turn != Chessbot1.bot:
+                x1=int(pygame.mouse.get_pos()[1]/75)
+                y1=int(pygame.mouse.get_pos()[0]/75)
+                n=Chessbot1.board[pselectx][pselecty]
                 if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
-                    if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75),
-                        int(pygame.mouse.get_pos()[0]/75)) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
-                        int(pygame.mouse.get_pos()[1]/75), int(pygame.mouse.get_pos()[0]/75)):
-                        Chessbot1.movepieceto(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, int(pygame.mouse.get_pos()[1]/75), 
-                                    int(pygame.mouse.get_pos()[0]/75))
+                    if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, x1,
+                        y1) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
+                        x1, y1):
+                        Chessbot1.movepieceto(n, pselectx, pselecty, x1, y1)
+                        if Chessbot1.promotemenu:
+                            promotegui()
+                            Chessbot1.board[x1][y1] = int(math.copysign(1, n))\
+                                *(promoteto*10+Chessbot1.pieces[promoteto][(n < 0)])
+                            Chessbot1.pieces[promoteto][(n < 0)] += 1
                         if Chessbot1.turn == 0:
                             Chessbot1.turn = 1
                         else:
