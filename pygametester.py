@@ -226,6 +226,27 @@ while running:
                     click = 1
             else:
                 click = 0
+        if event.type == pygame.MOUSEBUTTONUP and click == 1:
+            x1=int(pygame.mouse.get_pos()[1]/75)
+            y1=int(pygame.mouse.get_pos()[0]/75)
+            if not(x1 == pselectx and y1 == pselecty):
+                n=Chessbot1.board[pselectx][pselecty]
+                if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
+                    if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, x1,
+                        y1) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
+                        x1, y1):
+                        Chessbot1.movepieceto(n, pselectx, pselecty, x1, y1)
+                        if Chessbot1.promotemenu:
+                            promotegui()
+                            Chessbot1.board[x1][y1] = int(math.copysign(1, n))\
+                                *(promoteto*10+Chessbot1.pieces[promoteto][(n < 0)])
+                            Chessbot1.pieces[promoteto][(n < 0)] += 1
+                        if Chessbot1.turn == 0:
+                            Chessbot1.turn = 1
+                        else:
+                            Chessbot1.turn = 0
+                        Chessbot1.gameend()
+                click = 0
     # Drawing the board
     screen.blit(boardimg,(0,0))
     drawpieces()
