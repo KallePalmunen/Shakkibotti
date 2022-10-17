@@ -222,7 +222,7 @@ while running:
             if click == 0:
                 pselectx = int(pygame.mouse.get_pos()[1]/75)
                 pselecty = int(pygame.mouse.get_pos()[0]/75)
-                if Chessbot1.board[pselectx][pselecty] != 0:
+                if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
                     click = 1
             else:
                 click = 0

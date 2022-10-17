@@ -287,7 +287,7 @@ def compareposition(m):
 def repetition(m):
     repetitions = 0
     for i in range(m):
-        if compareposition(i):
+        if compareposition(i) and i%2 == m%2:
             repetitions += 1
             if(repetitions >= 2):
                 return True
