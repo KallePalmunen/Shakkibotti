@@ -11,6 +11,7 @@ pygame.init()
 pygame.display.set_caption('LGG Chessbot')
 
 firstmenu = True
+start = True
 
 
 menufont = pygame.font.SysFont("Arial", 60)
@@ -175,6 +176,13 @@ while running:
                 break
 
         pygame.display.flip()
+    
+    if start:
+        screen.blit(boardimg,(0,0))
+        drawpieces()
+        pygame.display.flip()
+        time.sleep(1)
+        start = False
 
     if Chessbot1.turn >= 0:
         if Chessbot1.turn == Chessbot1.bot:
