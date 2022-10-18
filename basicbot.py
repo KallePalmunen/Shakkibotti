@@ -36,22 +36,19 @@ def movepieceto(n, x0, y0, x1, y1):
     Chessbot1.positions += [deepcopy(Chessbot1.board)]
 
 def evaluate():
-    evaluation = 0
     if Chessbot1.checkmate(50):
         return -500000
-    elif Chessbot1.checkmate(-50):
+    if Chessbot1.checkmate(-50):
         return 500000
-    else:
-        for x in range(8):
-            for y in range(8):
-                n = Chessbot1.board[x][y]
-                evaluation += math.copysign(math.ceil(abs(n)), n)\
-                    + ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x != 7*(n < 0))*(0.05+0.001*(abs(x - 7*(n < 0)) > 1))\
-                    + (abs(n) < 9 and abs(n) > 0 and y > 2 and y < 6)*abs(x - 7*(n < 0))*((y == 5)*0.01+(y != 5)*0.05)\
-                    + (abs(n) == 50 and (y == 1 or y == 5) and x == 7*(n < 0))*0.05\
-                    + (abs(n) < 9 and abs(n) > 0)*abs(x - 7*(n < 0))*0.001\
-                    + (abs(n) >= 10 and abs(n) < 20 and y > 1 and y < 6)*0.01\
-                    - (abs(n) <= 10 and abs(n) > 0 and Chessbot1.moves < 60 and y < 2)*(abs(x - 7*(n < 0)) > 2)*0.03
+    evaluation = (Chessbot1.board[0][1] == 50 or Chessbot1.board[0][5] == 50 or Chessbot1.board[7][1] == -50 or Chessbot1.board[7][5] == -50)*0.05
+    for x in range(8):
+        for y in range(8):
+            n = Chessbot1.board[x][y]
+            evaluation += math.copysign((n != 0 and abs(n) < 9)*(1+(abs(x - 7*(n < 0))*((y > 2 and y < 6)*((y == 5)*0.01+(y != 5)*0.05) + 0.001)\
+                - (Chessbot1.moves < 60 and y < 2)*(abs(x - 7*(n < 0)) > 2)*0.03))\
+                + 3*(abs(n) > 9 and abs(n) < 30) + 5*(abs(n) > 29 and abs(n) < 40) + 9*(abs(n) > 39), n)\
+                + ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x != 7*(n < 0))*(0.05+0.001*(abs(x - 7*(n < 0)) > 1))\
+                + (abs(n) >= 10 and abs(n) < 20 and y > 1 and y < 6)*0.01
     return evaluation
 
 
@@ -73,7 +70,7 @@ def blackmove():
                         if (Chessbot1.piecemove(-n, i, y0, x1, y1) 
                             and not Chessbot1.pin(-n, i, y0, x1, y1)):
                             movepieceto(-n, i, y0, x1, y1)
-                            movescore[1] += [wmove()]
+                            movescore[1] += [evaluate()]
                             Chessbot1.turn = Chessbot1.bot
                                 
                             Chessbot1.moves = moves
@@ -94,7 +91,7 @@ def blackmove():
                         if (Chessbot1.piecemove(-n, i, y0, x1, y1) 
                             and not Chessbot1.pin(-n, i, y0, x1, y1)):
                             movepieceto(-n, i, y0, x1, y1)
-                            movescore[1] += [wmove()]
+                            movescore[1] += [evaluate()]
                             Chessbot1.turn = Chessbot1.bot
                                 
                             Chessbot1.moves = moves
@@ -114,7 +111,7 @@ def blackmove():
                             if (Chessbot1.piecemove(-n, i, Chessbot1.board[i].index(-n), x1, y1) 
                                 and not Chessbot1.pin(-n, i, Chessbot1.board[i].index(-n), x1, y1)):
                                 movepieceto(-n, i, Chessbot1.board[i].index(-n), x1, y1)
-                                movescore[1] += [wmove()]
+                                movescore[1] += [evaluate()]
                                 Chessbot1.turn = Chessbot1.bot
                                 
                                 Chessbot1.moves = moves
