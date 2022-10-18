@@ -205,12 +205,14 @@ def check(n):
                 break
         else:
             return True
-        for i in range(1, 51):
-            for ii in range(8):
-                if i in board[ii]:
-                    if piecemove(i, ii, board[ii].index(i), kingx, kingy):
-                        return True
-                    break
+        for n1 in range(1, 6):
+            for n2 in range(pieces[n1][0]):
+                i = n1*10+n2
+                for ii in range(8):
+                    if i in board[ii]:
+                        if piecemove(i, ii, board[ii].index(i), kingx, kingy):
+                            return True
+                        break
         return False
     if n > 0:
         for i in range(8):
@@ -220,12 +222,14 @@ def check(n):
                 break
         else:
             return True
-        for i in range(1, 51):
-            for ii in range(8):
-                if -i in board[ii]:
-                    if piecemove(-i, ii, board[ii].index(-i), kingx, kingy):
-                        return True
-                    break
+        for n1 in range(1, 6):
+            for n2 in range(pieces[n1][1]):
+                i = n1*10+n2
+                for ii in range(8):
+                    if -i in board[ii]:
+                        if piecemove(-i, ii, board[ii].index(-i), kingx, kingy):
+                            return True
+                        break
         return False
     return False
 

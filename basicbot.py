@@ -73,7 +73,7 @@ def blackmove():
                         if (Chessbot1.piecemove(-n, i, y0, x1, y1) 
                             and not Chessbot1.pin(-n, i, y0, x1, y1)):
                             movepieceto(-n, i, y0, x1, y1)
-                            movescore[1] += [wmove()]
+                            movescore[1] += [evaluate()]
                             Chessbot1.turn = Chessbot1.bot
                                 
                             Chessbot1.moves = moves
@@ -94,7 +94,7 @@ def blackmove():
                         if (Chessbot1.piecemove(-n, i, y0, x1, y1) 
                             and not Chessbot1.pin(-n, i, y0, x1, y1)):
                             movepieceto(-n, i, y0, x1, y1)
-                            movescore[1] += [wmove()]
+                            movescore[1] += [evaluate()]
                             Chessbot1.turn = Chessbot1.bot
                                 
                             Chessbot1.moves = moves
@@ -114,7 +114,7 @@ def blackmove():
                             if (Chessbot1.piecemove(-n, i, Chessbot1.board[i].index(-n), x1, y1) 
                                 and not Chessbot1.pin(-n, i, Chessbot1.board[i].index(-n), x1, y1)):
                                 movepieceto(-n, i, Chessbot1.board[i].index(-n), x1, y1)
-                                movescore[1] += [wmove()]
+                                movescore[1] += [evaluate()]
                                 Chessbot1.turn = Chessbot1.bot
                                 
                                 Chessbot1.moves = moves
