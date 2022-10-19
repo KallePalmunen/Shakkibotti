@@ -151,7 +151,7 @@ def checkmate(n):
     if not check(n):
         return False
     if n > 0:
-        for n1 in range(1, 6):
+        for n1 in range(6):
             for n2 in range(pieces[n1][0]):
                 i = n1*10+n2
                 for ii in range(8):
@@ -173,7 +173,7 @@ def checkmate(n):
                         break
         return True
     if n < 0:
-        for n1 in range(1, 6):
+        for n1 in range(6):
             for n2 in range(pieces[n1][1]):
                 i = n1*10+n2
                 for ii in range(8):
