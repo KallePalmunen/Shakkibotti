@@ -331,7 +331,7 @@ def wmove(n01, x01, y01, x11, y11):
         for i in range(8):
             if n in Chessbot1.board[i]:
                 y0 = Chessbot1.board[i].index(n)
-                for x1 in range(x1-2, x1+3):
+                for x1 in range(i-2, i+3):
                     for y1 in range(y0-2, y0+3):
                         if (Chessbot1.piecemove(n, i, y0, x1, y1) 
                             and not Chessbot1.pin(n, i, y0, x1, y1)):
