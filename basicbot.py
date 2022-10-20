@@ -395,9 +395,10 @@ def whitemove():
                     for y1 in range(8):
                         if (Chessbot1.piecemove(n, i, y0, x1, y1) 
                             and not Chessbot1.pin(n, i, y0, x1, y1)):
+                            evaluation1 = evaluate0(x1, y1)
                             movepieceto(n, i, y0, x1, y1)
                             Chessbot1.turn = (Chessbot1.bot == 0)
-                            movescore[0] += [blackmove(n, i, y0, x1, y1)]
+                            movescore[0] += [blackmove(n, i, y0, x1, y1) + evaluation1]
                                 
                             Chessbot1.moves = moves
                             Chessbot1.enpassant = enpassant
@@ -427,3 +428,5 @@ def basicbot():
             break
     end = time.time()
     print(end-start)
+    print(max(movescore[0]))
+    print(movescore[0][19*64+5*8+5])
