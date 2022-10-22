@@ -57,6 +57,14 @@ def partialpin(n,x0,y0,x1,y1,kingx,kingy):
     Chessbot1.board[x1][y1] = movetosquare
     return True
 
+def pinnable(n,x0,y0,kingx,kingy):
+    Chessbot1.board[x0][y0] = 0
+    if not check(kingx,kingy):
+        Chessbot1.board[x0][y0] = n
+        return False
+    Chessbot1.board[x0][y0] = n
+    return True
+
 def movepieceto2(n, x0, y0, x1, y1):
     if(abs(n) == 50):
         if abs(y1 - y0) > 1:
@@ -213,19 +221,33 @@ def bmove(n01, x01, y01, x11, y11):
             if -n in Chessbot1.board[7-i]:
                 x0 = 7-i
                 y0 = Chessbot1.board[x0].index(-n)
-                for x1 in range(x0 - 2, x0):
-                    for y1 in range(y0 - 1, y0+2):
-                        if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
-                            and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
-                            wastheren = Chessbot1.board[x1][y1]
-                            evaluation1 = evaluate0(x1, y1)
-                            movepieceto2(-n, x0, y0, x1, y1)
-                            movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
-                            Chessbot1.turn = Chessbot1.bot
-                                
-                            Chessbot1.moves -= 1
-                            Chessbot1.board[x1][y1] = wastheren
-                            Chessbot1.board[x0][y0] = -n
+                if not pinnable(-n, x0, y0, kingx, kingy):
+                    for x1 in range(x0 - 2, x0):
+                        for y1 in range(y0 - 1, y0+2):
+                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
+                                wastheren = Chessbot1.board[x1][y1]
+                                evaluation1 = evaluate0(x1, y1)
+                                movepieceto2(-n, x0, y0, x1, y1)
+                                movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
+                                Chessbot1.turn = Chessbot1.bot
+                                    
+                                Chessbot1.moves -= 1
+                                Chessbot1.board[x1][y1] = wastheren
+                                Chessbot1.board[x0][y0] = -n
+                else: 
+                    for x1 in range(x0 - 2, x0):
+                        for y1 in range(y0 - 1, y0+2):
+                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
+                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
+                                wastheren = Chessbot1.board[x1][y1]
+                                evaluation1 = evaluate0(x1, y1)
+                                movepieceto2(-n, x0, y0, x1, y1)
+                                movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
+                                Chessbot1.turn = Chessbot1.bot
+                                    
+                                Chessbot1.moves -= 1
+                                Chessbot1.board[x1][y1] = wastheren
+                                Chessbot1.board[x0][y0] = -n
                             
                 break
     for n2 in range(Chessbot1.pieces[1][1]):
@@ -234,19 +256,34 @@ def bmove(n01, x01, y01, x11, y11):
             if -n in Chessbot1.board[7-i]:
                 x0 = 7-i
                 y0 = Chessbot1.board[x0].index(-n)
-                for x1 in range(x0-2, x0+3):
-                    for y1 in range(y0-2, y0+3):
-                        if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
-                            and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
-                            wastheren = Chessbot1.board[x1][y1]
-                            evaluation1 = evaluate0(x1, y1)
-                            movepieceto2(-n, x0, y0, x1, y1)
-                            movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
-                            Chessbot1.turn = Chessbot1.bot
-                                
-                            Chessbot1.moves -= 1
-                            Chessbot1.board[x1][y1] = wastheren
-                            Chessbot1.board[x0][y0] = -n
+                if not pinnable(-n, x0, y0, kingx, kingy):
+                    for x1 in range(x0-2, x0+3):
+                        for y1 in range(y0-2, y0+3):
+                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
+                                wastheren = Chessbot1.board[x1][y1]
+                                evaluation1 = evaluate0(x1, y1)
+                                movepieceto2(-n, x0, y0, x1, y1)
+                                movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
+                                Chessbot1.turn = Chessbot1.bot
+                                    
+                                Chessbot1.moves -= 1
+                                Chessbot1.board[x1][y1] = wastheren
+                                Chessbot1.board[x0][y0] = -n
+                else:
+                    for x1 in range(x0-2, x0+3):
+                        for y1 in range(y0-2, y0+3):
+                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
+                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
+                                wastheren = Chessbot1.board[x1][y1]
+                                evaluation1 = evaluate0(x1, y1)
+                                movepieceto2(-n, x0, y0, x1, y1)
+                                movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
+                                Chessbot1.turn = Chessbot1.bot
+                                    
+                                Chessbot1.moves -= 1
+                                Chessbot1.board[x1][y1] = wastheren
+                                Chessbot1.board[x0][y0] = -n
+                break
     for n1 in range(2, 5):
         for n2 in range(Chessbot1.pieces[n1][1]):
             n = n1*10+n2
@@ -254,21 +291,37 @@ def bmove(n01, x01, y01, x11, y11):
                 if -n in Chessbot1.board[7-i]:
                     x0 = 7-i
                     y0 = Chessbot1.board[x0].index(-n)
-                    for x1 in range(8):
-                        for y1 in range(8):
-                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
-                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
-                                wastheren = Chessbot1.board[x1][y1]
-                                evaluation1 = evaluate0(x1, y1)
-                                movepieceto2(-n, x0, y0, x1, y1)
-                                if Chessbot1.checkmate(50):
-                                    return -500000
-                                movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
-                                Chessbot1.turn = Chessbot1.bot
-                                
-                                Chessbot1.moves -= 1
-                                Chessbot1.board[x1][y1] = wastheren
-                                Chessbot1.board[x0][y0] = -n
+                    if not pinnable(-n, x0, y0, kingx, kingy):
+                        for x1 in range(8):
+                            for y1 in range(8):
+                                if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
+                                    wastheren = Chessbot1.board[x1][y1]
+                                    evaluation1 = evaluate0(x1, y1)
+                                    movepieceto2(-n, x0, y0, x1, y1)
+                                    if Chessbot1.checkmate(50):
+                                        return -500000
+                                    movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
+                                    Chessbot1.turn = Chessbot1.bot
+                                    
+                                    Chessbot1.moves -= 1
+                                    Chessbot1.board[x1][y1] = wastheren
+                                    Chessbot1.board[x0][y0] = -n
+                    else:
+                        for x1 in range(8):
+                            for y1 in range(8):
+                                if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
+                                    and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
+                                    wastheren = Chessbot1.board[x1][y1]
+                                    evaluation1 = evaluate0(x1, y1)
+                                    movepieceto2(-n, x0, y0, x1, y1)
+                                    if Chessbot1.checkmate(50):
+                                        return -500000
+                                    movescore3 += evaluate(-n, x0, y0, x1, y1) + evaluation1,
+                                    Chessbot1.turn = Chessbot1.bot
+                                    
+                                    Chessbot1.moves -= 1
+                                    Chessbot1.board[x1][y1] = wastheren
+                                    Chessbot1.board[x0][y0] = -n
                     break
     n = 50
     for i in range(8):
@@ -429,4 +482,3 @@ def basicbot():
     end = time.time()
     print(end-start)
     print(max(movescore[0]))
-    print(movescore[0][19*64+5*8+5])
