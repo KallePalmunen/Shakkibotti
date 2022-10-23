@@ -86,26 +86,24 @@ def evaluate(n, x0, y0, x1, y1):
     n2 = Chessbot1.board[min(7, x1 + 1)][max(0, y1-1)]
     evaluation = math.copysign((n != 0 and abs(n) < 9)*(1+(abs(x1 - 7*(n < 0))*((y1 > 2 and y1 < 6)*((y1 == 5)*0.01+(y1 != 5)*0.05) + 0.001)\
                 - (Chessbot1.moves < 60 and y1 < 2)*(abs(x1 - 7*(n < 0)) > 2)*0.03))\
-                + (3-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*1.5)\
-                *(abs(n) > 9 and abs(n) < 30) + \
-                (5-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*2.5)\
+                + 3*(abs(n) > 9 and abs(n) < 30) + \
+                (5 + (not ((x1 == 0 or x1 == 7) and (y1 == 0 or y1 == 7)))*0.01)\
                 *(abs(n) > 29 and abs(n) < 40) + \
-                (9-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*4.5)\
-                *(abs(n) > 39)+ ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x1 != 7*(n < 0))*(0.05+0.001*(abs(x1 - 7*(n < 0)) > 1))\
+                9*(abs(n) > 39)+ ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x1 != 7*(n < 0))*(0.05+0.001*(abs(x1 - 7*(n < 0)) > 1))\
                 + (abs(n) >= 10 and abs(n) < 20 and y1 > 1 and y1 < 6)*0.01\
-                + ((abs(n) == 50) and (x1 == 0 or x1 == 7) and (y1 == 1 or y1 == 5))*0.05, n)
+                + ((abs(n) == 50) and (x1 == 0 or x1 == 7) and (y1 == 1 or y1 == 5))*0.05, n)\
+                *(1-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*0.5)
     n1 = Chessbot1.board[min(7, x0 + 1)][min(7, y0+1)]
     n2 = Chessbot1.board[min(7, x0 + 1)][max(0, y0-1)]
     evaluation -= math.copysign((n != 0 and abs(n) < 9)*(1+(abs(x0 - 7*(n < 0))*((y0 > 2 and y0 < 6)*((y0 == 5)*0.01+(y0 != 5)*0.05) + 0.001)\
                 - (Chessbot1.moves < 60 and y0 < 2)*(abs(x0 - 7*(n < 0)) > 2)*0.03))\
-                + (3-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*1.5)\
-                *(abs(n) > 9 and abs(n) < 30) + \
-                (5-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*2.5)\
+                + 3*(abs(n) > 9 and abs(n) < 30) + \
+                (5+ (not ((x0 == 0 or x0 == 7) and (y0 == 0 or y0 == 7)))*0.01)\
                 *(abs(n) > 29 and abs(n) < 40) + \
-                (9-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*4.5)\
-                *(abs(n) > 39)+ ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x0 != 7*(n < 0))*(0.05+0.001*(abs(x0 - 7*(n < 0)) > 1))\
+                9*(abs(n) > 39)+ ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x0 != 7*(n < 0))*(0.05+0.001*(abs(x0 - 7*(n < 0)) > 1))\
                 + (abs(n) >= 10 and abs(n) < 20 and y0 > 1 and y0 < 6)*0.01\
-                + ((abs(n) == 50) and (x0 == 0 or x0 == 7) and (y0 == 1 or y0 == 5))*0.05, n)
+                + ((abs(n) == 50) and (x0 == 0 or x0 == 7) and (y0 == 1 or y0 == 5))*0.05, n)\
+                *(1-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*0.5)
     return evaluation
 
 def evaluate0(x0, y0):
@@ -114,14 +112,13 @@ def evaluate0(x0, y0):
     n2 = Chessbot1.board[min(7, x0 + 1)][max(0, y0-1)]
     return -math.copysign((n != 0 and abs(n) < 9)*(1+(abs(x0 - 7*(n < 0))*((y0 > 2 and y0 < 6)*((y0 == 5)*0.01+(y0 != 5)*0.05) + 0.001)\
                 - (Chessbot1.moves < 60 and y0 < 2)*(abs(x0 - 7*(n < 0)) > 2)*0.03))\
-                + (3-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*1.5)\
-                *(abs(n) > 9 and abs(n) < 30) + \
-                (5-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*2.5)\
+                + 3*(abs(n) > 9 and abs(n) < 30) + \
+                (5+ (not ((x0 == 0 or x0 == 7) and (y0 == 0 or y0 == 7)))*0.01)\
                 *(abs(n) > 29 and abs(n) < 40) + \
-                (9-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*4.5)\
-                *(abs(n) > 39)+ ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x0 != 7*(n < 0))*(0.05+0.001*(abs(x0 - 7*(n < 0)) > 1))\
+                9*(abs(n) > 39)+ ((abs(n) >= 10 and abs(n) < 30) or (abs(n) >= 40 and abs(n) < 50))*(x0 != 7*(n < 0))*(0.05+0.001*(abs(x0 - 7*(n < 0)) > 1))\
                 + (abs(n) >= 10 and abs(n) < 20 and y0 > 1 and y0 < 6)*0.01\
-                + ((abs(n) == 50) and (x0 == 0 or x0 == 7) and (y0 == 1 or y0 == 5))*0.05, n)
+                + ((abs(n) == 50) and (x0 == 0 or x0 == 7) and (y0 == 1 or y0 == 5))*0.05, n)\
+                *(1-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*0.5)
 
 
 def blackmove(n01, x01, y01, x11, y11):
