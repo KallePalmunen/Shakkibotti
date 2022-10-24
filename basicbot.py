@@ -66,23 +66,13 @@ def pinnable(n,x0,y0,kingx,kingy):
     return True
 
 def movepieceto2(n, x0, y0, x1, y1):
-    if(abs(n) == 50):
-        if abs(y1 - y0) > 1:
-            whichrook = int(math.copysign(30 + (y1 > 4), n))
-            Chessbot1.board[x1][Chessbot1.board[x1].index(whichrook)] = 0
-            Chessbot1.board[x1][y1 + int(math.copysign(1, 4-y1))] = whichrook
     Chessbot1.board[x0][y0] = 0
     if Chessbot1.promote(n, x1):
-        promoteto = 4
-        Chessbot1.board[x1][y1] = int(math.copysign(1, n))*(promoteto*10+Chessbot1.pieces[promoteto][(n < 0)])
+        Chessbot1.board[x1][y1] = int(math.copysign(1, n))*(40+Chessbot1.pieces[4][(n < 0)])
     else:
         Chessbot1.board[x1][y1] = n
-    if Chessbot1.enpassant >= 0 and y1*8+x1 == Chessbot1.enpassant:
-        Chessbot1.board[x1-int(math.copysign(1, x1 - x0))][y1] = 0
-    Chessbot1.moves += 1
 
 def partialrepetition(m):
-    repetitions = 0
     for i in range(m):
         if Chessbot1.compareposition(i) and i%2 == m%2:
             return True
@@ -256,8 +246,7 @@ def bmove(n01, x01, y01, x11, y11):
                                 movepieceto2(-n, x0, y0, x1, y1)
                                 movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
                                 Chessbot1.turn = Chessbot1.bot
-                                    
-                                Chessbot1.moves -= 1
+                                
                                 Chessbot1.board[x1][y1] = wastheren
                                 Chessbot1.board[x0][y0] = -n
                 else: 
@@ -271,7 +260,6 @@ def bmove(n01, x01, y01, x11, y11):
                                 movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
                                 Chessbot1.turn = Chessbot1.bot
                                     
-                                Chessbot1.moves -= 1
                                 Chessbot1.board[x1][y1] = wastheren
                                 Chessbot1.board[x0][y0] = -n
                             
@@ -293,7 +281,6 @@ def bmove(n01, x01, y01, x11, y11):
                                 movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
                                 Chessbot1.turn = Chessbot1.bot
                                     
-                                Chessbot1.moves -= 1
                                 Chessbot1.board[x1][y1] = wastheren
                                 Chessbot1.board[x0][y0] = -n
                 else:
@@ -307,7 +294,6 @@ def bmove(n01, x01, y01, x11, y11):
                                 movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
                                 Chessbot1.turn = Chessbot1.bot
                                     
-                                Chessbot1.moves -= 1
                                 Chessbot1.board[x1][y1] = wastheren
                                 Chessbot1.board[x0][y0] = -n
                 break
@@ -331,7 +317,6 @@ def bmove(n01, x01, y01, x11, y11):
                                     movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
                                     Chessbot1.turn = Chessbot1.bot
                                     
-                                    Chessbot1.moves -= 1
                                     Chessbot1.board[x1][y1] = wastheren
                                     Chessbot1.board[x0][y0] = -n
                     else:
@@ -347,7 +332,6 @@ def bmove(n01, x01, y01, x11, y11):
                                     movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
                                     Chessbot1.turn = Chessbot1.bot
                                     
-                                    Chessbot1.moves -= 1
                                     Chessbot1.board[x1][y1] = wastheren
                                     Chessbot1.board[x0][y0] = -n
                     break
@@ -369,7 +353,6 @@ def bmove(n01, x01, y01, x11, y11):
                         movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
                         Chessbot1.turn = Chessbot1.bot
                         
-                        Chessbot1.moves -= 1
                         Chessbot1.board[x1][y1] = wastheren
                         Chessbot1.board[x0][y0] = -n
             break
