@@ -519,8 +519,11 @@ def basicbot():
     end = time.time()
     print(end-start)
     if(max(movescore[0]) >= 500000):
-        print("M")
+        Chessbot1.evaltext = "M"
+        Chessbot1.evalscore = 1000
     elif(max(movescore[0]) <= -500000):
-        print("-M")
+        Chessbot1.evaltext = "-M"
+        Chessbot1.evalscore = -1000
     else:
-        print(fulleval() + max(movescore[0]))
+        Chessbot1.evaltext = str(round(fulleval() + max(movescore[0]),2))
+        Chessbot1.evalscore = fulleval() + max(movescore[0])

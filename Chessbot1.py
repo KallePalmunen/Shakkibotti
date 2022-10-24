@@ -17,6 +17,8 @@ turn = 0
 enpassant = -1
 bot = 2
 promotemenu = False
+evalscore = 0
+evaltext = ""
 
 #pawns, knights, bishops, rooks, queens and kings (W,B)
 pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]

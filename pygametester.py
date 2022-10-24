@@ -1,3 +1,4 @@
+from matplotlib.pyplot import draw
 import pygame
 from pygame.locals import *
 import time
@@ -15,6 +16,7 @@ start = True
 
 
 menufont = pygame.font.SysFont("Arial", 60)
+evalselectfont = pygame.font.SysFont("Arial",20)
 
 # Set up the drawing window
 x=600
@@ -25,6 +27,7 @@ pselecty = -1
 #botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy
 botlevel = 1
 promoteto = 0
+evalon = False
 
 screen = pygame.display.set_mode([x, y])
 
@@ -134,6 +137,13 @@ def promotegui():
         pygame.display.flip()
 
 
+
+
+evalbtn = evalselectfont.render("□ evaluation", 1, (100,100,100), (0,255,255))
+evalrect = evalbtn.get_rect()
+evalrect.center = (0.8  *x, y/10)
+
+
 # Run until the user asks to quit
 running = True
 while running:
@@ -156,6 +166,7 @@ while running:
         screen.blit(playwhitebtn, whiterect)
         screen.blit(playblackbtn, blackrect)
         screen.blit(h2hbtn, h2hrect)
+        screen.blit(evalbtn, evalrect)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -165,15 +176,30 @@ while running:
             if event.type == pygame.MOUSEBUTTONDOWN and whiterect.collidepoint(pygame.mouse.get_pos()):
                 Chessbot1.bot=1
                 firstmenu = False
+                if evalon:
+                    screen = pygame.display.set_mode([1.1*x, y])
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and blackrect.collidepoint(pygame.mouse.get_pos()):
                 Chessbot1.bot=0
                 firstmenu = False
+                if evalon:
+                    screen = pygame.display.set_mode([1.1*x, y])
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and h2hrect.collidepoint(pygame.mouse.get_pos()):
                 Chessbot1.bot=2
                 firstmenu = False
+                if evalon:
+                    screen = pygame.display.set_mode([1.1*x, y])
                 break
+            if event.type == pygame.MOUSEBUTTONDOWN and evalrect.collidepoint(pygame.mouse.get_pos()):
+                if evalon:
+                    evalon = False
+                    evalbtn = evalselectfont.render("□ evaluation", 1, (100,100,100), (0,255,255))
+                    screen.blit(evalbtn, evalrect)
+                else:
+                    evalon = True
+                    evalbtn = evalselectfont.render("x evaluation", 1, (100,100,100), (0,255,255))
+                    screen.blit(evalbtn, evalrect)
 
         pygame.display.flip()
     
@@ -249,6 +275,14 @@ while running:
                 click = 0
     # Drawing the board
     screen.blit(boardimg,(0,0))
+    if evalon:
+        pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, 0, 0.1*x, (1+math.copysign(1-1/math.exp(abs(Chessbot1.evalscore/5)), Chessbot1.evalscore))*y/2))
+        pygame.draw.rect(screen, (0,0,0), pygame.Rect(x, (1+math.copysign(1-1/math.exp(abs(Chessbot1.evalscore/5)), Chessbot1.evalscore))*y/2, 0.1*x, y))
+        evaltxt = evalselectfont.render(Chessbot1.evaltext, 1, (100,100,100))
+        evalrect = evaltxt.get_rect()
+        evalrect.center = (1.05*x, y/3)
+
+        screen.blit(evaltxt, evalrect)
     drawpieces()
 
     # Flip the display
