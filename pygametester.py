@@ -1,4 +1,3 @@
-from matplotlib.pyplot import draw
 import pygame
 from pygame.locals import *
 import time
