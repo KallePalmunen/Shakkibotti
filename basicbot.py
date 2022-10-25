@@ -10,6 +10,28 @@ movescore = [[]]
 for i in range(3):
     movescore.append([])
 
+def getpinners(kingx, kingy):
+    pinners = []
+    board = str(Chessbot1.board)
+    for n1 in range(5):
+        for n2 in range(Chessbot1.pieces[n1][1]):
+            n = n1*10+n2
+            for x in range(8):
+                if -n in Chessbot1.board[x]:
+                    Chessbot1.board[x][Chessbot1.board[x].index(-n)] = 0
+                    break
+    for n1 in range(6):
+        for n2 in range(Chessbot1.pieces[n1][0]):
+            n = n1*10+n2
+            for x in range(8):
+                if n in Chessbot1.board[x]:
+                    if Chessbot1.piecemove(n, x, Chessbot1.board[x].index(n), kingx, kingy):
+                        pinners += n,
+                    break
+    Chessbot1.board = json.loads(board)
+    return pinners
+
+
 def movepieceto(n, x0, y0, x1, y1):
     if(abs(n) == 50):
         if abs(y1 - y0) > 1:
@@ -34,22 +56,21 @@ def movepieceto(n, x0, y0, x1, y1):
         Chessbot1.enpassant = -1
     Chessbot1.moves += 1
 
-def check(kingx, kingy):
-    for n1 in range(2,5):
-        for n2 in range(Chessbot1.pieces[n1][0]):
-            i = n1*10+n2
-            for ii in range(8):
-                if i in Chessbot1.board[ii]:
-                    if Chessbot1.piecemove(i, ii, Chessbot1.board[ii].index(i), kingx, kingy):
-                        return True
-                    break
+def check(kingx, kingy, pinners):
+    for j in range(len(pinners)):
+        i = pinners[j]
+        for ii in range(8):
+            if i in Chessbot1.board[ii]:
+                if Chessbot1.piecemove(i, ii, Chessbot1.board[ii].index(i), kingx, kingy):
+                    return True
+                break
     return False
 
-def partialpin(n,x0,y0,x1,y1,kingx,kingy):
+def partialpin(n,x0,y0,x1,y1,kingx,kingy, pinners):
     Chessbot1.board[x0][y0] = 0
     movetosquare = Chessbot1.board[x1][y1]
     Chessbot1.board[x1][y1] = n
-    if not check(kingx,kingy):
+    if not check(kingx,kingy,pinners):
         Chessbot1.board[x0][y0] = n
         Chessbot1.board[x1][y1] = movetosquare
         return False
@@ -57,9 +78,11 @@ def partialpin(n,x0,y0,x1,y1,kingx,kingy):
     Chessbot1.board[x1][y1] = movetosquare
     return True
 
-def pinnable(n,x0,y0,kingx,kingy):
+def pinnable(n,x0,y0,kingx,kingy,pinners):
+    if pinners == []:
+        return False
     Chessbot1.board[x0][y0] = 0
-    if not check(kingx,kingy):
+    if not check(kingx,kingy,pinners):
         Chessbot1.board[x0][y0] = n
         return False
     Chessbot1.board[x0][y0] = n
@@ -231,13 +254,14 @@ def bmove(n01, x01, y01, x11, y11):
             kingx = i
             kingy = Chessbot1.board[i].index(-50)
             break
+    pinners = getpinners(kingx, kingy)
     for n in range(8):
         for i in range(8):
             if -n in Chessbot1.board[7-i]:
                 x0 = 7-i
                 y0 = Chessbot1.board[x0].index(-n)
                 evaluation2 = evaluate1(-n, x0, y0)
-                if not pinnable(-n, x0, y0, kingx, kingy):
+                if not pinnable(-n, x0, y0, kingx, kingy, pinners):
                     for x1 in range(x0 - 2, x0):
                         for y1 in range(y0 - 1, y0+2):
                             if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
@@ -253,7 +277,7 @@ def bmove(n01, x01, y01, x11, y11):
                     for x1 in range(x0 - 2, x0):
                         for y1 in range(y0 - 1, y0+2):
                             if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
-                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
+                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy, pinners)):
                                 wastheren = Chessbot1.board[x1][y1]
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto2(-n, x0, y0, x1, y1)
@@ -271,7 +295,7 @@ def bmove(n01, x01, y01, x11, y11):
                 x0 = 7-i
                 y0 = Chessbot1.board[x0].index(-n)
                 evaluation2 = evaluate1(-n, x0, y0)
-                if not pinnable(-n, x0, y0, kingx, kingy):
+                if not pinnable(-n, x0, y0, kingx, kingy, pinners):
                     for x1 in range(x0-2, x0+3):
                         for y1 in range(y0-2, y0+3):
                             if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
@@ -287,7 +311,7 @@ def bmove(n01, x01, y01, x11, y11):
                     for x1 in range(x0-2, x0+3):
                         for y1 in range(y0-2, y0+3):
                             if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
-                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
+                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy, pinners)):
                                 wastheren = Chessbot1.board[x1][y1]
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto2(-n, x0, y0, x1, y1)
@@ -305,7 +329,7 @@ def bmove(n01, x01, y01, x11, y11):
                     x0 = 7-i
                     y0 = Chessbot1.board[x0].index(-n)
                     evaluation2 = evaluate1(-n, x0, y0)
-                    if not pinnable(-n, x0, y0, kingx, kingy):
+                    if not pinnable(-n, x0, y0, kingx, kingy, pinners):
                         for x1 in range(8):
                             for y1 in range(8):
                                 if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
@@ -323,7 +347,7 @@ def bmove(n01, x01, y01, x11, y11):
                         for x1 in range(8):
                             for y1 in range(8):
                                 if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
-                                    and not partialpin(-n, x0, y0, x1, y1, kingx, kingy)):
+                                    and not partialpin(-n, x0, y0, x1, y1, kingx, kingy, pinners)):
                                     wastheren = Chessbot1.board[x1][y1]
                                     evaluation1 = evaluate0(x1, y1)
                                     movepieceto2(-n, x0, y0, x1, y1)
