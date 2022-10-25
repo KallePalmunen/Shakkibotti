@@ -218,12 +218,13 @@ def blackmove(n01, x01, y01, x11, y11):
             n = n1*10+n2
             for i in range(8):
                 if -n in Chessbot1.board[i]:
+                    y0 = Chessbot1.board[i].index(-n)
                     for x1 in range(8):
                         for y1 in range(8):
-                            if (Chessbot1.piecemove(-n, i, Chessbot1.board[i].index(-n), x1, y1) 
-                                and not Chessbot1.pin(-n, i, Chessbot1.board[i].index(-n), x1, y1)):
+                            if (Chessbot1.piecemove(-n, i, y0, x1, y1) 
+                                and not Chessbot1.pin(-n, i, y0, x1, y1)):
                                 evaluation1 = evaluate0(x1, y1)
-                                movepieceto(-n, i, Chessbot1.board[i].index(-n), x1, y1)
+                                movepieceto(-n, i, y0, x1, y1)
                                 movescore1 += wmove(-n, i, y0, x1, y1)+evaluation1,
                                 Chessbot1.turn = Chessbot1.bot
                                 
