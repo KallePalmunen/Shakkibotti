@@ -162,7 +162,7 @@ def evaluate0(x0, y0):
                 *(1-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*0.5)
 
 
-def blackmove(n01, x01, y01, x11, y11):
+def blackmove(n01, x01, y01, x11, y11, best):
     if Chessbot1.checkmate(-50):
         return 500000
     moves = Chessbot1.moves
@@ -183,7 +183,10 @@ def blackmove(n01, x01, y01, x11, y11):
                             and not Chessbot1.pin(-n, i, y0, x1, y1)):
                             evaluation1 = evaluate0(x1, y1)
                             movepieceto(-n, i, y0, x1, y1)
-                            movescore1 += wmove(-n, i, y0, x1, y1) + evaluation1,
+                            holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
+                            movescore1 += holder,
+                            if holder + evaluation0 < best:
+                                return holder + evaluation0
                             Chessbot1.turn = Chessbot1.bot
                                 
                             Chessbot1.moves = moves
@@ -204,7 +207,10 @@ def blackmove(n01, x01, y01, x11, y11):
                             and not Chessbot1.pin(-n, i, y0, x1, y1)):
                             evaluation1 = evaluate0(x1, y1)
                             movepieceto(-n, i, y0, x1, y1)
-                            movescore1 += wmove(-n, i, y0, x1, y1)+evaluation1,
+                            holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
+                            movescore1 += holder,
+                            if holder + evaluation0 < best:
+                                return holder + evaluation0
                             Chessbot1.turn = Chessbot1.bot
                                 
                             Chessbot1.moves = moves
@@ -225,7 +231,10 @@ def blackmove(n01, x01, y01, x11, y11):
                                 and not Chessbot1.pin(-n, i, y0, x1, y1)):
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto(-n, i, y0, x1, y1)
-                                movescore1 += wmove(-n, i, y0, x1, y1)+evaluation1,
+                                holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
+                                movescore1 += holder,
+                                if holder + evaluation0 < best:
+                                    return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                 
                                 Chessbot1.moves = moves
@@ -245,7 +254,7 @@ def blackmove(n01, x01, y01, x11, y11):
     Chessbot1.turn = (Chessbot1.bot == 0)
     return min(movescore1)+evaluation0
 
-def bmove(n01, x01, y01, x11, y11):
+def bmove(n01, x01, y01, x11, y11, best):
     if Chessbot1.checkmate(-50):
         return 500000
     movescore3 = [1000000]
@@ -269,7 +278,10 @@ def bmove(n01, x01, y01, x11, y11):
                                 wastheren = Chessbot1.board[x1][y1]
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto2(-n, x0, y0, x1, y1)
-                                movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
+                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                movescore3 += holder,
+                                if holder + evaluation0 < best:
+                                    return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                 
                                 Chessbot1.board[x1][y1] = wastheren
@@ -282,7 +294,10 @@ def bmove(n01, x01, y01, x11, y11):
                                 wastheren = Chessbot1.board[x1][y1]
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto2(-n, x0, y0, x1, y1)
-                                movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
+                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                movescore3 += holder,
+                                if holder + evaluation0 < best:
+                                    return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                     
                                 Chessbot1.board[x1][y1] = wastheren
@@ -303,7 +318,10 @@ def bmove(n01, x01, y01, x11, y11):
                                 wastheren = Chessbot1.board[x1][y1]
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto2(-n, x0, y0, x1, y1)
-                                movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
+                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                movescore3 += holder,
+                                if holder + evaluation0 < best:
+                                    return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                     
                                 Chessbot1.board[x1][y1] = wastheren
@@ -316,7 +334,10 @@ def bmove(n01, x01, y01, x11, y11):
                                 wastheren = Chessbot1.board[x1][y1]
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto2(-n, x0, y0, x1, y1)
-                                movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
+                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                movescore3 += holder,
+                                if holder + evaluation0 < best:
+                                    return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                     
                                 Chessbot1.board[x1][y1] = wastheren
@@ -339,7 +360,10 @@ def bmove(n01, x01, y01, x11, y11):
                                     movepieceto2(-n, x0, y0, x1, y1)
                                     if Chessbot1.checkmate(50):
                                         return -500000
-                                    movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
+                                    holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                    movescore3 += holder,
+                                    if holder + evaluation0 < best:
+                                        return holder + evaluation0
                                     Chessbot1.turn = Chessbot1.bot
                                     
                                     Chessbot1.board[x1][y1] = wastheren
@@ -354,7 +378,10 @@ def bmove(n01, x01, y01, x11, y11):
                                     movepieceto2(-n, x0, y0, x1, y1)
                                     if Chessbot1.checkmate(50):
                                         return -500000
-                                    movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
+                                    holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                    movescore3 += holder,
+                                    if holder + evaluation0 < best:
+                                        return holder + evaluation0
                                     Chessbot1.turn = Chessbot1.bot
                                     
                                     Chessbot1.board[x1][y1] = wastheren
@@ -375,7 +402,10 @@ def bmove(n01, x01, y01, x11, y11):
                         movepieceto2(-n, x0, y0, x1, y1)
                         if Chessbot1.checkmate(50):
                             return -500000
-                        movescore3 += evaluate2(-n, x1, y1) + evaluation1 + evaluation2,
+                        holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                        movescore3 += holder,
+                        if holder + evaluation0 < best:
+                            return holder + evaluation0
                         Chessbot1.turn = Chessbot1.bot
                         
                         Chessbot1.board[x1][y1] = wastheren
@@ -384,7 +414,7 @@ def bmove(n01, x01, y01, x11, y11):
     Chessbot1.turn = (Chessbot1.bot == 0)
     return min(movescore3)+evaluation0
 
-def wmove(n01, x01, y01, x11, y11):
+def wmove(n01, x01, y01, x11, y11, best):
     if Chessbot1.checkmate(50):
         return -500000
     moves = Chessbot1.moves
@@ -406,7 +436,10 @@ def wmove(n01, x01, y01, x11, y11):
                                 and not Chessbot1.pin(n, i, y0, x1, y1)):
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto(n, i, y0, x1, y1)
-                                movescore2 += bmove(n, i, y0, x1, y1) + evaluation1,
+                                holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
+                                movescore2 += holder,
+                                if holder + evaluation0 > best:
+                                    return holder + evaluation0
                                 Chessbot1.turn = (Chessbot1.bot == 0)
                                 
                                 Chessbot1.moves = moves
@@ -427,7 +460,10 @@ def wmove(n01, x01, y01, x11, y11):
                             and not Chessbot1.pin(n, i, y0, x1, y1)):
                             evaluation1 = evaluate0(x1, y1)
                             movepieceto(n, i, y0, x1, y1)
-                            movescore2 += bmove(n, i, y0, x1, y1) + evaluation1,
+                            holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
+                            movescore2 += holder,
+                            if holder + evaluation0 > best:
+                                return holder + evaluation0
                             Chessbot1.turn = (Chessbot1.bot == 0)
                                 
                             Chessbot1.moves = moves
@@ -449,7 +485,10 @@ def wmove(n01, x01, y01, x11, y11):
                                 and not Chessbot1.pin(n, i, y0, x1, y1)):
                                 evaluation1 = evaluate0(x1, y1)
                                 movepieceto(n, i, y0, x1, y1)
-                                movescore2 += bmove(n, i, y0, x1, y1) + evaluation1,
+                                holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
+                                movescore2 += holder,
+                                if holder + evaluation0 > best:
+                                    return holder + evaluation0
                                 Chessbot1.turn = (Chessbot1.bot == 0)
                                 
                                 Chessbot1.moves = moves
@@ -491,11 +530,11 @@ def whitemove():
                             Chessbot1.positions += deepcopy(Chessbot1.board)
                             Chessbot1.turn = (Chessbot1.bot == 0)
                             if(Chessbot1.repetition(Chessbot1.moves) or Chessbot1.stalemate(50) or Chessbot1.stalemate(-50)):
-                                movescore[0] += [(-fulleval()-(blackmove(n, i, y0, x1, y1) + evaluation1))]
+                                movescore[0] += [(-fulleval()-(blackmove(n, i, y0, x1, y1, max(movescore[0])-evaluation1) + evaluation1))]
                             elif partialrepetition(Chessbot1.moves):
-                                movescore[0] += [min(0, (-fulleval()-(blackmove(n, i, y0, x1, y1) + evaluation1)))]
+                                movescore[0] += [min(0, (-fulleval()-(blackmove(n, i, y0, x1, y1, max(movescore[0])-evaluation1) + evaluation1)))]
                             else:
-                                movescore[0] += [(blackmove(n, i, y0, x1, y1) + evaluation1)]
+                                movescore[0] += [(blackmove(n, i, y0, x1, y1, max(movescore[0])-evaluation1) + evaluation1)]
                                 
                             Chessbot1.moves = moves
                             Chessbot1.enpassant = enpassant

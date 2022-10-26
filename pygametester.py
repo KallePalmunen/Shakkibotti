@@ -24,7 +24,7 @@ click = 0
 pselectx = -1
 pselecty = -1
 #botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy
-botlevel = 2
+botlevel = 1
 promoteto = 0
 evalon = False
 
