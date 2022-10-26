@@ -185,7 +185,7 @@ def blackmove(n01, x01, y01, x11, y11, best):
                             movepieceto(-n, i, y0, x1, y1)
                             holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
                             movescore1 += holder,
-                            if holder + evaluation0 < best:
+                            if holder + evaluation0 <= best:
                                 return holder + evaluation0
                             Chessbot1.turn = Chessbot1.bot
                                 
@@ -209,7 +209,7 @@ def blackmove(n01, x01, y01, x11, y11, best):
                             movepieceto(-n, i, y0, x1, y1)
                             holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
                             movescore1 += holder,
-                            if holder + evaluation0 < best:
+                            if holder + evaluation0 <= best:
                                 return holder + evaluation0
                             Chessbot1.turn = Chessbot1.bot
                                 
@@ -233,7 +233,7 @@ def blackmove(n01, x01, y01, x11, y11, best):
                                 movepieceto(-n, i, y0, x1, y1)
                                 holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
                                 movescore1 += holder,
-                                if holder + evaluation0 < best:
+                                if holder + evaluation0 <= best:
                                     return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                 
@@ -280,7 +280,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                 movepieceto2(-n, x0, y0, x1, y1)
                                 holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                 movescore3 += holder,
-                                if holder + evaluation0 < best:
+                                if holder + evaluation0 <= best:
                                     return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                 
@@ -296,7 +296,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                 movepieceto2(-n, x0, y0, x1, y1)
                                 holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                 movescore3 += holder,
-                                if holder + evaluation0 < best:
+                                if holder + evaluation0 <= best:
                                     return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                     
@@ -320,7 +320,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                 movepieceto2(-n, x0, y0, x1, y1)
                                 holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                 movescore3 += holder,
-                                if holder + evaluation0 < best:
+                                if holder + evaluation0 <= best:
                                     return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                     
@@ -336,7 +336,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                 movepieceto2(-n, x0, y0, x1, y1)
                                 holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                 movescore3 += holder,
-                                if holder + evaluation0 < best:
+                                if holder + evaluation0 <= best:
                                     return holder + evaluation0
                                 Chessbot1.turn = Chessbot1.bot
                                     
@@ -362,7 +362,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                         return -500000
                                     holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                     movescore3 += holder,
-                                    if holder + evaluation0 < best:
+                                    if holder + evaluation0 <= best:
                                         return holder + evaluation0
                                     Chessbot1.turn = Chessbot1.bot
                                     
@@ -380,7 +380,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                         return -500000
                                     holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                     movescore3 += holder,
-                                    if holder + evaluation0 < best:
+                                    if holder + evaluation0 <= best:
                                         return holder + evaluation0
                                     Chessbot1.turn = Chessbot1.bot
                                     
@@ -404,7 +404,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                             return -500000
                         holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                         movescore3 += holder,
-                        if holder + evaluation0 < best:
+                        if holder + evaluation0 <= best:
                             return holder + evaluation0
                         Chessbot1.turn = Chessbot1.bot
                         
@@ -438,7 +438,7 @@ def wmove(n01, x01, y01, x11, y11, best):
                                 movepieceto(n, i, y0, x1, y1)
                                 holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
                                 movescore2 += holder,
-                                if holder + evaluation0 > best:
+                                if holder + evaluation0 >= best:
                                     return holder + evaluation0
                                 Chessbot1.turn = (Chessbot1.bot == 0)
                                 
@@ -462,7 +462,7 @@ def wmove(n01, x01, y01, x11, y11, best):
                             movepieceto(n, i, y0, x1, y1)
                             holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
                             movescore2 += holder,
-                            if holder + evaluation0 > best:
+                            if holder + evaluation0 >= best:
                                 return holder + evaluation0
                             Chessbot1.turn = (Chessbot1.bot == 0)
                                 
@@ -487,7 +487,7 @@ def wmove(n01, x01, y01, x11, y11, best):
                                 movepieceto(n, i, y0, x1, y1)
                                 holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
                                 movescore2 += holder,
-                                if holder + evaluation0 > best:
+                                if holder + evaluation0 >= best:
                                     return holder + evaluation0
                                 Chessbot1.turn = (Chessbot1.bot == 0)
                                 
