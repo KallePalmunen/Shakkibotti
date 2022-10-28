@@ -265,7 +265,7 @@ def bmove(n01, x01, y01, x11, y11, best):
             kingy = Chessbot1.board[i].index(-50)
             break
     pinners = getpinners(kingx, kingy)
-    for n in range(8):
+    for n in range(1,9):
         for i in range(8):
             if -n in Chessbot1.board[7-i]:
                 x0 = 7-i
