@@ -256,7 +256,7 @@ def blackmove(n01, x01, y01, x11, y11, best):
 
 def bmove(n01, x01, y01, x11, y11, best):
     if Chessbot1.checkmate(-50):
-        return 500000
+        return 250000
     movescore3 = [1000000]
     evaluation0 = evaluate(n01, x01, y01, x11, y11)
     for i in range(8):
@@ -320,7 +320,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                     evaluation1 = evaluate0(x1, y1)
                                     movepieceto2(-n, x0, y0, x1, y1)
                                     if Chessbot1.checkmate(50):
-                                        return -500000
+                                        return -250000
                                     holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                     movescore3 += holder,
                                     if holder + evaluation0 <= best:
@@ -338,7 +338,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                                     evaluation1 = evaluate0(x1, y1)
                                     movepieceto2(-n, x0, y0, x1, y1)
                                     if Chessbot1.checkmate(50):
-                                        return -500000
+                                        return -250000
                                     holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                                     movescore3 += holder,
                                     if holder + evaluation0 <= best:
@@ -401,7 +401,7 @@ def bmove(n01, x01, y01, x11, y11, best):
                         evaluation1 = evaluate0(x1, y1)
                         movepieceto2(-n, x0, y0, x1, y1)
                         if Chessbot1.checkmate(50):
-                            return -500000
+                            return -250000
                         holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
                         movescore3 += holder,
                         if holder + evaluation0 <= best:
@@ -565,10 +565,10 @@ def basicbot():
             break
     end = time.time()
     print(end-start)
-    if(max(movescore[0]) >= 500000):
+    if(max(movescore[0]) >= 250000):
         Chessbot1.evaltext = "M"
         Chessbot1.evalscore = 1000
-    elif(max(movescore[0]) <= -500000):
+    elif(max(movescore[0]) <= -250000):
         Chessbot1.evaltext = "-M"
         Chessbot1.evalscore = -1000
     else:
