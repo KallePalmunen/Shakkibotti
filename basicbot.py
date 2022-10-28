@@ -173,29 +173,6 @@ def blackmove(n01, x01, y01, x11, y11, best):
     pieces = str(Chessbot1.pieces)
     movescore1 = [1000000]
     evaluation0 = evaluate(n01, x01, y01, x11, y11)
-    for n in range(1, 9):
-        for i in range(1, 8):
-            if -n in Chessbot1.board[i]:
-                y0 = Chessbot1.board[i].index(-n)
-                for x1 in range(i - 2, i):
-                    for y1 in range(y0 - 1, y0+2):
-                        if (Chessbot1.piecemove(-n, i, y0, x1, y1) 
-                            and not Chessbot1.pin(-n, i, y0, x1, y1)):
-                            evaluation1 = evaluate0(x1, y1)
-                            movepieceto(-n, i, y0, x1, y1)
-                            holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
-                            movescore1 += holder,
-                            if holder + evaluation0 <= best:
-                                return holder + evaluation0
-                            Chessbot1.turn = Chessbot1.bot
-                                
-                            Chessbot1.moves = moves
-                            Chessbot1.enpassant = enpassant
-                            Chessbot1.board = json.loads(board)
-                            Chessbot1.kingmoved = json.loads(kingmoved)
-                            Chessbot1.rookmoved = json.loads(rookmoved)
-                            Chessbot1.pieces = json.loads(pieces)
-                break
     for n2 in range(Chessbot1.pieces[1][1]):
         n = 10+n2
         for i in range(8):
@@ -244,6 +221,29 @@ def blackmove(n01, x01, y01, x11, y11, best):
                                 Chessbot1.rookmoved = json.loads(rookmoved)
                                 Chessbot1.pieces = json.loads(pieces)
                     break
+    for n in range(1, 9):
+        for i in range(1, 8):
+            if -n in Chessbot1.board[i]:
+                y0 = Chessbot1.board[i].index(-n)
+                for x1 in range(i - 2, i):
+                    for y1 in range(y0 - 1, y0+2):
+                        if (Chessbot1.piecemove(-n, i, y0, x1, y1) 
+                            and not Chessbot1.pin(-n, i, y0, x1, y1)):
+                            evaluation1 = evaluate0(x1, y1)
+                            movepieceto(-n, i, y0, x1, y1)
+                            holder = wmove(-n, i, y0, x1, y1, min(movescore1)-evaluation1) + evaluation1
+                            movescore1 += holder,
+                            if holder + evaluation0 <= best:
+                                return holder + evaluation0
+                            Chessbot1.turn = Chessbot1.bot
+                                
+                            Chessbot1.moves = moves
+                            Chessbot1.enpassant = enpassant
+                            Chessbot1.board = json.loads(board)
+                            Chessbot1.kingmoved = json.loads(kingmoved)
+                            Chessbot1.rookmoved = json.loads(rookmoved)
+                            Chessbot1.pieces = json.loads(pieces)
+                break
                                 
     Chessbot1.moves = moves
     Chessbot1.enpassant = enpassant
@@ -265,45 +265,6 @@ def bmove(n01, x01, y01, x11, y11, best):
             kingy = Chessbot1.board[i].index(-50)
             break
     pinners = getpinners(kingx, kingy)
-    for n in range(1,9):
-        for i in range(8):
-            if -n in Chessbot1.board[7-i]:
-                x0 = 7-i
-                y0 = Chessbot1.board[x0].index(-n)
-                evaluation2 = evaluate1(-n, x0, y0)
-                if not pinnable(-n, x0, y0, kingx, kingy, pinners):
-                    for x1 in range(x0 - 2, x0):
-                        for y1 in range(y0 - 1, y0+2):
-                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
-                                wastheren = Chessbot1.board[x1][y1]
-                                evaluation1 = evaluate0(x1, y1)
-                                movepieceto2(-n, x0, y0, x1, y1)
-                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
-                                movescore3 += holder,
-                                if holder + evaluation0 <= best:
-                                    return holder + evaluation0
-                                Chessbot1.turn = Chessbot1.bot
-                                
-                                Chessbot1.board[x1][y1] = wastheren
-                                Chessbot1.board[x0][y0] = -n
-                else: 
-                    for x1 in range(x0 - 2, x0):
-                        for y1 in range(y0 - 1, y0+2):
-                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
-                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy, pinners)):
-                                wastheren = Chessbot1.board[x1][y1]
-                                evaluation1 = evaluate0(x1, y1)
-                                movepieceto2(-n, x0, y0, x1, y1)
-                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
-                                movescore3 += holder,
-                                if holder + evaluation0 <= best:
-                                    return holder + evaluation0
-                                Chessbot1.turn = Chessbot1.bot
-                                    
-                                Chessbot1.board[x1][y1] = wastheren
-                                Chessbot1.board[x0][y0] = -n
-                            
-                break
     for n2 in range(Chessbot1.pieces[1][1]):
         n = 10+n2
         for i in range(8):
@@ -387,6 +348,45 @@ def bmove(n01, x01, y01, x11, y11, best):
                                     Chessbot1.board[x1][y1] = wastheren
                                     Chessbot1.board[x0][y0] = -n
                     break
+    for n in range(1,9):
+        for i in range(8):
+            if -n in Chessbot1.board[7-i]:
+                x0 = 7-i
+                y0 = Chessbot1.board[x0].index(-n)
+                evaluation2 = evaluate1(-n, x0, y0)
+                if not pinnable(-n, x0, y0, kingx, kingy, pinners):
+                    for x1 in range(x0 - 2, x0):
+                        for y1 in range(y0 - 1, y0+2):
+                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1)):
+                                wastheren = Chessbot1.board[x1][y1]
+                                evaluation1 = evaluate0(x1, y1)
+                                movepieceto2(-n, x0, y0, x1, y1)
+                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                movescore3 += holder,
+                                if holder + evaluation0 <= best:
+                                    return holder + evaluation0
+                                Chessbot1.turn = Chessbot1.bot
+                                
+                                Chessbot1.board[x1][y1] = wastheren
+                                Chessbot1.board[x0][y0] = -n
+                else: 
+                    for x1 in range(x0 - 2, x0):
+                        for y1 in range(y0 - 1, y0+2):
+                            if (Chessbot1.piecemove(-n, x0, y0, x1, y1) 
+                                and not partialpin(-n, x0, y0, x1, y1, kingx, kingy, pinners)):
+                                wastheren = Chessbot1.board[x1][y1]
+                                evaluation1 = evaluate0(x1, y1)
+                                movepieceto2(-n, x0, y0, x1, y1)
+                                holder = evaluate2(-n, x1, y1) + evaluation1 + evaluation2
+                                movescore3 += holder,
+                                if holder + evaluation0 <= best:
+                                    return holder + evaluation0
+                                Chessbot1.turn = Chessbot1.bot
+                                    
+                                Chessbot1.board[x1][y1] = wastheren
+                                Chessbot1.board[x0][y0] = -n
+                            
+                break
     n = 50
     for i in range(8):
         if -n in Chessbot1.board[7-i]:
@@ -425,30 +425,6 @@ def wmove(n01, x01, y01, x11, y11, best):
     pieces = str(Chessbot1.pieces)
     movescore2 = [-1000000]
     evaluation0 = evaluate(n01, x01, y01, x11, y11)
-    for n in range(1, 9):
-        for i in range(8):
-            if n in Chessbot1.board[i]:
-                y0 = Chessbot1.board[i].index(n)
-                for x1 in range(i, 8):
-                    if x1 - i <= 2:
-                        for y1 in range(8):
-                            if (Chessbot1.piecemove(n, i, y0, x1, y1) 
-                                and not Chessbot1.pin(n, i, y0, x1, y1)):
-                                evaluation1 = evaluate0(x1, y1)
-                                movepieceto(n, i, y0, x1, y1)
-                                holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
-                                movescore2 += holder,
-                                if holder + evaluation0 >= best:
-                                    return holder + evaluation0
-                                Chessbot1.turn = (Chessbot1.bot == 0)
-                                
-                                Chessbot1.moves = moves
-                                Chessbot1.enpassant = enpassant
-                                Chessbot1.board = json.loads(board)
-                                Chessbot1.kingmoved = json.loads(kingmoved)
-                                Chessbot1.rookmoved = json.loads(rookmoved)
-                                Chessbot1.pieces = json.loads(pieces)
-                break
     for n2 in range(Chessbot1.pieces[1][0]):
         n = 10+n2
         for i in range(8):
@@ -498,6 +474,30 @@ def wmove(n01, x01, y01, x11, y11, best):
                                 Chessbot1.rookmoved = json.loads(rookmoved)
                                 Chessbot1.pieces = json.loads(pieces)
                     break
+    for n in range(1, 9):
+        for i in range(8):
+            if n in Chessbot1.board[i]:
+                y0 = Chessbot1.board[i].index(n)
+                for x1 in range(i, 8):
+                    if x1 - i <= 2:
+                        for y1 in range(8):
+                            if (Chessbot1.piecemove(n, i, y0, x1, y1) 
+                                and not Chessbot1.pin(n, i, y0, x1, y1)):
+                                evaluation1 = evaluate0(x1, y1)
+                                movepieceto(n, i, y0, x1, y1)
+                                holder = bmove(n, i, y0, x1, y1, max(movescore2)-evaluation1) + evaluation1
+                                movescore2 += holder,
+                                if holder + evaluation0 >= best:
+                                    return holder + evaluation0
+                                Chessbot1.turn = (Chessbot1.bot == 0)
+                                
+                                Chessbot1.moves = moves
+                                Chessbot1.enpassant = enpassant
+                                Chessbot1.board = json.loads(board)
+                                Chessbot1.kingmoved = json.loads(kingmoved)
+                                Chessbot1.rookmoved = json.loads(rookmoved)
+                                Chessbot1.pieces = json.loads(pieces)
+                break
                                 
     Chessbot1.moves = moves
     Chessbot1.enpassant = enpassant
