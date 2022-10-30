@@ -161,6 +161,51 @@ def evaluate0(x0, y0):
                 + ((abs(n) == 50) and (x0 == 0 or x0 == 7) and (y0 == 1 or y0 == 5))*0.05, n)\
                 *(1-((n > 0) and ((n1 < 0 and n1 >-9) or (n2 < 0 and n2 >-9)))*0.5)
 
+def reorder():
+    moves = Chessbot1.moves
+    enpassant = Chessbot1.enpassant
+    board = str(Chessbot1.board)
+    kingmoved = str(Chessbot1.kingmoved)
+    rookmoved = str(Chessbot1.rookmoved)
+    pieces = str(Chessbot1.pieces)
+    positions = str(Chessbot1.positions)
+    movescore0 = []
+    preorder = []
+    for n in range(1, 51):
+        for i in range(8):
+            if n in Chessbot1.board[i]:
+                y0 = Chessbot1.board[i].index(n)
+                for x1 in range(8):
+                    for y1 in range(8):
+                        if (Chessbot1.piecemove(n, i, y0, x1, y1) 
+                            and not Chessbot1.pin(n, i, y0, x1, y1)):
+                            evaluation1 = evaluate0(x1, y1)
+                            movepieceto(n, i, y0, x1, y1)
+                            Chessbot1.positions += deepcopy(Chessbot1.board)
+                            Chessbot1.turn = (Chessbot1.bot == 0)
+                            if(Chessbot1.repetition(Chessbot1.moves) or Chessbot1.stalemate(50) or Chessbot1.stalemate(-50)):
+                                movescore0 += [(-fulleval()-(evaluate(n, i, y0, x1, y1) + evaluation1))]
+                            elif partialrepetition(Chessbot1.moves):
+                                movescore0 += [min(0, (-fulleval()-(evaluate(n, i, y0, x1, y1) + evaluation1)))]
+                            else:
+                                movescore0 += [(evaluate(n, i, y0, x1, y1) + evaluation1)]
+                            preorder += [n, i, y0, x1, y1],
+                                
+                            Chessbot1.moves = moves
+                            Chessbot1.enpassant = enpassant
+                            Chessbot1.board = json.loads(board)
+                            Chessbot1.kingmoved = json.loads(kingmoved)
+                            Chessbot1.rookmoved = json.loads(rookmoved)
+                            Chessbot1.pieces = json.loads(pieces)
+                            Chessbot1.positions = json.loads(positions)
+                break
+    Chessbot1.turn = Chessbot1.bot
+    order = [[0,0,0,0,0]]
+    for i in range(len(movescore0)):
+        order += preorder[movescore0.index(max(movescore0))],
+        movescore0[movescore0.index(max(movescore0))] = -1000000
+    return order
+    
 
 def blackmove(n01, x01, y01, x11, y11, best):
     if Chessbot1.checkmate(-50):
@@ -516,61 +561,55 @@ def whitemove():
     rookmoved = str(Chessbot1.rookmoved)
     pieces = str(Chessbot1.pieces)
     positions = str(Chessbot1.positions)
-    movescore[0].clear()
-    for n in range(1, 51):
-        for i in range(8):
-            if n in Chessbot1.board[i]:
-                y0 = Chessbot1.board[i].index(n)
-                for x1 in range(8):
-                    for y1 in range(8):
-                        if (Chessbot1.piecemove(n, i, y0, x1, y1) 
-                            and not Chessbot1.pin(n, i, y0, x1, y1)):
-                            evaluation1 = evaluate0(x1, y1)
-                            movepieceto(n, i, y0, x1, y1)
-                            Chessbot1.positions += deepcopy(Chessbot1.board)
-                            Chessbot1.turn = (Chessbot1.bot == 0)
-                            if(Chessbot1.repetition(Chessbot1.moves) or Chessbot1.stalemate(50) or Chessbot1.stalemate(-50)):
-                                movescore[0] += [(-fulleval()-(blackmove(n, i, y0, x1, y1, max(movescore[0])-evaluation1) + evaluation1))]
-                            elif partialrepetition(Chessbot1.moves):
-                                movescore[0] += [min(0, (-fulleval()-(blackmove(n, i, y0, x1, y1, max(movescore[0])-evaluation1) + evaluation1)))]
-                            else:
-                                movescore[0] += [(blackmove(n, i, y0, x1, y1, max(movescore[0])-evaluation1) + evaluation1)]
-                                
-                            Chessbot1.moves = moves
-                            Chessbot1.enpassant = enpassant
-                            Chessbot1.board = json.loads(board)
-                            Chessbot1.kingmoved = json.loads(kingmoved)
-                            Chessbot1.rookmoved = json.loads(rookmoved)
-                            Chessbot1.pieces = json.loads(pieces)
-                            Chessbot1.positions = json.loads(positions)
-                        else:
-                            movescore[0] += [-1000000]
-                break
+    movescore0 = [-1000000]
+    order = reorder()
+    for i in range(len(order)-1):
+        n = order[i+1][0]
+        x0 = order[i+1][1]
+        y0 = order[i+1][2]
+        x1 = order[i+1][3]
+        y1 = order[i+1][4]
+        evaluation1 = evaluate0(x1, y1)
+        movepieceto(n, x0, y0, x1, y1)
+        Chessbot1.positions += deepcopy(Chessbot1.board)
+        Chessbot1.turn = (Chessbot1.bot == 0)
+        if(Chessbot1.repetition(Chessbot1.moves) or Chessbot1.stalemate(50) or Chessbot1.stalemate(-50)):
+            movescore0 += [(-fulleval()-(blackmove(n, x0, y0, x1, y1, max(movescore0)-evaluation1) + evaluation1))]
+        elif partialrepetition(Chessbot1.moves):
+            movescore0 += [min(0, (-fulleval()-(blackmove(n, x0, y0, x1, y1, max(movescore0)-evaluation1) + evaluation1)))]
         else:
-            for xy in range(64):
-                movescore[0] += [-1000000]
+            movescore0 += [(blackmove(n, x0, y0, x1, y1, max(movescore0)-evaluation1) + evaluation1)]
+            
+        Chessbot1.moves = moves
+        Chessbot1.enpassant = enpassant
+        Chessbot1.board = json.loads(board)
+        Chessbot1.kingmoved = json.loads(kingmoved)
+        Chessbot1.rookmoved = json.loads(rookmoved)
+        Chessbot1.pieces = json.loads(pieces)
+        Chessbot1.positions = json.loads(positions)
     Chessbot1.turn = Chessbot1.bot
+    index = movescore0.index(max(movescore0))
+    return [order[index][0], order[index][1], order[index][2], order[index][3], order[index][4], movescore0[index]]
 
 def basicbot():
     start = time.time()
-    whitemove()
-    bestmove = movescore[0].index(max(movescore[0]))
-    move = int(bestmove/64)+1
-    movetox = int((bestmove-math.floor(bestmove/64)*64)/8)
-    movetoy = int(bestmove-movetox*8-(move-1)*64)
-    for i in range(8):
-        if move in Chessbot1.board[i]:
-            Chessbot1.movepieceto(move, i, Chessbot1.board[i].index(move), movetox, movetoy)
-            Chessbot1.turn = (Chessbot1.bot == 0)
-            break
+    bestmove = whitemove()
+    score = bestmove[5]
+    move = bestmove[0]
+    x0 = bestmove[1]
+    y0 = bestmove[2]
+    movetox = bestmove[3]
+    movetoy = bestmove[4]
+    Chessbot1.movepieceto(move, x0, y0, movetox, movetoy)
+    Chessbot1.turn = (Chessbot1.bot == 0)
     end = time.time()
     print(end-start)
-    if(max(movescore[0]) >= 250000):
+    if(score >= 250000):
         Chessbot1.evaltext = "M"
         Chessbot1.evalscore = 1000
-    elif(max(movescore[0]) <= -250000):
+    elif(score <= -250000):
         Chessbot1.evaltext = "-M"
         Chessbot1.evalscore = -1000
     else:
-        Chessbot1.evaltext = str(round(fulleval() + max(movescore[0]),2))
-        Chessbot1.evalscore = fulleval() + max(movescore[0])
+        Chessbot1.evaltext = str(round(fulleval() + score,2))
+        Chessbot1.evalscore = fulleval() + score
