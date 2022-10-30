@@ -142,6 +142,31 @@ evalbtn = evalselectfont.render("□ evaluation", 1, (100,100,100), (0,255,255))
 evalrect = evalbtn.get_rect()
 evalrect.center = (0.8  *x, y/10)
 
+def recap():
+    global running
+    moment = Chessbot1.moves
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                return
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_LEFT:
+                    moment = max(0, moment-1)
+                    Chessbot1.board = Chessbot1.positions[moment]
+                if event.key == K_RIGHT:
+                    moment = min(Chessbot1.moves, moment+1)
+                    Chessbot1.board = Chessbot1.positions[moment]
+                if event.key == K_UP:
+                    moment = 0
+                    Chessbot1.board = Chessbot1.positions[moment]
+                if event.key == K_DOWN:
+                    moment = Chessbot1.moves
+                    Chessbot1.board = Chessbot1.positions[moment]
+        screen.blit(boardimg,(0,0))
+        drawpieces()
+        pygame.display.flip()
+
 
 # Run until the user asks to quit
 running = True
@@ -289,6 +314,9 @@ while running:
 
     # Flip the display
     pygame.display.flip()
+    
+    if Chessbot1.turn == -1:
+        recap()
 
 # Done! Time to quit.
 pygame.quit()
