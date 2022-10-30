@@ -1,3 +1,4 @@
+from re import L
 import pygame
 from pygame.locals import *
 import time
@@ -27,6 +28,12 @@ pselecty = -1
 botlevel = 1
 promoteto = 0
 evalon = False
+#clock1 == bot's time clock2 == player's time
+clock1 = 180
+clock2 = 180
+increment = 2
+seconds = 0
+clockon = True
 
 screen = pygame.display.set_mode([x, y])
 
@@ -167,6 +174,18 @@ def recap():
         drawpieces()
         pygame.display.flip()
 
+def drawclock(t1, t2):
+    pygame.draw.rect(screen, (0,0,0), pygame.Rect(0, y, x, 0.2*y))
+    clock1txt = menufont.render(str(round(t1,1)), 1, (100,100,100))
+    clock1rect = clock1txt.get_rect()
+    clock1rect.center = (0.8*x, 1.1*y)
+    clock2txt = menufont.render(str(round(t2, 1)), 1, (100,100,100))
+    clock2rect = clock2txt.get_rect()
+    clock2rect.center = (0.2*x, 1.1*y)
+    
+    screen.blit(clock1txt, clock1rect)
+    screen.blit(clock2txt, clock2rect)
+
 
 # Run until the user asks to quit
 running = True
@@ -202,18 +221,24 @@ while running:
                 firstmenu = False
                 if evalon:
                     screen = pygame.display.set_mode([1.1*x, y])
+                if clockon:
+                    screen = pygame.display.set_mode([x, 1.2*y])
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and blackrect.collidepoint(pygame.mouse.get_pos()):
                 Chessbot1.bot=0
                 firstmenu = False
                 if evalon:
                     screen = pygame.display.set_mode([1.1*x, y])
+                if clockon:
+                    screen = pygame.display.set_mode([x, 1.2*y])
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and h2hrect.collidepoint(pygame.mouse.get_pos()):
                 Chessbot1.bot=2
                 firstmenu = False
                 if evalon:
                     screen = pygame.display.set_mode([1.1*x, y])
+                if clockon:
+                    screen = pygame.display.set_mode([x, 1.2*y])
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and evalrect.collidepoint(pygame.mouse.get_pos()):
                 if evalon:
@@ -236,12 +261,36 @@ while running:
 
     if Chessbot1.turn >= 0:
         if Chessbot1.turn == Chessbot1.bot:
+            if clockon and Chessbot1.moves != 0:
+                time1 = time.time()
+                clock2 -= (time1-time0)
+                if clock2 <= 0:
+                    Chessbot1.turn = -1
+                    print("White won")
+                    drawclock(clock1, 0)
+                else:
+                    clock2 += increment
+                drawclock(clock1,clock2)
+                pygame.display.flip()
+                seconds = 0
+            time0 = time.time()
             if botlevel == 1 and Chessbot1.bot == 0:
                 basicbot.basicbot()
             elif botlevel == 2 and Chessbot1.bot == 0:
                 stockfishfanboy.move()
             else:
                 Chessbot1.randommove()
+            if clockon:
+                time1 = time.time()
+                clock1 -= (time1-time0)
+                if clock1 <= 0:
+                    Chessbot1.turn = -1
+                    print("Black won")
+                    drawclock(0, clock2)
+                else:
+                    clock1 += increment
+                drawclock(clock1, clock2)
+                time0 = time.time()
         Chessbot1.gameend()
             
 
@@ -311,6 +360,15 @@ while running:
 
         screen.blit(evaltxt, evalrect)
     drawpieces()
+
+    if clockon and clock2 - (time.time()-time0) <= 0:
+        Chessbot1.turn = -1
+        print("White won")
+        drawclock(clock1, 0)
+    
+    if clockon and (time.time()-time0)-seconds >= 1:
+        seconds += 1
+        drawclock(clock1, clock2 -(time.time()-time0))
 
     # Flip the display
     pygame.display.flip()
