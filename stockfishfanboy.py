@@ -1,4 +1,6 @@
 #import torch
+import math
+
 import random
 import Chessbot1
 
@@ -58,6 +60,10 @@ def randomize():
         for j in range(16):
             multiplier2[2][i].append(random.random()-0.5)
 
+def sigmoid(a):
+    if a < 0:
+        return 1 - 1/(1+math.exp(a))
+    return 1/(math.exp(-a)+1)
 
 def calculate1():
     global neural_network1
@@ -93,7 +99,7 @@ def calculate1():
         for j in range(16):
             neural_network1[3][i] += neural_network1[2][j]*multiplier1[2][i][j]
         neural_network1[3][i] += bias1[2][i]
-        neural_network1[3][i] = max(0, neural_network1[3][i])
+        neural_network1[3][i] = sigmoid(neural_network1[3][i])
     
 #Second network
 

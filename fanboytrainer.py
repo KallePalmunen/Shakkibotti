@@ -1,4 +1,4 @@
-from math import cos
+import math
 import stockfishfanboy as fan
 import Chessbot1
 import random
@@ -83,11 +83,15 @@ for i in range(50):
         right_values1[i]=False
 
 #derivative of leaky relu
-
 def dleak(a):
     if a <= 0:
         return 0.01
     return 1
+
+#derivative of sigmoid
+def dsigmoid(a):
+    return math.exp(a)/((math.exp(a)+1)**2)
+
 
 def backpropagation():
 
@@ -101,16 +105,16 @@ def backpropagation():
     for i in range(50):
         for j in range(16):
             multipliergradient1[2][i][j] = -2*(right_values1[i]-fan.neural_network1[3][i])*fan.neural_network1[2][j]\
-                *dleak(fan.neural_network1[3][i])/50
+                *dsigmoid(cost_values1[i])/50
             fan.multiplier1[2][i][j] -= multipliergradient1[2][i][j]
-        biasgradient1[2][i] = -2*(right_values1[i]-fan.neural_network1[3][i])*dleak(fan.neural_network1[3][i])/50
+        biasgradient1[2][i] = -2*(right_values1[i]-fan.neural_network1[3][i])*dsigmoid(cost_values1[i])/50
         fan.bias1[2][i] -= biasgradient1[2][i]
     
     for j in range(16):
         activations1[2][j] = 0
         for i in range(50):
             activations1[2][j] += -2*(right_values1[i]-fan.neural_network1[3][i])*fan.multiplier1[2][i][j]\
-                *dleak(fan.neural_network1[3][i])/50
+                *dsigmoid(cost_values1[i])/50
 
     for i in range(16):
         for j in range(16):
@@ -139,7 +143,7 @@ def backpropagation():
 
 
 
-for i in range(1000):
+for i in range(10):
     backpropagation()
 
 print(fan.neural_network1[3])
