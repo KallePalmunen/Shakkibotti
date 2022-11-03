@@ -105,16 +105,16 @@ def backpropagation():
     for i in range(50):
         for j in range(16):
             multipliergradient1[2][i][j] = -2*(right_values1[i]-fan.neural_network1[3][i])*fan.neural_network1[2][j]\
-                *dsigmoid(cost_values1[i])/50
+                *dsigmoid(totalcost)/50
             fan.multiplier1[2][i][j] -= multipliergradient1[2][i][j]
-        biasgradient1[2][i] = -2*(right_values1[i]-fan.neural_network1[3][i])*dsigmoid(cost_values1[i])/50
+        biasgradient1[2][i] = -2*(right_values1[i]-fan.neural_network1[3][i])*dsigmoid(totalcost)/50
         fan.bias1[2][i] -= biasgradient1[2][i]
     
     for j in range(16):
         activations1[2][j] = 0
         for i in range(50):
             activations1[2][j] += -2*(right_values1[i]-fan.neural_network1[3][i])*fan.multiplier1[2][i][j]\
-                *dsigmoid(cost_values1[i])/50
+                *dsigmoid(totalcost)/50
 
     for i in range(16):
         for j in range(16):
