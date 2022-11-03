@@ -60,6 +60,9 @@ def randomize():
 
 
 def calculate1():
+    global neural_network1
+    neural_network1.clear()
+    neural_network1 = [[]]
     for i in range(8):
         for j in range(8):
             neural_network1[0].append(Chessbot1.board[i][j])
