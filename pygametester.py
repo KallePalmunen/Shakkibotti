@@ -33,7 +33,8 @@ clock1 = 180
 clock2 = 180
 increment = 2
 seconds = 0
-clockon = True
+clockon = False
+time0 = time.time()
 
 screen = pygame.display.set_mode([x, y])
 
