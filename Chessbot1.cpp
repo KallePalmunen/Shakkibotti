@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -29,8 +30,31 @@ void printboard(){
     };
 }
 
+void movepiece(){
+    int move, movetox, movetoy;
+    cin >> move;
+    cin >> movetoy;
+    cin >> movetox;
+    if((move > 0 && turn == 0) || (move < 0 && turn == 1)
+        || (0 == 0)){
+        int *index;
+        index = find(&board[0][0], &board[0][0]+64,move);
+        if(index != &board[0][0]+64){
+            int pos = distance(&board[0][0], index);
+            int y0 = pos/8;
+            int x0 = pos-y0*8;
+            if(movetoy >= 0 && movetoy < 8 && movetox >= 0 && movetox < 8){
+                board[y0][x0] = 0;
+                board[movetoy][movetox] = move;
+            }
+        }
+    }
+}
+
 int main(){
     copy(&board[0][0], &board[0][0] + 64, &positions[0][0][0]);
+    printboard();
+    movepiece();
     printboard();
     
     return 0;
