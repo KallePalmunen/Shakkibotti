@@ -30,9 +30,37 @@ void printboard(){
     };
 }
 
+bool pawnmove(int n, int y0, int x0, int y1, int x1){
+    if(n > 0){
+        if((x1 == x0 && (y1-y0 == 1 || (y1-y0 == 2 && y0 == 1 
+            && board[y1-1][x1] == 0)) && board[y1][x1] == 0) || 
+            (y1-y0 == 1 && board[y1][x1] < 0 && 
+            (x1 - x0 == 1 || x1 - x0 == -1)) 
+            || (x1*8+y1 == enpassant && abs(x1-x0) == 1 && y1 - y0 == 1)){
+                return true;
+        }
+        return false;
+    }else if(n < 0){
+        if ((x1 == x0 && (y0-y1 == 1 || (y0-y1 == 2 && y0 == 6 
+            && board[y1+1][x1] == 0)) && board[y1][x1] == 0) ||
+            (y0-y1 == 1 && board[y1][x1] > 0 && 
+            (x1 - x0 == 1 || x1 - x0 == -1))
+            || (x1*8+y1 == enpassant && abs(x1-x0) == 1 && y0 - y1 == 1)){
+                return true;
+        }
+        return false;
+    }
+    return false;
+}
+
 bool piecemove(int n, int y0, int x0, int y1, int x1){
     if(y1 < 8 && x1 < 8 && x1 >= 0 && y1 >= 0 && y0>=0){
-        return true;
+        if(abs(n) < 10){
+            if(pawnmove(n, y0, x0, y1, x1)){
+                return true;
+            }
+        }
+        return false;
     }
     return false;
 }
