@@ -30,32 +30,42 @@ void printboard(){
     };
 }
 
+bool piecemove(int n, int y0, int x0, int y1, int x1){
+    if(y1 < 8 && x1 < 8 && x1 >= 0 && y1 >= 0 && y0>=0){
+        return true;
+    }
+    return false;
+}
+
+void movepieceto(int n, int y0, int x0, int y1, int x1){
+    board[y0][x0] = 0;
+    board[y1][x1] = n;
+}
+
 void movepiece(){
     int move, movetox, movetoy;
     cin >> move;
     cin >> movetoy;
     cin >> movetox;
-    if((move > 0 && turn == 0) || (move < 0 && turn == 1)
-        || (0 == 0)){
+    if((move > 0 && turn == 0) || (move < 0 && turn == 1)){
         int *index;
         index = find(&board[0][0], &board[0][0]+64,move);
         if(index != &board[0][0]+64){
             int pos = distance(&board[0][0], index);
             int y0 = pos/8;
             int x0 = pos-y0*8;
-            if(movetoy >= 0 && movetoy < 8 && movetox >= 0 && movetox < 8){
-                board[y0][x0] = 0;
-                board[movetoy][movetox] = move;
+            if(piecemove(move, y0, x0, movetoy, movetox)){
+                movepieceto(move, y0, x0, movetoy, movetox);
+            }else{
+                cout << "Illegal move" << "\n";
+                return;
             }
+        }else{
+            cout << "Illegal move" << "\n";
+            return;
         }
+        turn = (turn == 0);
+    }else{
+        cout << "Illegal move" << "\n";
     }
-}
-
-int main(){
-    copy(&board[0][0], &board[0][0] + 64, &positions[0][0][0]);
-    printboard();
-    movepiece();
-    printboard();
-    
-    return 0;
 }
