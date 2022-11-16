@@ -53,12 +53,33 @@ bool pawnmove(int n, int y0, int x0, int y1, int x1){
     return false;
 }
 
+bool knightmove(int n, int y0, int x0, int y1, int x1){
+    if(((y1 - y0 == 2 || y1 - y0 == -2) && (x1 - x0 == 1 || x1 - x0 == -1))
+        || ((y1- y0 == 1 || y1 - y0 == -1) &&
+        (x1 - x0 == 2 || x1 - x0 == -2))){
+            if(n > 0 && (board[y1][x1] == 0 || board[y1][x1] < 0)){
+                return true;
+            }
+            if(n < 0 && (board[y1][x1] == 0 || board[y1][x1] > 0)){
+                return true;
+            }
+            return false;
+        }
+    return false;
+}
+
 bool piecemove(int n, int y0, int x0, int y1, int x1){
     if(y1 < 8 && x1 < 8 && x1 >= 0 && y1 >= 0 && y0>=0){
         if(abs(n) < 10){
             if(pawnmove(n, y0, x0, y1, x1)){
                 return true;
             }
+        }
+        if(abs(n) < 20 && abs(n) >= 10){
+            if(knightmove(n, y0, x0, y1, x1)){
+                return true;
+            }
+            return false;
         }
         return false;
     }
