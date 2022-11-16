@@ -30,6 +30,12 @@ void printboard(){
     };
 }
 
+//intsign tells the sign of an integer
+
+int intsign(int a){
+    return (a > 0)-(a < 0);
+}
+
 bool pawnmove(int n, int y0, int x0, int y1, int x1){
     if(n > 0){
         if((x1 == x0 && (y1-y0 == 1 || (y1-y0 == 2 && y0 == 1 
@@ -68,15 +74,95 @@ bool knightmove(int n, int y0, int x0, int y1, int x1){
     return false;
 }
 
+//longmove checks if there is anything in the way when moving bishops, rooks and queens. It also checks whether there is a piece in the endsquare
+
+bool longmove(int n, int y0, int x0, int y1, int x1){
+    if(n > 0){
+        for(int i = 1; i < 8; i++){
+            if(y0 + (y1 != y0)*intsign(y1-y0)*i == y1 
+                && x0 + (x1 != x0)*intsign(x1-x0)*i == x1 
+                && board[y1][x1] <= 0){
+                    return true;
+            }
+            if(board[y0 + (y1 != y0)*intsign(y1-y0)*i]
+                [x0 + (x1 != x0)*intsign(x1-x0)*i] != 0){
+                    return false;
+            }
+        }
+        return false;
+    }
+    if(n < 0){
+        for(int i = 1; i < 8; i++){
+            if(y0 + (y1 != y0)*intsign(y1-y0)*i == y1 
+                && x0 + (x1 != x0)*intsign(x1-x0)*i == x1 
+                && board[y1][x1] >= 0){
+                    return true;
+            }
+            if(board[y0 + (y1 != y0)*intsign(y1-y0)*i]
+                [x0 + (x1 != x0)*intsign(x1-x0)*i] != 0){
+                    return false;
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+bool bishopmove(int n, int y0, int x0, int y1, int x1){
+    if(abs(y1-y0) == abs(x1-x0)){
+        if(longmove(n, y0, x0, y1, x1)){
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+bool rookmove(int n, int y0, int x0, int y1, int x1){
+    if((y1 != y0 && x1 == x0) || (y1 == y0 && x1 != x0)){
+        if(longmove(n, y0, x0, y1, x1)){
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+bool queenmove(int n, int y0, int x0, int y1, int x1){
+    if(bishopmove(n, y0, x0, y1, x1) || rookmove(n, y0, x0, y1, x1)){
+        return true;
+    }
+    return false;
+}
+
 bool piecemove(int n, int y0, int x0, int y1, int x1){
     if(y1 < 8 && x1 < 8 && x1 >= 0 && y1 >= 0 && y0>=0){
         if(abs(n) < 10){
             if(pawnmove(n, y0, x0, y1, x1)){
                 return true;
             }
+            return false;
         }
         if(abs(n) < 20 && abs(n) >= 10){
             if(knightmove(n, y0, x0, y1, x1)){
+                return true;
+            }
+            return false;
+        }
+        if(abs(n) < 30 && abs(n) >= 20){
+            if(bishopmove(n, y0, x0, y1, x1)){
+                return true;
+            }
+            return false;
+        }
+        if(abs(n) < 40 && abs(n) >= 30){
+            if(rookmove(n, y0, x0, y1, x1)){
+                return true;
+            }
+            return false;
+        }
+        if(abs(n) < 50 && abs(n) >= 40){
+            if(queenmove(n, y0, x0, y1, x1)){
                 return true;
             }
             return false;

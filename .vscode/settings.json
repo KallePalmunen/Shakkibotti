@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "xutility": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "cmath": "cpp"
     }
 }

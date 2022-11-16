@@ -91,6 +91,7 @@ def knightmove(n, x0, y0, x1, y1):
 
 
 #longmove checks if there is anything in the way when moving bishops, rooks and queens. It also checks whether there is a piece in the endsquare
+#math.copysign((x1-x0 != 0),x1-x0): if x1 != x0: it gives the sign of (x1-x0)
 
 def longmove(n, x0, y0, x1, y1):
     if(n > 0):
