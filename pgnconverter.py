@@ -1,5 +1,7 @@
 import Chessbot1
 
+turn = 0
+
 games = ['''[Event "Live Chess"]
 [Site "Chess.com"]
 [Date "2022.11.01"]
@@ -34,9 +36,6 @@ for g in range(1):
             s2 = True
             s1 = False
         elif s2 == True and games[g][i] == ".":
-            print(games[g][i-1])
-            print(games[g][i])
-            print(games[g][i+2])
             n1 = i
             break
         elif games[g][i] == " " or games[g][i] == "\n":
@@ -44,7 +43,6 @@ for g in range(1):
         else:
             s1 = False
             s2 = False
-    print(games[g][n1])
 
 def letter_to_number(s):
     if s == "a":
@@ -85,7 +83,7 @@ def piece_to_number(v, h, p="p"):
     if p == "K":
         pn = 50
     
-    for n1 in range(Chessbot1.pieces[0][0]):
+    for n1 in range(Chessbot1.pieces[int(pn/10)][turn]):
         n = pn + n1
         for i in range(8):
             if n in Chessbot1.board[i]:
@@ -101,4 +99,4 @@ def translator(p, s):
     pass
 
 
-print(piece_to_number("d", "4"))
+print(piece_to_number("f", "3", "N"))
