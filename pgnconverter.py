@@ -93,10 +93,12 @@ def piece_to_number(v, h, p="p"):
             pn = n
             break
 
-    return pn
+    return [pn, square[0], square[1], x, y]
 
-def translator(p, s):
-    pass
+def translator(v, h, p="p"):
+    list = []
+    list += piece_to_number(v, h, p)
+    return list
 
 
-print(piece_to_number("f", "3", "N"))
+print(translator("f", "3", "N"))
