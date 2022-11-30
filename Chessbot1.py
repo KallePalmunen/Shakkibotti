@@ -13,6 +13,7 @@ moves = 0
 positions = [[[]]]
 positions[0] = deepcopy(board)
 
+#white == 0, black == 1
 turn = 0
 enpassant = -1
 bot = 2

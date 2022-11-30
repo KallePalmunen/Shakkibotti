@@ -1,6 +1,6 @@
 import Chessbot1
-
-turn = 0
+import math
+import time
 
 games = ['''[Event "Live Chess"]
 [Site "Chess.com"]
@@ -22,27 +22,7 @@ Nxd4 d5 16. f3 b6 17. exd5 exd5 18. f4 dxc4 19. Ndb5 cxb3 20. axb3 Bf5 21. Rd1
 Qc8 22. Nd6 Qc5+ 23. Kf1 Rad8 24. Nxf5 Nxf5 25. Re1 Rfe8 26. Na4 Qc2 27. Qb2
 Qxb2 28. Nxb2 Rd2 29. Nc4 Rd4 30. Ne5 Rxf4+ 31. Kg1 Rxe5 0-1''']
 
-#g i the game we're converting
-for g in range(1):
-    #n1 is where we find 1.
-    n1 = 0
-    #s1 tells if the previous symbol was ], s2 if it was 1
-    s1 = False
-    s2 = False
-    for i in range(len(games[g])):
-        if games[g][i] == "]":
-            s1 = True
-        elif s1 == True and games[g][i] == "1":
-            s2 = True
-            s1 = False
-        elif s2 == True and games[g][i] == ".":
-            n1 = i
-            break
-        elif games[g][i] == " " or games[g][i] == "\n":
-            pass
-        else:
-            s1 = False
-            s2 = False
+converted = []
 
 def letter_to_number(s):
     if s == "a":
@@ -70,7 +50,7 @@ def piece_to_number(v, h, p="p"):
     y = letter_to_number(v)
     pn = 0
 
-    if p == "p":
+    if p == "p" or p == "":
         pn = 1
     if p == "N":
         pn = 10
@@ -82,9 +62,12 @@ def piece_to_number(v, h, p="p"):
         pn = 40
     if p == "K":
         pn = 50
+
+    if Chessbot1.turn == 1:
+        pn *= -1
     
-    for n1 in range(Chessbot1.pieces[int(pn/10)][turn]):
-        n = pn + n1
+    for n1 in range(Chessbot1.pieces[int(abs(pn)/10)][Chessbot1.turn]):
+        n = pn + int(math.copysign(n1, (Chessbot1.turn == 0)-0.5))
         for i in range(8):
             if n in Chessbot1.board[i]:
                 square = [i, Chessbot1.board[i].index(n)]
@@ -92,6 +75,9 @@ def piece_to_number(v, h, p="p"):
         if Chessbot1.piecemove(n, square[0], square[1], x, y) and not Chessbot1.pin(n, square[0], square[1], x, y):
             pn = n
             break
+    else:
+        #if no legal move
+        return [0, 0, 0, 0, 0]
 
     return [pn, square[0], square[1], x, y]
 
@@ -100,5 +86,55 @@ def translator(v, h, p="p"):
     list += piece_to_number(v, h, p)
     return list
 
+#g i the game we're converting
+for g in range(1):
+    #n1 is where we find 1.
+    n1 = 0
+    #s1 tells if the previous symbol was ], s2 if it was 1
+    s1 = False
+    s2 = False
+    for i in range(len(games[g])):
+        if games[g][i] == "]":
+            s1 = True
+        elif s1 == True and games[g][i] == "1":
+            s2 = True
+            s1 = False
+        elif s2 == True and games[g][i] == ".":
+            n1 = i
+            break
+        elif games[g][i] == " " or games[g][i] == "\n":
+            pass
+        else:
+            s1 = False
+            s2 = False
+    p = ""
+    v = ""
+    h = ""
+    for i in range(n1+1, len(games[g])):
+        if games[g][i] == ' ' or games[g][i] == '\n':
+            if v != "" and h != "":
+                if Chessbot1.piecemove(*translator(v,h,p)) and not Chessbot1.pin(*translator(v,h,p)):
+                    if Chessbot1.turn == 0:
+                        converted += [translator(v,h,p)]
+                    Chessbot1.movepieceto(*translator(v,h,p))
+                    Chessbot1.turn = (Chessbot1.turn == 0)
+                else:
+                    print(v, h, p)
+                    break
+            p = ""
+            v = ""
+            h = ""
+        elif games[g][i] == ".":
+            p = ""
+            v = ""
+            h = ""
+        elif games[g][i] == "x":
+            pass
+        elif games[g][i].isnumeric():
+            h = games[g][i]
+        elif games[g][i].isupper():
+            p = games[g][i]
+        elif games[g][i].isalpha():
+            v = games[g][i]
 
-print(translator("f", "3", "N"))
+print(converted)
