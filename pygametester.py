@@ -14,7 +14,6 @@ pygame.display.set_caption('LGG Chessbot')
 firstmenu = True
 start = True
 
-
 menufont = pygame.font.SysFont("Arial", 60)
 evalselectfont = pygame.font.SysFont("Arial",20)
 
@@ -25,7 +24,7 @@ click = 0
 pselectx = -1
 pselecty = -1
 #botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy
-botlevel = 1
+botlevel = 2
 promoteto = 0
 evalon = False
 #clock1 == bot's time clock2 == player's time

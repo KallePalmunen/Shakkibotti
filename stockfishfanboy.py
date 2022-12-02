@@ -3,6 +3,7 @@ import math
 
 import random
 import Chessbot1
+import json
 
 #Neural networks contains values of the nodes, 1 is the piece you want to move and 2 is the square you want to move it to
 neural_network1 = [[]]
@@ -12,6 +13,8 @@ bias1 = [[]]
 neural_network2 = [[]]
 multiplier2 = [[[]]]
 bias2 = [[]]
+
+mode = "play"
 
 def randomize():
     #First is the first hidden layer, then the second and finally the output layer, network 1
@@ -65,6 +68,9 @@ def sigmoid(a):
         return 1 - 1/(1+math.exp(a))
     return 1/(math.exp(-a)+1)
 
+def leakyrelu(a):
+    return max(0.01*a, a)
+
 def calculate1():
     global neural_network1
     neural_network1.clear()
@@ -81,7 +87,7 @@ def calculate1():
         for j in range(64):
             neural_network1[1][i] += neural_network1[0][j]*multiplier1[0][i][j]
         neural_network1[1][i] += bias1[0][i]
-        neural_network1[1][i] = max(0, neural_network1[1][i])
+        neural_network1[1][i] = sigmoid(neural_network1[1][i])
 
     neural_network1.append([])
     
@@ -90,7 +96,7 @@ def calculate1():
         for j in range(16):
             neural_network1[2][i] += neural_network1[1][j]*multiplier1[1][i][j]
         neural_network1[2][i] += bias1[1][i]
-        neural_network1[2][i] = max(0, neural_network1[2][i])
+        neural_network1[2][i] = sigmoid(neural_network1[2][i])
     
     neural_network1.append([])
     
@@ -153,6 +159,14 @@ def calculate2():
             neural_network2[3][i] = -1000000
 
 randomize()
+
+if mode == "play":
+    with open("fanboydata.txt", 'r') as f:
+        data = json.loads(f.read())
+    bias1 = data[0]
+    multiplier1 = data[1]
+    bias2 = data[2]
+    multiplier2 = data[3]
 
 def move():
     global neural_network1, neural_network2
