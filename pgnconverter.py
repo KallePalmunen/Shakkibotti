@@ -115,7 +115,7 @@ for g in range(1):
             if v != "" and h != "":
                 if Chessbot1.piecemove(*translator(v,h,p)) and not Chessbot1.pin(*translator(v,h,p)):
                     if Chessbot1.turn == 0:
-                        converted += [translator(v,h,p)]
+                        converted += [[translator(v,h,p)[0], Chessbot1.board]]
                     Chessbot1.movepieceto(*translator(v,h,p))
                     Chessbot1.turn = (Chessbot1.turn == 0)
                 else:
@@ -137,4 +137,5 @@ for g in range(1):
         elif games[g][i].isalpha():
             v = games[g][i]
 
-print(converted)
+with open("pgndata.txt", 'w') as f:
+    f.write(str(converted))

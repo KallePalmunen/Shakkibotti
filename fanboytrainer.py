@@ -2,6 +2,7 @@ import math
 import stockfishfanboy as fan
 import Chessbot1
 import random
+import json
 
 right_values1 = []
 cost_values1 = []
@@ -11,7 +12,9 @@ multipliergradient2 = [[[]]]
 biasgradient2 = [[]]
 activations1 = [[]]
 activations2 = [[]]
-data = [[4, 1, 3, 2, 3], [3, 1, 2, 3, 2], [10, 0, 1, 2, 2], [20, 0, 2, 4, 6], [11, 0, 6, 2, 5], [5, 1, 4, 3, 4], [21, 0, 5, 1, 4], [20, 4, 6, 5, 5], [10, 2, 2, 4, 3], [2, 1, 1, 2, 1]]
+
+with open("pgndata.txt", 'r') as f:
+    data = json.loads(f.read())
 
 lol=True
 
@@ -139,7 +142,10 @@ def backpropagation():
         biasgradient1[1][i] = activations1[1][i]*dsigmoid(fan.neural_network1[1][i])
         fan.bias1[0][i] -= biasgradient1[0][i]
 
-def setrightvalue(v):
+def setrightvalue(rand):
+    v = data[rand][0]
+    Chessbot1.board = data[rand][1]
+
     for i in range(50):
         right_values1[i]=False
     right_values1[v] = True
@@ -147,7 +153,7 @@ def setrightvalue(v):
 datalen = len(data)
 
 for i in range(1001):
-    setrightvalue(data[int(random.random()*datalen)][0])
+    setrightvalue(int(random.random()*datalen))
     backpropagation()
     if i%1000 == 0:
         print(i)
