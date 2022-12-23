@@ -172,9 +172,30 @@ bool piecemove(int n, int y0, int x0, int y1, int x1){
     return false;
 }
 
+bool promote(int n, int y1){
+    if(n < 10 && n > 0){
+        if(y1 == 7){
+            return true;
+        }
+    }
+    if(n > -10 && n < 0){
+        if(y1 == 0){
+            return true;
+        }
+    }
+    return false;
+}
+
 void movepieceto(int n, int y0, int x0, int y1, int x1){
+    int promoteto;
+    if(promote(n, y1)){
+        promoteto = 4;
+        board[y1][x1] = intsign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
+        pieces[promoteto][(n < 0)]++;
+    }else{
+        board[y1][x1] = n;
+    }
     board[y0][x0] = 0;
-    board[y1][x1] = n;
 }
 
 void movepiece(){
