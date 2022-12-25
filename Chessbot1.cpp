@@ -186,6 +186,60 @@ bool promote(int n, int y1){
     return false;
 }
 
+bool check(int n){
+    int *index;
+    index = find(&board[0][0], &board[0][0]+64, n);
+    int kingy;
+    int kingx;
+
+    if(index != &board[0][0]+64){
+        int kingpos = distance(&board[0][0], index);
+        kingy = kingpos/8;
+        kingx = kingpos-kingy*8;
+    }else{
+        return true;
+    }
+
+    for(int n1 = 0; n1 < 6; n1++){
+        for(int n2 = 0; n2 < pieces[n1][(n > 0)]; n2++){
+            int piecen = -intsign(n)*(n1*10+n2+(n1 == 0));
+            int *pindex;
+            pindex = find(&board[0][0], &board[0][0]+64, piecen);
+            if(pindex != &board[0][0]+64){
+                int ppos = distance(&board[0][0], pindex);
+                int y0 = ppos/8;
+                int x0 = ppos-y0*8;
+                if(piecemove(piecen, y0, x0, kingy, kingx)){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool pin(int n, int y0, int x0, int y1, int x1){
+    board[y0][x0] = 0;
+    int movetosquare = board[y1][x1];
+    board[y1][x1] = n;
+    if(!check(intsign(n)*50)){
+        board[y0][x0] = n;
+        board[y1][x1] = movetosquare;
+        return false;
+    }
+    board[y0][x0] = n;
+    board[y1][x1] = movetosquare;
+    return true;
+}
+
+bool canmove(int n, int y0, int x0, int y1, int x1){
+    if(piecemove(n, y0, x0, y1, x1)
+    && !pin(n, y0, x0, y1, x1)){
+        return true;
+    }
+    return false;
+}
+
 void movepieceto(int n, int y0, int x0, int y1, int x1){
     int promoteto;
     if(promote(n, y1)){
@@ -210,7 +264,7 @@ void movepiece(){
             int pos = distance(&board[0][0], index);
             int y0 = pos/8;
             int x0 = pos-y0*8;
-            if(piecemove(move, y0, x0, movetoy, movetox)){
+            if(canmove(move, y0, x0, movetoy, movetox)){
                 movepieceto(move, y0, x0, movetoy, movetox);
             }else{
                 cout << "Illegal move" << "\n";
