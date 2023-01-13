@@ -1,4 +1,3 @@
-from re import L
 import pygame
 from pygame.locals import *
 import time
