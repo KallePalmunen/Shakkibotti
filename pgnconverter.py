@@ -26,29 +26,41 @@ converted = []
 
 def letter_to_number(s):
     if s == "a":
-        return 0
-    if s == "b":
-        return 1
-    if s == "c":
-        return 2
-    if s == "d":
-        return 3
-    if s == "e":
-        return 4
-    if s == "f":
-        return 5
-    if s == "g":
-        return 6
-    if s == "h":
         return 7
+    if s == "b":
+        return 6
+    if s == "c":
+        return 5
+    if s == "d":
+        return 4
+    if s == "e":
+        return 3
+    if s == "f":
+        return 2
+    if s == "g":
+        return 1
+    if s == "h":
+        return 0
 
 def piece_to_number(v, h, p="p"):
     #p=piece, v means the y coordinate and h means the x coordinate, like in d6, the d and the 6 
     #(its actually the other way around but we have it this way here :D)
-
-    x = int(h)-1
-    y = letter_to_number(v)
-    pn = 0
+    if p == 'O':
+        pn = 50
+        if Chessbot1.turn == 1:
+            x = 7
+        else:
+            x = 0
+        if h == '-':
+            #long castle
+            y = 5
+        else:
+            #short castle
+            y = 1
+    else:
+        x = int(h)-1
+        y = letter_to_number(v)
+        pn = 0
 
     if p == "p" or p == "":
         pn = 1
@@ -65,20 +77,24 @@ def piece_to_number(v, h, p="p"):
 
     if Chessbot1.turn == 1:
         pn *= -1
-    
+
     for n1 in range(Chessbot1.pieces[int(abs(pn)/10)][Chessbot1.turn]):
         n = pn + int(math.copysign(n1, (Chessbot1.turn == 0)-0.5))
+        #found is True if piece has been found
+        found = False
         for i in range(8):
             if n in Chessbot1.board[i]:
                 square = [i, Chessbot1.board[i].index(n)]
+                found = True
                 break
-        if Chessbot1.piecemove(n, square[0], square[1], x, y) and not Chessbot1.pin(n, square[0], square[1], x, y):
-            pn = n
-            break
+        if found:
+            if Chessbot1.piecemove(n, square[0], square[1], x, y) and not Chessbot1.pin(n, square[0], square[1], x, y):
+                pn = n
+                break
     else:
         #if no legal move
         return [0, 0, 0, 0, 0]
-
+    
     return [pn, square[0], square[1], x, y]
 
 def translator(v, h, p="p"):
@@ -113,11 +129,13 @@ for g in range(1):
     for i in range(n1+1, len(games[g])):
         if games[g][i] == ' ' or games[g][i] == '\n':
             if v != "" and h != "":
-                if Chessbot1.piecemove(*translator(v,h,p)) and not Chessbot1.pin(*translator(v,h,p)):
+                translated = translator(v,h,p)
+                if Chessbot1.piecemove(*translated) and not Chessbot1.pin(*translated):
                     if Chessbot1.turn == 0:
-                        converted += [[translator(v,h,p)[0], Chessbot1.board]]
-                    Chessbot1.movepieceto(*translator(v,h,p))
+                        converted += [[translated[0], Chessbot1.board]]
+                    Chessbot1.movepieceto(*translated)
                     Chessbot1.turn = (Chessbot1.turn == 0)
+                    Chessbot1.printboard()
                 else:
                     print(v, h, p)
                     break
@@ -128,8 +146,20 @@ for g in range(1):
             p = ""
             v = ""
             h = ""
-        elif games[g][i] == "x":
+        elif games[g][i] == "x" or games[g][i] == '+':
             pass
+        elif games[g][i] == "O":
+            if p == "":
+                if games[g][i+3] == '-':
+                    #long castle
+                    p = 'O'
+                    v = '-'
+                    h = '-'
+                else:
+                    #short castle
+                    p = 'O'
+                    v = '-'
+                    h = 'O'
         elif games[g][i].isnumeric():
             h = games[g][i]
         elif games[g][i].isupper():

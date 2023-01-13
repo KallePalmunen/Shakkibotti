@@ -218,6 +218,13 @@ bool check(int n){
     return false;
 }
 
+bool checkmate(int n){
+    if(!check(n)){
+        return false;
+    }
+    return false;
+}
+
 bool pin(int n, int y0, int x0, int y1, int x1){
     board[y0][x0] = 0;
     int movetosquare = board[y1][x1];
