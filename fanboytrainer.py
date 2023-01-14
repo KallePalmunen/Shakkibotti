@@ -143,7 +143,7 @@ def backpropagation():
         fan.bias1[0][i] -= biasgradient1[0][i]
 
 def setrightvalue(rand):
-    v = data[rand][0]
+    v = data[rand][0]-1
     Chessbot1.board = data[rand][1]
 
     for i in range(50):
@@ -152,7 +152,7 @@ def setrightvalue(rand):
 
 datalen = len(data)
 
-for i in range(1001):
+for i in range(10001):
     setrightvalue(int(random.random()*datalen))
     backpropagation()
     if i%1000 == 0:
