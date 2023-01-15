@@ -218,13 +218,6 @@ bool check(int n){
     return false;
 }
 
-bool checkmate(int n){
-    if(!check(n)){
-        return false;
-    }
-    return false;
-}
-
 bool pin(int n, int y0, int x0, int y1, int x1){
     board[y0][x0] = 0;
     int movetosquare = board[y1][x1];
@@ -247,6 +240,39 @@ bool canmove(int n, int y0, int x0, int y1, int x1){
     return false;
 }
 
+bool movesomewhere(int n, int y0, int x0){
+    for(int y1 = 0; y1 < 8; y1++){
+        for(int x1 = 0; x1 < 8; x1++){
+            if(canmove(n, y0, x0, y1, x1)){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool checkmate(int n){
+    if(!check(n)){
+        return false;
+    }
+    for(int n1 = 0; n1 < 6; n1++){
+        for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
+            int piecen = intsign(n)*(n1*10+n2);
+            int *pindex;
+            pindex = find(&board[0][0], &board[0][0]+64, piecen);
+            if(pindex != &board[0][0]+64){
+                int ppos = distance(&board[0][0], pindex);
+                int y0 = ppos/8;
+                int x0 = ppos-y0*8;
+                if(movesomewhere(piecen, y0, x0)){
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 void movepieceto(int n, int y0, int x0, int y1, int x1){
     int promoteto;
     if(promote(n, y1)){
@@ -257,6 +283,16 @@ void movepieceto(int n, int y0, int x0, int y1, int x1){
         board[y1][x1] = n;
     }
     board[y0][x0] = 0;
+}
+
+void gameend(){
+    if(checkmate(-50)){
+        cout << "White won" << '\n';
+        turn = -1;
+    }
+    if(checkmate(50)){
+        cout << "Black won" << '\n';
+    }
 }
 
 void movepiece(){

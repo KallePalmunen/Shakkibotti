@@ -7,6 +7,7 @@ int main(){
     while(true){
         movepiece();
         printboard();
+        gameend();
     }
 
     return 0;
