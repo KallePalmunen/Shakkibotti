@@ -135,6 +135,19 @@ bool queenmove(int n, int y0, int x0, int y1, int x1){
     return false;
 }
 
+bool kingmove(int n, int y0, int x0, int y1, int x1){
+    if(abs(y1-y0) <= 1 && abs(x1-x0) <= 1 && 
+    !(y1 == y0 && x1 == x0)){
+        if(n > 0 && board[y1][x1] <= 0){
+            return true;
+        }
+        if(n < 0 && board[y1][x1] >= 0){
+            return true;
+        }
+    }
+    return false;
+}
+
 bool piecemove(int n, int y0, int x0, int y1, int x1){
     if(y1 < 8 && x1 < 8 && x1 >= 0 && y1 >= 0 && y0>=0){
         if(abs(n) < 10){
@@ -163,6 +176,12 @@ bool piecemove(int n, int y0, int x0, int y1, int x1){
         }
         if(abs(n) < 50 && abs(n) >= 40){
             if(queenmove(n, y0, x0, y1, x1)){
+                return true;
+            }
+            return false;
+        }
+        if(abs(n) >= 50){
+            if(kingmove(n, y0, x0, y1, x1)){
                 return true;
             }
             return false;
@@ -218,6 +237,32 @@ bool check(int n){
     return false;
 }
 
+bool castle(int n, int y0, int x0, int y1, int x1){
+    if(kingmoved[(n>0)] == 1 || rookmoved[(n>0)][x1>4] == 1){
+        return false;
+    }
+    if(y1 == y0 && (x1 == 1 || x1 == 5) && !check(n) &&
+    board[y0][(x1 > 4)*7] == intsign(n)*(30 + (x1 > 4))){
+        for(int i = 1; i < 3 + (x1 > 4); i++){
+            int squarex = x0 + i*intsign(x1-x0);
+            if(board[y0][squarex] != 0){
+                return false;
+            }
+            board[y0][x0] = 0;
+            board[y0][squarex] = n;
+            if(i < 3 && check(n)){
+                board[y0][x0] = n;
+                board[y0][squarex] = 0;
+                return false;
+            }
+            board[y0][x0] = n;
+            board[y0][squarex] = 0;
+        }
+        return true;
+    }
+    return false;
+}
+
 bool pin(int n, int y0, int x0, int y1, int x1){
     board[y0][x0] = 0;
     int movetosquare = board[y1][x1];
@@ -233,7 +278,8 @@ bool pin(int n, int y0, int x0, int y1, int x1){
 }
 
 bool canmove(int n, int y0, int x0, int y1, int x1){
-    if(piecemove(n, y0, x0, y1, x1)
+    if((piecemove(n, y0, x0, y1, x1) 
+    || (abs(n) == 50 && castle(n, y0, x0, y1, x1)))
     && !pin(n, y0, x0, y1, x1)){
         return true;
     }
@@ -275,6 +321,19 @@ bool checkmate(int n){
 
 void movepieceto(int n, int y0, int x0, int y1, int x1){
     int promoteto;
+    if(abs(n) == 50){
+        if(abs(x1-x0) > 1){
+            //castle
+            int whichrook = intsign(n)*(30 + (x1 > 4));
+            int rookx = (x1 > 4)*7;
+            board[y1][rookx] = 0;
+            board[y1][x1 + intsign(4-x1)] = whichrook;
+        }
+        kingmoved[(n>0)] = 1;
+    }
+    if(abs(n) == 30 || abs(n) == 31){
+        rookmoved[(n>0)][abs(n)-30] = 1;
+    }
     if(promote(n, y1)){
         promoteto = 4;
         board[y1][x1] = intsign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
