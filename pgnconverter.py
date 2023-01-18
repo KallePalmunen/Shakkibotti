@@ -21,7 +21,25 @@ games = ['''[Event "Live Chess"]
 9. Bxf6 Bxf6 10. Nd5 Bg7 11. b3 Bxa1 12. Qxa1 e6 13. Nc3 Ne7 14. d4 cxd4 15.
 Nxd4 d5 16. f3 b6 17. exd5 exd5 18. f4 dxc4 19. Ndb5 cxb3 20. axb3 Bf5 21. Rd1
 Qc8 22. Nd6 Qc5+ 23. Kf1 Rad8 24. Nxf5 Nxf5 25. Re1 Rfe8 26. Na4 Qc2 27. Qb2
-Qxb2 28. Nxb2 Rd2 29. Nc4 Rd4 30. Ne5 Rxf4+ 31. Kg1 Rxe5 0-1''']
+Qxb2 28. Nxb2 Rd2 29. Nc4 Rd4 30. Ne5 Rxf4+ 31. Kg1 Rxe5 0-1''',
+'''[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2022.10.24"]
+[Round "?"]
+[White "elovena"]
+[Black "leeviloikkanen"]
+[Result "0-1"]
+[ECO "E61"]
+[WhiteElo "751"]
+[BlackElo "1337"]
+[TimeControl "180+2"]
+[EndTime "11:09:36 PDT"]
+[Termination "leeviloikkanen won by resignation"]
+
+1. d4 Nf6 2. c4 g6 3. Nc3 d6 4. e4 Bg7 5. d5 O-O 6. f3 Re8 7. Bd3 e5 8. Nge2 c6
+9. O-O Qc7 10. f4 Bg4 11. h3 Bxe2 12. Qxe2 Nbd7 13. fxe5 Rxe5 14. Bf4 Re7 15. b3
+Rae8 16. Bg5 h6 17. Bxf6 Nxf6 18. Rae1 Nh5 19. g4 Ng3 20. Qf2 Nxf1 21. Rxf1 Bxc3
+22. h4 c5 23. h5 Bd4 24. Qxd4 cxd4 0-1''']
 
 converted = []
 
