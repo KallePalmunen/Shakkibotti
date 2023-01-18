@@ -110,20 +110,15 @@ def calculate1():
 #Second network
 
 
-def calculate2():
-    n = neural_network1[3].index(max(neural_network1[3]))+1
-    for i in range(8):
-        if n in Chessbot1.board[i]:
-            x0 = i
-            y0 = Chessbot1.board[i].index(n)
-            break
-    else:
-        x0 = -1
-        y0 = -1
+def calculate2(n):
+    global neural_network2
+    neural_network2.clear()
+    neural_network2 = [[]]
+
     for i in range(8):
         for j in range(8):
             neural_network2[0].append(Chessbot1.board[i][j])
-    fanboymove = neural_network1[3].index(max(neural_network1[3]))
+    fanboymove = n-1
     for i in range(50):
         neural_network2[0].append((i == fanboymove))
 
@@ -134,7 +129,7 @@ def calculate2():
         for j in range(114):
             neural_network2[1][i] += neural_network2[0][j]*multiplier2[0][i][j]
         neural_network2[1][i] += bias2[0][i]
-        neural_network2[1][i] = max(0, neural_network2[1][i])
+        neural_network2[1][i] = sigmoid(neural_network2[1][i])
 
     neural_network2.append([])
     
@@ -143,7 +138,7 @@ def calculate2():
         for j in range(16):
             neural_network2[2][i] += neural_network2[1][j]*multiplier2[1][i][j]
         neural_network2[2][i] += bias2[1][i]
-        neural_network2[2][i] = max(0, neural_network2[2][i])
+        neural_network2[2][i] = sigmoid(neural_network2[2][i])
     
     neural_network2.append([])
     
@@ -152,11 +147,7 @@ def calculate2():
         for j in range(16):
             neural_network2[3][i] += neural_network2[2][j]*multiplier2[2][i][j]
         neural_network2[3][i] += bias2[2][i]
-        neural_network2[3][i] = max(0, neural_network2[3][i])
-        x1 = int(i/8)
-        y1 = i-x1*8
-        if (not Chessbot1.piecemove(n, x0, y0, x1, y1)) or Chessbot1.pin(n, x0, y0, x1, y1):
-            neural_network2[3][i] = -1000000
+        neural_network2[3][i] = sigmoid(neural_network2[3][i])
 
 randomize()
 
@@ -170,15 +161,27 @@ if mode == "play":
 
 def move():
     global neural_network1, neural_network2
-    calculate1()    
+    calculate1()
 
     while True:
-        calculate2()
+        calculate2(neural_network1[3].index(max(neural_network1[3]))+1)
+        for i in range(64):
+            n = neural_network1[3].index(max(neural_network1[3]))+1
+            for j in range(8):
+                if n in Chessbot1.board[j]:
+                    x0 = j
+                    y0 = Chessbot1.board[j].index(n)
+                    break
+            else:
+                x0 = -1
+                y0 = -1
+            x1 = int(i/8)
+            y1 = i-x1*8
+            if (not Chessbot1.piecemove(n, x0, y0, x1, y1)) or Chessbot1.pin(n, x0, y0, x1, y1):
+                neural_network2[3][i] = -1000000
         move = neural_network1[3].index(max(neural_network1[3]))+1
         if max(neural_network2[3]) <= -1000000:
             neural_network1[3][move-1] = -1000000
-            neural_network2.clear()
-            neural_network2 = [[]]
         else:
             break
 
