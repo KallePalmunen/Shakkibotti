@@ -39,7 +39,29 @@ Qxb2 28. Nxb2 Rd2 29. Nc4 Rd4 30. Ne5 Rxf4+ 31. Kg1 Rxe5 0-1''',
 1. d4 Nf6 2. c4 g6 3. Nc3 d6 4. e4 Bg7 5. d5 O-O 6. f3 Re8 7. Bd3 e5 8. Nge2 c6
 9. O-O Qc7 10. f4 Bg4 11. h3 Bxe2 12. Qxe2 Nbd7 13. fxe5 Rxe5 14. Bf4 Re7 15. b3
 Rae8 16. Bg5 h6 17. Bxf6 Nxf6 18. Rae1 Nh5 19. g4 Ng3 20. Qf2 Nxf1 21. Rxf1 Bxc3
-22. h4 c5 23. h5 Bd4 24. Qxd4 cxd4 0-1''']
+22. h4 c5 23. h5 Bd4 24. Qxd4 cxd4 0-1''',
+'''[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2022.10.17"]
+[Round "?"]
+[White "elovena"]
+[Black "leeviloikkanen"]
+[Result "0-1"]
+[ECO "A45"]
+[WhiteElo "948"]
+[BlackElo "1513"]
+[TimeControl "60"]
+[EndTime "12:17:34 PDT"]
+[Termination "leeviloikkanen won on time"]
+
+1. d4 Nf6 2. Bd2 g6 3. c4 Bg7 4. Nc3 d6 5. d5 O-O 6. e4 Re8 7. f3 c6 8. Nge2
+cxd5 9. cxd5 Bd7 10. Qc2 Qb6 11. Nd4 Qxd4 12. Be2 e6 13. O-O-O Qb6 14. Be3 Qc7
+15. Bd2 a5 16. b3 a4 17. Rhf1 axb3 18. axb3 Ra1+ 19. Nb1 Qxc2+ 20. Kxc2 Rc8+ 21.
+Kb2 Ra7 22. Be3 Ra8 23. Bc4 b5 24. Bd3 exd5 25. Rc1 dxe4 26. fxe4 Rxc1 27. Rxc1
+Nc6 28. Bxb5 Ne5 29. Bxd7 Nexd7 30. Bd4 Nxe4 31. Bxg7 Kxg7 32. Re1 Ndc5 33. Rxe4
+Nxe4 34. Kc2 Rc8+ 35. Nc3 Rxc3+ 36. Kb2 Rd3 37. Ka3 Rd2 38. Ka4 Rxg2 39. b4 Rxh2
+40. Ka5 Rb2 41. b5 Rxb5+ 42. Kxb5 h5 43. Kc6 f5 44. Kd5 h4 45. Ke6 h3 46. Kd5 h2
+47. Ke6 h1=Q 48. Kd7 Qd1 49. Ke7 Qd4 50. Ke6 Qc4+ 0-1''']
 
 converted = []
 
@@ -78,10 +100,24 @@ def piece_to_number(v, h, startv, starth, p="p"):
         else:
             #short castle
             y = 1
+        promoteto = ""
+    elif h == '=':
+        x = (Chessbot1.turn == 0)*7
+        y = letter_to_number(v)
+        pn = 1
+        if p == 'Q':
+            promoteto = 4
+        if p == 'R':
+            promoteto = 3
+        if p == "B":
+            promoteto = 2
+        if p == 'N':
+            promoteto = 1
     else:
         x = int(h)-1
         y = letter_to_number(v)
         pn = 0
+        promoteto = ""
     
     if starth.isnumeric():
         startx = int(starth)-1
@@ -89,18 +125,19 @@ def piece_to_number(v, h, startv, starth, p="p"):
         startx = -1
     starty = letter_to_number(startv)
 
-    if p == "p" or p == "":
-        pn = 1
-    if p == "N":
-        pn = 10
-    if p == "B":
-        pn = 20
-    if p == "R":
-        pn = 30
-    if p == "Q":
-        pn = 40
-    if p == "K":
-        pn = 50
+    if h != '=':
+        if p == "p" or p == "":
+            pn = 1
+        if p == "N":
+            pn = 10
+        if p == "B":
+            pn = 20
+        if p == "R":
+            pn = 30
+        if p == "Q":
+            pn = 40
+        if p == "K":
+            pn = 50
 
     if Chessbot1.turn == 1:
         pn *= -1
@@ -123,7 +160,7 @@ def piece_to_number(v, h, startv, starth, p="p"):
         print(n, square[0], square[1], x, y)
         return [0, 0, 0, 0, 0]
     
-    return [pn, square[0], square[1], x, y]
+    return [pn, square[0], square[1], x, y, promoteto]
 
 def translator(v, h, startv, starth, p="p"):
     list = []
@@ -195,6 +232,8 @@ for g in range(len(games)):
             starth = ""
         elif games[g][i] == "x" or games[g][i] == '+':
             pass
+        elif games[g][i] == '=':
+            h = '='
         elif games[g][i] == "O":
             if p == "":
                 if games[g][i+3] == '-':

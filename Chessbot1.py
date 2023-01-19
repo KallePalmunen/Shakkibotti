@@ -34,7 +34,7 @@ def printboard():
         print("{0:5}{1:5}{2:5}{3:5}{4:5}{5:5}{6:5}{7:5}"\
             .format(board[i][0], board[i][1], board[i][2], board[i][3], board[i][4], board[i][5], board[i][6], board[i][7]))
 
-def piecemove(n, x0, y0, x1, y1):
+def piecemove(n, x0, y0, x1, y1, promoter = ""):
     #checks if a certain piece can move (also there is specific functions for each piece like pawnmove, knightmove etc.)
     #n=unique piece, x0, y0 = starting coordinates, x1, y1 = ending coordinates
     if x1 < 8 and y1 < 8 and y1 >= 0 and x1 >= 0 and x0 >= 0:
@@ -237,7 +237,7 @@ def check(n):
         return False
     return False
 
-def pin(n, x0, y0, x1, y1):
+def pin(n, x0, y0, x1, y1, promoter = ""):
     board[x0][y0] = 0
     movetosquare = board[x1][y1]
     board[x1][y1] = n
@@ -301,7 +301,7 @@ def repetition(m):
                 return True
     return False
 
-def movepieceto(n, x0, y0, x1, y1):
+def movepieceto(n, x0, y0, x1, y1, promoter = ""):
     global turn
     global moves
     global enpassant
@@ -316,7 +316,9 @@ def movepieceto(n, x0, y0, x1, y1):
     if(abs(n) == 30 or abs(n) == 31):
         rookmoved[(n >0)][abs(n)-30] = 1
     if promote(n, x1):
-        if bot == turn:
+        if promoter != "":
+            promoteto = promoter
+        elif bot == turn:
             promoteto = 4
         else:
             promotemenu = True
