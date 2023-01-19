@@ -3,7 +3,7 @@
 
 using namespace std;
 
-//missing enpassant and draw (repetiotion and stalemate)
+//missing draw (repetiotion and stalemate)
 
 int board[8][8] = {{30,10,20,50,40,21,11,31}, {1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
          {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
@@ -342,6 +342,14 @@ void movepieceto(int n, int y0, int x0, int y1, int x1){
         pieces[promoteto][(n < 0)]++;
     }else{
         board[y1][x1] = n;
+    }
+    if(enpassant >= 0 && x1*8+y1 == enpassant){
+        board[y1-intsign(y1 - y0)][x1] = 0;
+    }
+    if(abs(n) < 10 && abs(y1-y0) > 1){
+        enpassant = x1*8+y0+intsign(y1 - y0);
+    }else{
+        enpassant = -1;
     }
     board[y0][x0] = 0;
 }
