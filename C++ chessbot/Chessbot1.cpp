@@ -1,8 +1,6 @@
 #include <iostream>
 #include <algorithm>
 
-using namespace std;
-
 //missing draw (repetiotion and stalemate)
 
 int board[8][8] = {{30,10,20,50,40,21,11,31}, {1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
@@ -14,7 +12,7 @@ int enpassant = -1;
 int bot = 2;
 bool promotemenu = false;
 double evalscore = 0.0;
-string evaltext = "";
+std::string evaltext = "";
 
 //pawns, knights, bishops, rooks, queens and kings (W,B)
 int pieces[6][2] = {{8,8},{2,2},{2,2},{2,2},{1,1},{1,1}};
@@ -26,9 +24,9 @@ int rookmoved[2][2] = {{0,0},{0,0}};
 void printboard(){
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
-            cout << board[i][j] << " ";
+            std::cout << board[i][j] << " ";
         }
-        cout << "\n";
+        std::cout << "\n";
     };
 }
 
@@ -209,12 +207,12 @@ bool promote(int n, int y1){
 
 bool check(int n){
     int *index;
-    index = find(&board[0][0], &board[0][0]+64, n);
+    index = std::find(&board[0][0], &board[0][0]+64, n);
     int kingy;
     int kingx;
 
     if(index != &board[0][0]+64){
-        int kingpos = distance(&board[0][0], index);
+        int kingpos = std::distance(&board[0][0], index);
         kingy = kingpos/8;
         kingx = kingpos-kingy*8;
     }else{
@@ -225,9 +223,9 @@ bool check(int n){
         for(int n2 = 0; n2 < pieces[n1][(n > 0)]; n2++){
             int piecen = -intsign(n)*(n1*10+n2+(n1 == 0));
             int *pindex;
-            pindex = find(&board[0][0], &board[0][0]+64, piecen);
+            pindex = std::find(&board[0][0], &board[0][0]+64, piecen);
             if(pindex != &board[0][0]+64){
-                int ppos = distance(&board[0][0], pindex);
+                int ppos = std::distance(&board[0][0], pindex);
                 int y0 = ppos/8;
                 int x0 = ppos-y0*8;
                 if(piecemove(piecen, y0, x0, kingy, kingx)){
@@ -307,9 +305,9 @@ bool checkmate(int n){
         for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
             int piecen = intsign(n)*(n1*10+n2);
             int *pindex;
-            pindex = find(&board[0][0], &board[0][0]+64, piecen);
+            pindex = std::find(&board[0][0], &board[0][0]+64, piecen);
             if(pindex != &board[0][0]+64){
-                int ppos = distance(&board[0][0], pindex);
+                int ppos = std::distance(&board[0][0], pindex);
                 int y0 = ppos/8;
                 int x0 = ppos-y0*8;
                 if(movesomewhere(piecen, y0, x0)){
@@ -356,38 +354,38 @@ void movepieceto(int n, int y0, int x0, int y1, int x1){
 
 void gameend(){
     if(checkmate(-50)){
-        cout << "White won" << '\n';
+        std::cout << "White won" << '\n';
         turn = -1;
     }
     if(checkmate(50)){
-        cout << "Black won" << '\n';
+        std::cout << "Black won" << '\n';
     }
 }
 
 void movepiece(){
     int move, movetox, movetoy;
-    cin >> move;
-    cin >> movetoy;
-    cin >> movetox;
+    std::cin >> move;
+    std::cin >> movetoy;
+    std::cin >> movetox;
     if((move > 0 && turn == 0) || (move < 0 && turn == 1)){
         int *index;
-        index = find(&board[0][0], &board[0][0]+64,move);
+        index = std::find(&board[0][0], &board[0][0]+64,move);
         if(index != &board[0][0]+64){
-            int pos = distance(&board[0][0], index);
+            int pos = std::distance(&board[0][0], index);
             int y0 = pos/8;
             int x0 = pos-y0*8;
             if(canmove(move, y0, x0, movetoy, movetox)){
                 movepieceto(move, y0, x0, movetoy, movetox);
             }else{
-                cout << "Illegal move" << "\n";
+                std::cout << "Illegal move" << "\n";
                 return;
             }
         }else{
-            cout << "Illegal move" << "\n";
+            std::cout << "Illegal move" << "\n";
             return;
         }
         turn = (turn == 0);
     }else{
-        cout << "Illegal move" << "\n";
+        std::cout << "Illegal move" << "\n";
     }
 }
