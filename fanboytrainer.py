@@ -3,6 +3,7 @@ import magnusfanboy as fan
 import Chessbot1
 import random
 import json
+import time
 
 right_values1 = []
 cost_values1 = []
@@ -15,6 +16,8 @@ biasgradient2 = [[]]
 activations1 = [[]]
 activations2 = [[]]
 currentpiece = 0
+#stochastic backpropagation sample size
+samplesize = 10
 
 with open("pgndata.txt", 'r') as f:
     data = json.loads(f.read())
@@ -115,11 +118,9 @@ def backpropagation1():
 
     for i in range(50):
         for j in range(16):
-            multipliergradient1[2][i][j] = -2*(right_values1[i]-fan.neural_network1[3][i])*fan.neural_network1[2][j]\
+            multipliergradient1[2][i][j] += -2*(right_values1[i]-fan.neural_network1[3][i])*fan.neural_network1[2][j]\
                 *dsigmoid(totalcost)/50
-            fan.multiplier1[2][i][j] -= multipliergradient1[2][i][j]
-        biasgradient1[2][i] = -2*(right_values1[i]-fan.neural_network1[3][i])*dsigmoid(totalcost)/50
-        fan.bias1[2][i] -= biasgradient1[2][i]
+        biasgradient1[2][i] += -2*(right_values1[i]-fan.neural_network1[3][i])*dsigmoid(totalcost)/50
     
     for j in range(16):
         activations1[2][j] = 0
@@ -129,11 +130,9 @@ def backpropagation1():
 
     for i in range(16):
         for j in range(16):
-            multipliergradient1[1][i][j] = activations1[2][i]*fan.neural_network1[1][j]\
+            multipliergradient1[1][i][j] += activations1[2][i]*fan.neural_network1[1][j]\
                 *dsigmoid(fan.neural_network1[2][i])
-            fan.multiplier1[1][i][j] -= multipliergradient1[1][i][j]
-        biasgradient1[1][i] = activations1[2][i]*dsigmoid(fan.neural_network1[2][i])
-        fan.bias1[1][i] -= biasgradient1[1][i]
+        biasgradient1[1][i] += activations1[2][i]*dsigmoid(fan.neural_network1[2][i])
 
     for j in range(16):
         activations1[1][j] = 0
@@ -143,11 +142,35 @@ def backpropagation1():
     
     for i in range(16):
         for j in range(64):
-            multipliergradient1[0][i][j] = activations1[1][i]*fan.multiplier1[0][i][j]\
+            multipliergradient1[0][i][j] += activations1[1][i]*fan.multiplier1[0][i][j]\
                 *dsigmoid(fan.neural_network1[1][i])
-            fan.multiplier1[0][i][j] -= multipliergradient1[0][i][j]
-        biasgradient1[1][i] = activations1[1][i]*dsigmoid(fan.neural_network1[1][i])
-        fan.bias1[0][i] -= biasgradient1[0][i]
+        biasgradient1[1][i] += activations1[1][i]*dsigmoid(fan.neural_network1[1][i])
+    return totalcost
+
+def updateneuralnetwork1():
+    global samplesize
+
+    for i in range(50):
+        for j in range(16):
+            fan.multiplier1[2][i][j] -= multipliergradient1[2][i][j]/samplesize
+            multipliergradient1[2][i][j] = 0
+        fan.bias1[2][i] -= biasgradient1[2][i]/samplesize
+        biasgradient1[2][i] = 0
+
+    for i in range(16):
+        for j in range(16):
+            fan.multiplier1[1][i][j] -= multipliergradient1[1][i][j]/samplesize
+            multipliergradient1[1][i][j] = 0
+        fan.bias1[1][i] -= biasgradient1[1][i]/samplesize
+        biasgradient1[1][i] = 0
+    
+    for i in range(16):
+        for j in range(64):
+            fan.multiplier1[0][i][j] -= multipliergradient1[0][i][j]/samplesize
+            multipliergradient1[0][i][j] = 0
+        fan.bias1[0][i] -= biasgradient1[0][i]/samplesize
+        biasgradient1[0][i] = 0
+
 
 def backpropagation2():
     global currentpiece
@@ -161,11 +184,9 @@ def backpropagation2():
 
     for i in range(64):
         for j in range(16):
-            multipliergradient2[2][i][j] = -2*(right_values2[i]-fan.neural_network2[3][i])*fan.neural_network2[2][j]\
+            multipliergradient2[2][i][j] += -2*(right_values2[i]-fan.neural_network2[3][i])*fan.neural_network2[2][j]\
                 *dsigmoid(totalcost)/64
-            fan.multiplier2[2][i][j] -= multipliergradient2[2][i][j]
-        biasgradient2[2][i] = -2*(right_values2[i]-fan.neural_network2[3][i])*dsigmoid(totalcost)/64
-        fan.bias2[2][i] -= biasgradient2[2][i]
+        biasgradient2[2][i] += -2*(right_values2[i]-fan.neural_network2[3][i])*dsigmoid(totalcost)/64
     
     for j in range(16):
         activations2[2][j] = 0
@@ -175,11 +196,9 @@ def backpropagation2():
 
     for i in range(16):
         for j in range(16):
-            multipliergradient2[1][i][j] = activations2[2][i]*fan.neural_network2[1][j]\
+            multipliergradient2[1][i][j] += activations2[2][i]*fan.neural_network2[1][j]\
                 *dsigmoid(fan.neural_network2[2][i])
-            fan.multiplier2[1][i][j] -= multipliergradient2[1][i][j]
-        biasgradient2[1][i] = activations2[2][i]*dsigmoid(fan.neural_network2[2][i])
-        fan.bias2[1][i] -= biasgradient2[1][i]
+        biasgradient2[1][i] += activations2[2][i]*dsigmoid(fan.neural_network2[2][i])
 
     for j in range(16):
         activations2[1][j] = 0
@@ -189,11 +208,34 @@ def backpropagation2():
     
     for i in range(16):
         for j in range(114):
-            multipliergradient2[0][i][j] = activations2[1][i]*fan.multiplier2[0][i][j]\
+            multipliergradient2[0][i][j] += activations2[1][i]*fan.multiplier2[0][i][j]\
                 *dsigmoid(fan.neural_network2[1][i])
-            fan.multiplier2[0][i][j] -= multipliergradient2[0][i][j]
-        biasgradient2[1][i] = activations2[1][i]*dsigmoid(fan.neural_network2[1][i])
-        fan.bias2[0][i] -= biasgradient2[0][i]
+        biasgradient2[1][i] += activations2[1][i]*dsigmoid(fan.neural_network2[1][i])
+    return totalcost
+    
+def updateneuralnetwork2():
+    global samplesize
+
+    for i in range(64):
+        for j in range(16):
+            fan.multiplier2[2][i][j] -= multipliergradient2[2][i][j]/samplesize
+            multipliergradient2[2][i][j] = 0
+        fan.bias2[2][i] -= biasgradient2[2][i]/samplesize
+        biasgradient2[2][i] = 0
+
+    for i in range(16):
+        for j in range(16):
+            fan.multiplier2[1][i][j] -= multipliergradient2[1][i][j]/samplesize
+            multipliergradient2[1][i][j] = 0
+        fan.bias2[1][i] -= biasgradient2[1][i]/samplesize
+        biasgradient2[1][i] = 0
+    
+    for i in range(16):
+        for j in range(114):
+            fan.multiplier2[0][i][j] -= multipliergradient2[0][i][j]/samplesize
+            multipliergradient2[0][i][j] = 0
+        fan.bias2[0][i] -= biasgradient2[0][i]/samplesize
+        biasgradient2[0][i] = 0
 
 def setrightvalue1(rand):
     v = data[rand][0]-1
@@ -219,19 +261,32 @@ datalen = len(data)
 
 times = 10000
 
+start = time.time()
+cost = 0
 for i in range(times):
     setrightvalue1(int(random.random()*datalen))
-    backpropagation1()
-    if i%1000 == 0:
-        print(i)
+    cost += backpropagation1()
+    if (i+1)%samplesize == 0:
+        updateneuralnetwork1()
+    if (i+1)%1000 == 0:
+        print(i+1)
+        print(cost)
+        cost = 0
 
+cost = 0
 for i in range(times):
     setrightvalue2(int(random.random()*datalen))
-    backpropagation2()
-    if i%1000 == 0:
-        print(i)
+    cost += backpropagation2()
+    if (i+1)%samplesize == 0:
+        updateneuralnetwork2()
+    if (i+1)%1000 == 0:
+        print(i+1)
+        print(cost)
+        cost = 0
 
 print("done")
+end = time.time()
+print(end-start)
 
 with open("fanboydata.txt", 'w') as f:
     f.write(f"[{str(fan.bias1)}, {str(fan.multiplier1)}, {str(fan.bias2)}, {str(fan.multiplier2)}]")
