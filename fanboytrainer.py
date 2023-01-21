@@ -217,7 +217,7 @@ def setrightvalue2(rand):
 
 datalen = len(data)
 
-times = 10001
+times = 10000
 
 for i in range(times):
     setrightvalue1(int(random.random()*datalen))

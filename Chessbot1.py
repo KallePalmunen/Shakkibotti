@@ -241,12 +241,21 @@ def pin(n, x0, y0, x1, y1, promoter = ""):
     board[x0][y0] = 0
     movetosquare = board[x1][y1]
     board[x1][y1] = n
+    #checks that you can prevent the mate in next turn by enpassanting the checking piece
+    enpassanted = ""
+    if enpassant >= 0 and y1*8+x1 == enpassant:
+        enpassanted = board[x1-int(math.copysign(1, x1 - x0))][y1]
+        board[x1-int(math.copysign(1, x1 - x0))][y1] = 0
     if not check(int(math.copysign(50,n))):
         board[x0][y0] = n
         board[x1][y1] = movetosquare
+        if enpassanted != "":
+            board[x1-int(math.copysign(1, x1 - x0))][y1] = enpassanted
         return False
     board[x0][y0] = n
     board[x1][y1] = movetosquare
+    if enpassanted != "":
+        board[x1-int(math.copysign(1, x1 - x0))][y1] = enpassanted
     return True
 
 def castle(n, x0, y0, x1, y1):
