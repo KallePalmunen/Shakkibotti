@@ -4,7 +4,7 @@ import time
 from copy import copy, deepcopy
 import Chessbot1
 import basicbot
-import stockfishfanboy
+import magnusfanboy
 import math
 
 pygame.init()
@@ -276,7 +276,7 @@ while running:
             if botlevel == 1 and Chessbot1.bot == 0:
                 basicbot.basicbot()
             elif botlevel == 2 and Chessbot1.bot == 0:
-                stockfishfanboy.move()
+                magnusfanboy.move()
             else:
                 Chessbot1.randommove()
             if clockon:

@@ -1,5 +1,5 @@
 import math
-import stockfishfanboy as fan
+import magnusfanboy as fan
 import Chessbot1
 import random
 import json
