@@ -16,6 +16,50 @@ bias2 = [[]]
 
 mode = "play"
 
+#create neural network 1
+for i in range(8):
+    for j in range(8):
+        neural_network1[0].append(Chessbot1.board[i][j])
+
+neural_network1.append([])
+
+for i in range(16):
+    neural_network1[1].append(0)
+
+neural_network1.append([])
+
+for i in range(16):
+    neural_network1[2].append(0)
+
+neural_network1.append([])
+
+for i in range(50):
+    neural_network1[3].append(0)
+
+#create neural network 2
+
+for i in range(8):
+    for j in range(8):
+        neural_network2[0].append(0)
+
+for i in range(50):
+    neural_network2[0].append(0)
+
+neural_network2.append([])
+
+for i in range(16):
+    neural_network2[1].append(0)
+
+neural_network2.append([])
+
+for i in range(16):
+    neural_network2[2].append(0)
+
+neural_network2.append([])
+
+for i in range(64):
+    neural_network2[3].append(0)
+
 def randomize():
     #First is the first hidden layer, then the second and finally the output layer, network 1
     for i in range(16):
@@ -73,35 +117,28 @@ def leakyrelu(a):
 
 def calculate1():
     global neural_network1
-    neural_network1.clear()
-    neural_network1 = [[]]
+
     for i in range(8):
         for j in range(8):
-            neural_network1[0].append(Chessbot1.board[i][j])
-
-    neural_network1.append([])
+            neural_network1[0][j] = Chessbot1.board[i][j]
 
     #First hidden layer for first network, then second and finally the output layer
     for i in range(16):
-        neural_network1[1].append(0)
+        neural_network1[1][i] = 0
         for j in range(64):
             neural_network1[1][i] += neural_network1[0][j]*multiplier1[0][i][j]
         neural_network1[1][i] += bias1[0][i]
         neural_network1[1][i] = sigmoid(neural_network1[1][i])
-
-    neural_network1.append([])
     
     for i in range(16):
-        neural_network1[2].append(0)
+        neural_network1[2][i] = 0
         for j in range(16):
             neural_network1[2][i] += neural_network1[1][j]*multiplier1[1][i][j]
         neural_network1[2][i] += bias1[1][i]
         neural_network1[2][i] = sigmoid(neural_network1[2][i])
     
-    neural_network1.append([])
-    
     for i in range(50):
-        neural_network1[3].append(0)
+        neural_network1[3][i] = 0
         for j in range(16):
             neural_network1[3][i] += neural_network1[2][j]*multiplier1[2][i][j]
         neural_network1[3][i] += bias1[2][i]
@@ -112,38 +149,30 @@ def calculate1():
 
 def calculate2(n):
     global neural_network2
-    neural_network2.clear()
-    neural_network2 = [[]]
 
     for i in range(8):
         for j in range(8):
-            neural_network2[0].append(Chessbot1.board[i][j])
+            neural_network2[0][i] = Chessbot1.board[i][j]
     fanboymove = n-1
     for i in range(50):
-        neural_network2[0].append((i == fanboymove))
-
-    neural_network2.append([])
+        neural_network2[0][64+i] = (i == fanboymove)
 
     for i in range(16):
-        neural_network2[1].append(0)
+        neural_network2[1][i] = 0
         for j in range(114):
             neural_network2[1][i] += neural_network2[0][j]*multiplier2[0][i][j]
         neural_network2[1][i] += bias2[0][i]
         neural_network2[1][i] = sigmoid(neural_network2[1][i])
-
-    neural_network2.append([])
     
     for i in range(16):
-        neural_network2[2].append(0)
+        neural_network2[2][i] = 0
         for j in range(16):
             neural_network2[2][i] += neural_network2[1][j]*multiplier2[1][i][j]
         neural_network2[2][i] += bias2[1][i]
         neural_network2[2][i] = sigmoid(neural_network2[2][i])
     
-    neural_network2.append([])
-    
     for i in range(64):
-        neural_network2[3].append(0)
+        neural_network2[3][i] = 0
         for j in range(16):
             neural_network2[3][i] += neural_network2[2][j]*multiplier2[2][i][j]
         neural_network2[3][i] += bias2[2][i]
@@ -195,7 +224,3 @@ def move():
                 Chessbot1.movepieceto(move, i, Chessbot1.board[i].index(move), movetox, movetoy)
                 Chessbot1.turn = (Chessbot1.bot == 0)
             break
-    neural_network1.clear()
-    neural_network1 = [[]]
-    neural_network2.clear()
-    neural_network2 = [[]]

@@ -16,7 +16,7 @@ biasgradient2 = [[]]
 activations1 = [[]]
 activations2 = [[]]
 currentpiece = 0
-#stochastic backpropagation sample size
+#stochastic gradient descent sample size
 samplesize = 10
 
 with open("pgndata.txt", 'r') as f:
@@ -259,7 +259,7 @@ def setrightvalue2(rand):
 
 datalen = len(data)
 
-times = 10000
+times = 150000
 
 start = time.time()
 cost = 0
