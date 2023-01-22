@@ -15,54 +15,41 @@ multiplier2 = [[[]]]
 bias2 = [[]]
 
 mode = "play"
+nhiddenlayers1 = 3
+nhiddenlayers2 = 3
 
 #create neural network 1
-for i in range(8):
-    for j in range(8):
-        neural_network1[0].append(Chessbot1.board[i][j])
+for i in range(64):
+    neural_network1[0].append(0)
 
-neural_network1.append([])
-
-for i in range(16):
-    neural_network1[1].append(0)
-
-neural_network1.append([])
-
-for i in range(16):
-    neural_network1[2].append(0)
+for j in range(nhiddenlayers1):
+    neural_network1.append([])
+    for i in range(32):
+        neural_network1[j+1].append(0)
 
 neural_network1.append([])
 
 for i in range(50):
-    neural_network1[3].append(0)
+    neural_network1[4].append(0)
 
 #create neural network 2
 
-for i in range(8):
-    for j in range(8):
-        neural_network2[0].append(0)
-
-for i in range(50):
+for i in range(114):
     neural_network2[0].append(0)
 
-neural_network2.append([])
-
-for i in range(16):
-    neural_network2[1].append(0)
-
-neural_network2.append([])
-
-for i in range(16):
-    neural_network2[2].append(0)
+for j in range(nhiddenlayers2):
+    neural_network2.append([])
+    for i in range(32):
+        neural_network2[j+1].append(0)
 
 neural_network2.append([])
 
 for i in range(64):
-    neural_network2[3].append(0)
+    neural_network2[4].append(0)
 
 def randomize():
     #First is the first hidden layer, then the second and finally the output layer, network 1
-    for i in range(16):
+    for i in range(32):
         multiplier1[0].append([])
         bias1[0].append(random.random()-0.5)
         for j in range(64):
@@ -70,22 +57,30 @@ def randomize():
 
     multiplier1.append([])
     bias1.append([])
-    for i in range(16):
+    for i in range(32):
         multiplier1[1].append([])
         bias1[1].append(random.random()-0.5)
-        for j in range(16):
+        for j in range(32):
             multiplier1[1][i].append(random.random()-0.5)
+    
+    multiplier1.append([])
+    bias1.append([])
+    for i in range(32):
+        multiplier1[2].append([])
+        bias1[2].append(random.random()-0.5)
+        for j in range(32):
+            multiplier1[2][i].append(random.random()-0.5)
 
     multiplier1.append([])
     bias1.append([])
     for i in range(50):
-        multiplier1[2].append([])
-        bias1[2].append(random.random()-0.5)
-        for j in range(16):
-            multiplier1[2][i].append(random.random()-0.5)
+        multiplier1[3].append([])
+        bias1[3].append(random.random()-0.5)
+        for j in range(32):
+            multiplier1[3][i].append(random.random()-0.5)
 
     #Network 2
-    for i in range(16):
+    for i in range(32):
         multiplier2[0].append([])
         bias2[0].append(random.random()-0.5)
         for j in range(114):
@@ -93,19 +88,27 @@ def randomize():
 
     multiplier2.append([])
     bias2.append([])
-    for i in range(16):
+    for i in range(32):
         multiplier2[1].append([])
         bias2[1].append(random.random()-0.5)
-        for j in range(16):
+        for j in range(32):
             multiplier2[1][i].append(random.random()-0.5)
+    
+    multiplier2.append([])
+    bias2.append([])
+    for i in range(32):
+        multiplier2[2].append([])
+        bias2[2].append(random.random()-0.5)
+        for j in range(32):
+            multiplier2[2][i].append(random.random()-0.5)
 
     multiplier2.append([])
     bias2.append([])
     for i in range(64):
-        multiplier2[2].append([])
-        bias2[2].append(random.random()-0.5)
-        for j in range(16):
-            multiplier2[2][i].append(random.random()-0.5)
+        multiplier2[3].append([])
+        bias2[3].append(random.random()-0.5)
+        for j in range(32):
+            multiplier2[3][i].append(random.random()-0.5)
 
 def sigmoid(a):
     if a < 0:
@@ -123,26 +126,33 @@ def calculate1():
             neural_network1[0][j] = Chessbot1.board[i][j]
 
     #First hidden layer for first network, then second and finally the output layer
-    for i in range(16):
+    for i in range(32):
         neural_network1[1][i] = 0
         for j in range(64):
             neural_network1[1][i] += neural_network1[0][j]*multiplier1[0][i][j]
         neural_network1[1][i] += bias1[0][i]
         neural_network1[1][i] = sigmoid(neural_network1[1][i])
     
-    for i in range(16):
+    for i in range(32):
         neural_network1[2][i] = 0
-        for j in range(16):
+        for j in range(32):
             neural_network1[2][i] += neural_network1[1][j]*multiplier1[1][i][j]
         neural_network1[2][i] += bias1[1][i]
         neural_network1[2][i] = sigmoid(neural_network1[2][i])
     
-    for i in range(50):
+    for i in range(32):
         neural_network1[3][i] = 0
-        for j in range(16):
+        for j in range(32):
             neural_network1[3][i] += neural_network1[2][j]*multiplier1[2][i][j]
         neural_network1[3][i] += bias1[2][i]
         neural_network1[3][i] = sigmoid(neural_network1[3][i])
+    
+    for i in range(50):
+        neural_network1[4][i] = 0
+        for j in range(32):
+            neural_network1[4][i] += neural_network1[3][j]*multiplier1[3][i][j]
+        neural_network1[4][i] += bias1[3][i]
+        neural_network1[4][i] = sigmoid(neural_network1[4][i])
     
 #Second network
 
@@ -157,26 +167,33 @@ def calculate2(n):
     for i in range(50):
         neural_network2[0][64+i] = (i == fanboymove)
 
-    for i in range(16):
+    for i in range(32):
         neural_network2[1][i] = 0
         for j in range(114):
             neural_network2[1][i] += neural_network2[0][j]*multiplier2[0][i][j]
         neural_network2[1][i] += bias2[0][i]
         neural_network2[1][i] = sigmoid(neural_network2[1][i])
     
-    for i in range(16):
+    for i in range(32):
         neural_network2[2][i] = 0
-        for j in range(16):
+        for j in range(32):
             neural_network2[2][i] += neural_network2[1][j]*multiplier2[1][i][j]
         neural_network2[2][i] += bias2[1][i]
         neural_network2[2][i] = sigmoid(neural_network2[2][i])
     
-    for i in range(64):
+    for i in range(32):
         neural_network2[3][i] = 0
-        for j in range(16):
+        for j in range(32):
             neural_network2[3][i] += neural_network2[2][j]*multiplier2[2][i][j]
         neural_network2[3][i] += bias2[2][i]
         neural_network2[3][i] = sigmoid(neural_network2[3][i])
+    
+    for i in range(64):
+        neural_network2[4][i] = 0
+        for j in range(32):
+            neural_network2[4][i] += neural_network2[3][j]*multiplier2[3][i][j]
+        neural_network2[4][i] += bias2[3][i]
+        neural_network2[4][i] = sigmoid(neural_network2[4][i])
 
 randomize()
 
@@ -193,9 +210,9 @@ def move():
     calculate1()
 
     while True:
-        calculate2(neural_network1[3].index(max(neural_network1[3]))+1)
+        calculate2(neural_network1[nhiddenlayers1+1].index(max(neural_network1[nhiddenlayers1+1]))+1)
         for i in range(64):
-            n = neural_network1[3].index(max(neural_network1[3]))+1
+            n = neural_network1[nhiddenlayers1+1].index(max(neural_network1[nhiddenlayers1+1]))+1
             for j in range(8):
                 if n in Chessbot1.board[j]:
                     x0 = j
@@ -207,16 +224,16 @@ def move():
             x1 = int(i/8)
             y1 = i-x1*8
             if (not Chessbot1.piecemove(n, x0, y0, x1, y1)) or Chessbot1.pin(n, x0, y0, x1, y1):
-                neural_network2[3][i] = -1000000
-        move = neural_network1[3].index(max(neural_network1[3]))+1
-        if max(neural_network2[3]) <= -1000000:
-            neural_network1[3][move-1] = -1000000
+                neural_network2[nhiddenlayers2+1][i] = -1000000
+        move = neural_network1[nhiddenlayers1+1].index(max(neural_network1[nhiddenlayers1+1]))+1
+        if max(neural_network2[nhiddenlayers2+1]) <= -1000000:
+            neural_network1[nhiddenlayers1+1][move-1] = -1000000
         else:
             break
 
-    move = neural_network1[3].index(max(neural_network1[3]))+1
-    movetox = int(neural_network2[3].index(max(neural_network2[3]))/8)
-    movetoy = neural_network2[3].index(max(neural_network2[3]))-movetox*8
+    move = neural_network1[nhiddenlayers1+1].index(max(neural_network1[nhiddenlayers1+1]))+1
+    movetox = int(neural_network2[nhiddenlayers2+1].index(max(neural_network2[nhiddenlayers2+1]))/8)
+    movetoy = neural_network2[nhiddenlayers2+1].index(max(neural_network2[nhiddenlayers2+1]))-movetox*8
     for i in range(8):
         if move in Chessbot1.board[i]:
             if Chessbot1.piecemove(move, i, Chessbot1.board[i].index(move), movetox, movetoy) and not \
