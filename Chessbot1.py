@@ -168,12 +168,20 @@ def checkmate(n):
                                     board[piecex0][piecey0] = 0
                                     movetosquare = board[j][jj]
                                     board[j][jj] = i
+                                    enpassanted = ""
+                                    if enpassant >= 0 and jj*8+j == enpassant:
+                                        enpassanted = board[j-int(math.copysign(1, j - piecex0))][jj]
+                                        board[j-int(math.copysign(1, j - piecex0))][jj] = 0
                                     if not check(n):
                                         board[piecex0][piecey0] = i
                                         board[j][jj] = movetosquare
+                                        if enpassanted != "":
+                                            board[j-int(math.copysign(1, j - piecex0))][jj] = enpassanted
                                         return False
                                     board[piecex0][piecey0] = i
                                     board[j][jj] = movetosquare
+                                    if enpassanted != "":
+                                        board[j-int(math.copysign(1, j - piecex0))][jj] = enpassanted
                         break
         return True
     if n < 0:
@@ -241,7 +249,7 @@ def pin(n, x0, y0, x1, y1, promoter = ""):
     board[x0][y0] = 0
     movetosquare = board[x1][y1]
     board[x1][y1] = n
-    #checks that you can prevent the mate in next turn by enpassanting the checking piece
+    #checks if you can prevent the mate in next turn by enpassanting the checking piece
     enpassanted = ""
     if enpassant >= 0 and y1*8+x1 == enpassant:
         enpassanted = board[x1-int(math.copysign(1, x1 - x0))][y1]

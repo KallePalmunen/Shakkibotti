@@ -267,13 +267,26 @@ bool pin(int n, int y0, int x0, int y1, int x1){
     board[y0][x0] = 0;
     int movetosquare = board[y1][x1];
     board[y1][x1] = n;
+    //checks if you can prevent the mate in next turn 
+    //by enpassanting the checking piece
+    int enpassanted = -100;
+    if(enpassant >= 0 && x1*8+y1 == enpassant){
+        enpassanted = board[y1-intsign(y1 - y0)][x1];
+        board[y1-intsign(y1 - y0)][x1] = 0;
+    }
     if(!check(intsign(n)*50)){
         board[y0][x0] = n;
         board[y1][x1] = movetosquare;
+        if(enpassanted != -100){
+            board[y1-intsign(y1 - y0)][x1] = enpassanted;
+        }
         return false;
     }
     board[y0][x0] = n;
     board[y1][x1] = movetosquare;
+    if(enpassanted != -100){
+        board[y1-intsign(y1 - y0)][x1] = enpassanted;
+    }
     return true;
 }
 
