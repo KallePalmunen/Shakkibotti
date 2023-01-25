@@ -3,6 +3,7 @@ import math
 import time
 from copy import copy, deepcopy
 import json
+import magnusfanboy as fan
 
 with open("carlsen, magnus.pgn", 'r') as f:
     games = f.readlines()
@@ -159,8 +160,9 @@ for g in range(len(games)):
             if v != "" and h != "":
                 translated = translator(v,h,startv,starth,p)
                 if Chessbot1.piecemove(*translated) and not Chessbot1.pin(*translated):
+                    positions = fan.convertposition()
                     if Chessbot1.turn == 0:
-                        converted += [[translated[0], Chessbot1.board, translated[3], translated[4]]]
+                        converted += [[translated[0], positions, translated[3], translated[4]]]
                     Chessbot1.movepieceto(*translated)
                     Chessbot1.turn = (Chessbot1.turn == 0)
                 else:

@@ -17,9 +17,13 @@ bias2 = [[]]
 mode = "play"
 nhiddenlayers1 = 4
 nhiddenlayers2 = 4
+piecepositions = []
+
+for i in range(300):
+    piecepositions += [0]
 
 #create neural network 1
-for i in range(64):
+for i in range(300):
     neural_network1[0].append(0)
 
 for j in range(nhiddenlayers1):
@@ -34,7 +38,7 @@ for i in range(50):
 
 #create neural network 2
 
-for i in range(114):
+for i in range(350):
     neural_network2[0].append(0)
 
 for j in range(nhiddenlayers2):
@@ -53,7 +57,7 @@ def randomize():
     for i in range(64):
         multiplier1[0].append([])
         bias1[0].append(random.random()-0.5)
-        for j in range(64):
+        for j in range(300):
             multiplier1[0][i].append(random.random()-0.5)
 
     for ii in range(nhiddenlayers1-1):    
@@ -77,7 +81,7 @@ def randomize():
     for i in range(64):
         multiplier2[0].append([])
         bias2[0].append(random.random()-0.5)
-        for j in range(114):
+        for j in range(350):
             multiplier2[0][i].append(random.random()-0.5)
 
     for ii in range(nhiddenlayers2-1):
@@ -108,14 +112,13 @@ def leakyrelu(a):
 def calculate1():
     global neural_network1
 
-    for i in range(8):
-        for j in range(8):
-            neural_network1[0][j] = Chessbot1.board[i][j]
+    for i in range(300):
+        neural_network1[0][i] = piecepositions[i]
 
     #First hidden layer for first network, then second and finally the output layer
     for i in range(64):
         neural_network1[1][i] = 0
-        for j in range(64):
+        for j in range(300):
             neural_network1[1][i] += neural_network1[0][j]*multiplier1[0][i][j]
         neural_network1[1][i] += bias1[0][i]
         neural_network1[1][i] = sigmoid(neural_network1[1][i])
@@ -154,16 +157,15 @@ def calculate1():
 def calculate2(n):
     global neural_network2
 
-    for i in range(8):
-        for j in range(8):
-            neural_network2[0][i] = Chessbot1.board[i][j]
+    for i in range(300):
+        neural_network2[0][i] = piecepositions[i]
     fanboymove = n-1
     for i in range(50):
-        neural_network2[0][64+i] = (i == fanboymove)
+        neural_network2[0][300+i] = (i == fanboymove)
 
     for i in range(64):
         neural_network2[1][i] = 0
-        for j in range(114):
+        for j in range(350):
             neural_network2[1][i] += neural_network2[0][j]*multiplier2[0][i][j]
         neural_network2[1][i] += bias2[0][i]
         neural_network2[1][i] = sigmoid(neural_network2[1][i])
@@ -195,6 +197,36 @@ def calculate2(n):
             neural_network2[5][i] += neural_network2[4][j]*multiplier2[4][i][j]
         neural_network2[5][i] += bias2[4][i]
         neural_network2[5][i] = sigmoid(neural_network2[5][i])
+
+def convertposition():
+    global piecepositions
+    for n in range(50):
+        for x in range(8):
+            if n+1 in Chessbot1.board[x]:
+                y = Chessbot1.board[x].index(n+1)
+                piecepositions[n*3] = x/7
+                piecepositions[n*3+1] = y/7
+                piecepositions[n*3+2] = 1
+                break
+        else:
+            #if not found
+            piecepositions[n*3] = -1
+            piecepositions[n*3+1] = -1
+            piecepositions[n*3+2] = 0
+    for n in range(50):
+        for x in range(8):
+            if -n-1 in Chessbot1.board[x]:
+                y = Chessbot1.board[x].index(-n-1)
+                piecepositions[n*3+150] = x/7
+                piecepositions[n*3+151] = y/7
+                piecepositions[n*3+152] = 1
+                break
+        else:
+            #if not found
+            piecepositions[n*3+150] = -1
+            piecepositions[n*3+151] = -1
+            piecepositions[n*3+152] = 0
+    return piecepositions
 
 randomize()
 
