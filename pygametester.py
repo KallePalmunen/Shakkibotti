@@ -6,6 +6,7 @@ import Chessbot1
 import basicbot
 import magnusfanboy
 import math
+import nnue
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
@@ -306,6 +307,10 @@ while running:
                     if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, x1,
                         y1) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
                         x1, y1):
+                        if Chessbot1.turn == 0:
+                            magnusfanboy.convertposition()
+                            nnue.calculate1()
+                            print(nnue.neural_network1[5][0]*200-100)
                         Chessbot1.movepieceto(n, pselectx, pselecty, x1, y1)
                         if Chessbot1.promotemenu:
                             promotegui()
@@ -336,6 +341,10 @@ while running:
                     if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, x1,
                         y1) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
                         x1, y1):
+                        if Chessbot1.turn == 0:
+                            magnusfanboy.convertposition()
+                            nnue.calculate1()
+                            print(nnue.neural_network1[5][0]*200-100)
                         Chessbot1.movepieceto(n, pselectx, pselecty, x1, y1)
                         if Chessbot1.promotemenu:
                             promotegui()

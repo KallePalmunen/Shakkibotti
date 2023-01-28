@@ -240,6 +240,7 @@ if mode == "play":
 
 def move():
     global neural_network1, neural_network2
+    convertposition()
     calculate1()
 
     while True:
