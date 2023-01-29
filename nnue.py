@@ -16,7 +16,7 @@ nhiddenlayers1 = 4
 fan.convertposition()
 
 #create neural network 1
-for i in range(300):
+for i in range(270):
     neural_network1[0].append(0)
 
 for j in range(nhiddenlayers1):
@@ -34,7 +34,7 @@ def randomize():
     for i in range(64):
         multiplier1[0].append([])
         bias1[0].append(random.random()-0.5)
-        for j in range(300):
+        for j in range(270):
             multiplier1[0][i].append(random.random()-0.5)
 
     for ii in range(nhiddenlayers1-1):    
@@ -64,13 +64,13 @@ def leakyrelu(a):
 def calculate1():
     global neural_network1
 
-    for i in range(300):
+    for i in range(270):
         neural_network1[0][i] = fan.piecepositions[i]
 
     #First hidden layer for first network, then second and finally the output layer
     for i in range(64):
         neural_network1[1][i] = 0
-        for j in range(300):
+        for j in range(270):
             neural_network1[1][i] += neural_network1[0][j]*multiplier1[0][i][j]
         neural_network1[1][i] += bias1[0][i]
         neural_network1[1][i] = sigmoid(neural_network1[1][i])

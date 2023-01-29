@@ -3,8 +3,10 @@ import basicbot as bot
 import magnusfanboy as fan
 from copy import deepcopy, copy
 import time
+import json
 
-data = []
+with open("nnuetrainingdata.txt", 'r') as f:
+    data = json.loads(f.read())
 
 def reset():
     Chessbot1.board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
@@ -20,7 +22,7 @@ def reset():
     Chessbot1.bot = 0
 
 start = time.time()
-for i in range(100):
+for i in range(1000):
     Chessbot1.bot = 0
     Chessbot1.turn = 0
     score = min(max(bot.fulleval() + bot.whitemove()[5],-100),100)

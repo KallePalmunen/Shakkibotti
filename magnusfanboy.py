@@ -19,11 +19,11 @@ nhiddenlayers1 = 4
 nhiddenlayers2 = 4
 piecepositions = []
 
-for i in range(300):
+for i in range(270):
     piecepositions += [0]
 
 #create neural network 1
-for i in range(300):
+for i in range(270):
     neural_network1[0].append(0)
 
 for j in range(nhiddenlayers1):
@@ -38,7 +38,7 @@ for i in range(50):
 
 #create neural network 2
 
-for i in range(350):
+for i in range(320):
     neural_network2[0].append(0)
 
 for j in range(nhiddenlayers2):
@@ -57,7 +57,7 @@ def randomize():
     for i in range(64):
         multiplier1[0].append([])
         bias1[0].append(random.random()-0.5)
-        for j in range(300):
+        for j in range(270):
             multiplier1[0][i].append(random.random()-0.5)
 
     for ii in range(nhiddenlayers1-1):    
@@ -81,7 +81,7 @@ def randomize():
     for i in range(64):
         multiplier2[0].append([])
         bias2[0].append(random.random()-0.5)
-        for j in range(350):
+        for j in range(320):
             multiplier2[0][i].append(random.random()-0.5)
 
     for ii in range(nhiddenlayers2-1):
@@ -112,13 +112,13 @@ def leakyrelu(a):
 def calculate1():
     global neural_network1
 
-    for i in range(300):
+    for i in range(270):
         neural_network1[0][i] = piecepositions[i]
 
     #First hidden layer for first network, then second and finally the output layer
     for i in range(64):
         neural_network1[1][i] = 0
-        for j in range(300):
+        for j in range(270):
             neural_network1[1][i] += neural_network1[0][j]*multiplier1[0][i][j]
         neural_network1[1][i] += bias1[0][i]
         neural_network1[1][i] = sigmoid(neural_network1[1][i])
@@ -157,15 +157,15 @@ def calculate1():
 def calculate2(n):
     global neural_network2
 
-    for i in range(300):
+    for i in range(270):
         neural_network2[0][i] = piecepositions[i]
     fanboymove = n-1
     for i in range(50):
-        neural_network2[0][300+i] = (i == fanboymove)
+        neural_network2[0][270+i] = (i == fanboymove)
 
     for i in range(64):
         neural_network2[1][i] = 0
-        for j in range(350):
+        for j in range(320):
             neural_network2[1][i] += neural_network2[0][j]*multiplier2[0][i][j]
         neural_network2[1][i] += bias2[0][i]
         neural_network2[1][i] = sigmoid(neural_network2[1][i])
@@ -200,33 +200,63 @@ def calculate2(n):
 
 def convertposition():
     global piecepositions
-    for n in range(50):
-        for x in range(8):
-            if n+1 in Chessbot1.board[x]:
-                y = Chessbot1.board[x].index(n+1)
-                piecepositions[n*3] = x/7
-                piecepositions[n*3+1] = y/7
-                piecepositions[n*3+2] = 1
-                break
-        else:
-            #if not found
-            piecepositions[n*3] = -1
-            piecepositions[n*3+1] = -1
-            piecepositions[n*3+2] = 0
-    for n in range(50):
-        for x in range(8):
-            if -n-1 in Chessbot1.board[x]:
-                y = Chessbot1.board[x].index(-n-1)
-                piecepositions[n*3+150] = x/7
-                piecepositions[n*3+151] = y/7
-                piecepositions[n*3+152] = 1
-                break
-        else:
-            #if not found
-            piecepositions[n*3+150] = -1
-            piecepositions[n*3+151] = -1
-            piecepositions[n*3+152] = 0
-    return piecepositions
+    for n1 in range(5):
+        for n2 in range((n1 == 0),9):
+            n = n1*10+n2
+            for x in range(8):
+                if n in Chessbot1.board[x]:
+                    y = Chessbot1.board[x].index(n)
+                    piecepositions[(n-n1-1)*3] = x/7
+                    piecepositions[(n-n1-1)*3+1] = y/7
+                    piecepositions[(n-n1-1)*3+2] = 1
+                    break
+            else:
+                #if not found
+                piecepositions[(n-n1-1)*3] = -1
+                piecepositions[(n-n1-1)*3+1] = -1
+                piecepositions[(n-n1-1)*3+2] = 0
+    n = 50
+    for x in range(8):
+        if n in Chessbot1.board[x]:
+            y = Chessbot1.board[x].index(n)
+            piecepositions[(n-6)*3] = x/7
+            piecepositions[(n-6)*3+1] = y/7
+            piecepositions[(n-6)*3+2] = 1
+            break
+    else:
+        #if not found
+        piecepositions[(n-6)*3] = -1
+        piecepositions[(n-6)*3+1] = -1
+        piecepositions[(n-6)*3+2] = 0
+    #black pieces
+    for n1 in range(5):
+        for n2 in range((n1 == 0),9):
+            n = -n1*10-n2
+            for x in range(8):
+                if n in Chessbot1.board[x]:
+                    y = Chessbot1.board[x].index(n)
+                    piecepositions[(-n-n1-1)*3+135] = x/7
+                    piecepositions[(-n-n1-1)*3+136] = y/7
+                    piecepositions[(-n-n1-1)*3+137] = 1
+                    break
+            else:
+                #if not found
+                piecepositions[(-n-n1-1)*3+135] = -1
+                piecepositions[(-n-n1-1)*3+136] = -1
+                piecepositions[(-n-n1-1)*3+137] = 0
+    n = -50
+    for x in range(8):
+        if n in Chessbot1.board[x]:
+            y = Chessbot1.board[x].index(n)
+            piecepositions[(-n-6)*3+135] = x/7
+            piecepositions[(-n-6)*3+136] = y/7
+            piecepositions[(-n-6)*3+137] = 1
+            break
+    else:
+        #if not found
+        piecepositions[(-n-6)*3+135] = -1
+        piecepositions[(-n-6)*3+136] = -1
+        piecepositions[(-n-6)*3+137] = 0
 
 randomize()
 

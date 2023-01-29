@@ -23,7 +23,7 @@ with open("nnuetrainingdata.txt", 'r') as f:
 for i in range(64):
     multipliergradient1[0].append([])
     biasgradient1[0].append(0)
-    for j in range(300):
+    for j in range(270):
         multipliergradient1[0][i].append(0)
         activations1[0].append(0)
 
@@ -112,7 +112,7 @@ def backpropagation1():
                 *dsigmoid(nnue.neural_network1[2][i])
     
     for i in range(64):
-        for j in range(300):
+        for j in range(270):
             multipliergradient1[0][i][j] += activations1[1][i]*nnue.multiplier1[0][i][j]\
                 *dsigmoid(nnue.neural_network1[1][i])
         biasgradient1[0][i] += activations1[1][i]*dsigmoid(nnue.neural_network1[1][i])
@@ -149,7 +149,7 @@ def updateneuralnetwork1():
         biasgradient1[1][i] = 0
     
     for i in range(64):
-        for j in range(300):
+        for j in range(270):
             nnue.multiplier1[0][i][j] -= learningrate*multipliergradient1[0][i][j]/samplesize
             multipliergradient1[0][i][j] = 0
         nnue.bias1[0][i] -= learningrate*biasgradient1[0][i]/samplesize

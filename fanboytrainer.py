@@ -30,7 +30,7 @@ lol=True
 for i in range(64):
     multipliergradient1[0].append([])
     biasgradient1[0].append(0)
-    for j in range(300):
+    for j in range(270):
         multipliergradient1[0][i].append(0)
         activations1[0].append(0)
 
@@ -59,7 +59,7 @@ for i in range(50):
 for i in range(64):
     multipliergradient2[0].append([])
     biasgradient2[0].append(0)
-    for j in range(350):
+    for j in range(320):
         multipliergradient2[0][i].append(0)
         activations2[0].append(0)
 
@@ -168,7 +168,7 @@ def backpropagation1():
                 *dsigmoid(fan.neural_network1[2][i])
     
     for i in range(64):
-        for j in range(300):
+        for j in range(270):
             multipliergradient1[0][i][j] += activations1[1][i]*fan.multiplier1[0][i][j]\
                 *dsigmoid(fan.neural_network1[1][i])
         biasgradient1[0][i] += activations1[1][i]*dsigmoid(fan.neural_network1[1][i])
@@ -206,7 +206,7 @@ def updateneuralnetwork1():
         biasgradient1[1][i] = 0
     
     for i in range(64):
-        for j in range(300):
+        for j in range(270):
             fan.multiplier1[0][i][j] -= learningrate*multipliergradient1[0][i][j]/samplesize
             multipliergradient1[0][i][j] = 0
         fan.bias1[0][i] -= learningrate*biasgradient1[0][i]/samplesize
@@ -272,7 +272,7 @@ def backpropagation2():
                 *dsigmoid(fan.neural_network2[2][i])
     
     for i in range(64):
-        for j in range(350):
+        for j in range(320):
             multipliergradient2[0][i][j] += activations2[1][i]*fan.multiplier2[0][i][j]\
                 *dsigmoid(fan.neural_network2[1][i])
         biasgradient2[0][i] += activations2[1][i]*dsigmoid(fan.neural_network2[1][i])
@@ -310,7 +310,7 @@ def updateneuralnetwork2():
         biasgradient2[1][i] = 0
     
     for i in range(64):
-        for j in range(350):
+        for j in range(320):
             fan.multiplier2[0][i][j] -= learningrate*multipliergradient2[0][i][j]/samplesize
             multipliergradient2[0][i][j] = 0
         fan.bias2[0][i] -= learningrate*biasgradient2[0][i]/samplesize
