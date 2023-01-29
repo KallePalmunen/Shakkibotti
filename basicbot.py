@@ -593,8 +593,9 @@ def whitemove():
 
 def basicbot():
     start = time.time()
+    score = fulleval()
     bestmove = whitemove()
-    score = bestmove[5]
+    score += bestmove[5]
     move = bestmove[0]
     x0 = bestmove[1]
     y0 = bestmove[2]
@@ -611,5 +612,5 @@ def basicbot():
         Chessbot1.evaltext = "-M"
         Chessbot1.evalscore = -1000
     else:
-        Chessbot1.evaltext = str(round(fulleval() + score,2))
-        Chessbot1.evalscore = fulleval() + score
+        Chessbot1.evaltext = str(round(score,2))
+        Chessbot1.evalscore = score

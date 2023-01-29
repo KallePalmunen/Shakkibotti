@@ -10,7 +10,7 @@ neural_network1 = [[]]
 multiplier1 = [[[]]]
 bias1 = [[]]
 
-mode = "play"
+mode = "train"
 nhiddenlayers1 = 4
 
 fan.convertposition()

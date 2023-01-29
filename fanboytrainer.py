@@ -16,8 +16,7 @@ biasgradient2 = [[]]
 activations1 = [[]]
 activations2 = [[]]
 currentpiece = 0
-#stochastic gradient descent sample size
-samplesize = 10
+batchsize = 10
 learningrate = 0.1
 
 with open("pgndata.txt", 'r') as f:
@@ -175,41 +174,41 @@ def backpropagation1():
     return totalcost
 
 def updateneuralnetwork1():
-    global samplesize, learningrate
+    global batchsize, learningrate
 
     for i in range(50):
         for j in range(64):
-            fan.multiplier1[4][i][j] -= learningrate*multipliergradient1[4][i][j]/samplesize
+            fan.multiplier1[4][i][j] -= learningrate*multipliergradient1[4][i][j]/batchsize
             multipliergradient1[4][i][j] = 0
-        fan.bias1[4][i] -= learningrate*biasgradient1[4][i]/samplesize
+        fan.bias1[4][i] -= learningrate*biasgradient1[4][i]/batchsize
         biasgradient1[4][i] = 0
 
     for i in range(64):
         for j in range(64):
-            fan.multiplier1[3][i][j] -= learningrate*multipliergradient1[3][i][j]/samplesize
+            fan.multiplier1[3][i][j] -= learningrate*multipliergradient1[3][i][j]/batchsize
             multipliergradient1[3][i][j] = 0
-        fan.bias1[3][i] -= learningrate*biasgradient1[2][i]/samplesize
+        fan.bias1[3][i] -= learningrate*biasgradient1[2][i]/batchsize
         biasgradient1[3][i] = 0
 
     for i in range(64):
         for j in range(64):
-            fan.multiplier1[2][i][j] -= learningrate*multipliergradient1[2][i][j]/samplesize
+            fan.multiplier1[2][i][j] -= learningrate*multipliergradient1[2][i][j]/batchsize
             multipliergradient1[2][i][j] = 0
-        fan.bias1[2][i] -= learningrate*biasgradient1[2][i]/samplesize
+        fan.bias1[2][i] -= learningrate*biasgradient1[2][i]/batchsize
         biasgradient1[2][i] = 0
 
     for i in range(64):
         for j in range(64):
-            fan.multiplier1[1][i][j] -= learningrate*multipliergradient1[1][i][j]/samplesize
+            fan.multiplier1[1][i][j] -= learningrate*multipliergradient1[1][i][j]/batchsize
             multipliergradient1[1][i][j] = 0
-        fan.bias1[1][i] -= learningrate*biasgradient1[1][i]/samplesize
+        fan.bias1[1][i] -= learningrate*biasgradient1[1][i]/batchsize
         biasgradient1[1][i] = 0
     
     for i in range(64):
         for j in range(270):
-            fan.multiplier1[0][i][j] -= learningrate*multipliergradient1[0][i][j]/samplesize
+            fan.multiplier1[0][i][j] -= learningrate*multipliergradient1[0][i][j]/batchsize
             multipliergradient1[0][i][j] = 0
-        fan.bias1[0][i] -= learningrate*biasgradient1[0][i]/samplesize
+        fan.bias1[0][i] -= learningrate*biasgradient1[0][i]/batchsize
         biasgradient1[0][i] = 0
 
 
@@ -279,41 +278,41 @@ def backpropagation2():
     return totalcost
     
 def updateneuralnetwork2():
-    global samplesize, learningrate
+    global batchsize, learningrate
 
     for i in range(64):
         for j in range(64):
-            fan.multiplier2[4][i][j] -= learningrate*multipliergradient2[4][i][j]/samplesize
+            fan.multiplier2[4][i][j] -= learningrate*multipliergradient2[4][i][j]/batchsize
             multipliergradient2[4][i][j] = 0
-        fan.bias2[4][i] -= learningrate*biasgradient2[4][i]/samplesize
+        fan.bias2[4][i] -= learningrate*biasgradient2[4][i]/batchsize
         biasgradient2[4][i] = 0
 
     for i in range(64):
         for j in range(64):
-            fan.multiplier2[3][i][j] -= learningrate*multipliergradient2[3][i][j]/samplesize
+            fan.multiplier2[3][i][j] -= learningrate*multipliergradient2[3][i][j]/batchsize
             multipliergradient2[3][i][j] = 0
-        fan.bias2[3][i] -= learningrate*biasgradient2[3][i]/samplesize
+        fan.bias2[3][i] -= learningrate*biasgradient2[3][i]/batchsize
         biasgradient2[3][i] = 0
 
     for i in range(64):
         for j in range(64):
-            fan.multiplier2[2][i][j] -= learningrate*multipliergradient2[2][i][j]/samplesize
+            fan.multiplier2[2][i][j] -= learningrate*multipliergradient2[2][i][j]/batchsize
             multipliergradient2[2][i][j] = 0
-        fan.bias2[2][i] -= learningrate*biasgradient2[2][i]/samplesize
+        fan.bias2[2][i] -= learningrate*biasgradient2[2][i]/batchsize
         biasgradient2[2][i] = 0
 
     for i in range(64):
         for j in range(64):
-            fan.multiplier2[1][i][j] -= learningrate*multipliergradient2[1][i][j]/samplesize
+            fan.multiplier2[1][i][j] -= learningrate*multipliergradient2[1][i][j]/batchsize
             multipliergradient2[1][i][j] = 0
-        fan.bias2[1][i] -= learningrate*biasgradient2[1][i]/samplesize
+        fan.bias2[1][i] -= learningrate*biasgradient2[1][i]/batchsize
         biasgradient2[1][i] = 0
     
     for i in range(64):
         for j in range(320):
-            fan.multiplier2[0][i][j] -= learningrate*multipliergradient2[0][i][j]/samplesize
+            fan.multiplier2[0][i][j] -= learningrate*multipliergradient2[0][i][j]/batchsize
             multipliergradient2[0][i][j] = 0
-        fan.bias2[0][i] -= learningrate*biasgradient2[0][i]/samplesize
+        fan.bias2[0][i] -= learningrate*biasgradient2[0][i]/batchsize
         biasgradient2[0][i] = 0
 
 def setrightvalue1(rand):
@@ -345,7 +344,7 @@ cost = 0
 for i in range(times):
     setrightvalue1(int(random.random()*datalen))
     cost += backpropagation1()
-    if (i+1)%samplesize == 0:
+    if (i+1)%batchsize == 0:
         updateneuralnetwork1()
     if (i+1)%1000 == 0:
         print(i+1)
@@ -356,7 +355,7 @@ cost = 0
 for i in range(times):
     setrightvalue2(int(random.random()*datalen))
     cost += backpropagation2()
-    if (i+1)%samplesize == 0:
+    if (i+1)%batchsize == 0:
         updateneuralnetwork2()
     if (i+1)%1000 == 0:
         print(i+1)

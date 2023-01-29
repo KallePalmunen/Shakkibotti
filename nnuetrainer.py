@@ -11,8 +11,7 @@ multipliergradient1 = [[[]]]
 biasgradient1 = [[]]
 activations1 = [[]]
 currentpiece = 0
-#stochastic gradient descent sample size
-samplesize = 10
+batchsize = 32
 learningrate = 0.1
 
 with open("nnuetrainingdata.txt", 'r') as f:
@@ -119,40 +118,40 @@ def backpropagation1():
     return totalcost
 
 def updateneuralnetwork1():
-    global samplesize, learningrate
+    global batchsize, learningrate
 
     for j in range(64):
-        nnue.multiplier1[4][0][j] -= learningrate*multipliergradient1[4][0][j]/samplesize
+        nnue.multiplier1[4][0][j] -= learningrate*multipliergradient1[4][0][j]/batchsize
         multipliergradient1[4][0][j] = 0
-    nnue.bias1[4][0] -= learningrate*biasgradient1[4][0]/samplesize
+    nnue.bias1[4][0] -= learningrate*biasgradient1[4][0]/batchsize
     biasgradient1[4][0] = 0
 
     for i in range(64):
         for j in range(64):
-            nnue.multiplier1[3][i][j] -= learningrate*multipliergradient1[3][i][j]/samplesize
+            nnue.multiplier1[3][i][j] -= learningrate*multipliergradient1[3][i][j]/batchsize
             multipliergradient1[3][i][j] = 0
-        nnue.bias1[3][i] -= learningrate*biasgradient1[2][i]/samplesize
+        nnue.bias1[3][i] -= learningrate*biasgradient1[2][i]/batchsize
         biasgradient1[3][i] = 0
 
     for i in range(64):
         for j in range(64):
-            nnue.multiplier1[2][i][j] -= learningrate*multipliergradient1[2][i][j]/samplesize
+            nnue.multiplier1[2][i][j] -= learningrate*multipliergradient1[2][i][j]/batchsize
             multipliergradient1[2][i][j] = 0
-        nnue.bias1[2][i] -= learningrate*biasgradient1[2][i]/samplesize
+        nnue.bias1[2][i] -= learningrate*biasgradient1[2][i]/batchsize
         biasgradient1[2][i] = 0
 
     for i in range(64):
         for j in range(64):
-            nnue.multiplier1[1][i][j] -= learningrate*multipliergradient1[1][i][j]/samplesize
+            nnue.multiplier1[1][i][j] -= learningrate*multipliergradient1[1][i][j]/batchsize
             multipliergradient1[1][i][j] = 0
-        nnue.bias1[1][i] -= learningrate*biasgradient1[1][i]/samplesize
+        nnue.bias1[1][i] -= learningrate*biasgradient1[1][i]/batchsize
         biasgradient1[1][i] = 0
     
     for i in range(64):
         for j in range(270):
-            nnue.multiplier1[0][i][j] -= learningrate*multipliergradient1[0][i][j]/samplesize
+            nnue.multiplier1[0][i][j] -= learningrate*multipliergradient1[0][i][j]/batchsize
             multipliergradient1[0][i][j] = 0
-        nnue.bias1[0][i] -= learningrate*biasgradient1[0][i]/samplesize
+        nnue.bias1[0][i] -= learningrate*biasgradient1[0][i]/batchsize
         biasgradient1[0][i] = 0
 
 def setrightvalue1(rand):
@@ -169,7 +168,7 @@ cost = 0
 for i in range(times):
     setrightvalue1(int(random.random()*datalen))
     cost += backpropagation1()
-    if (i+1)%samplesize == 0:
+    if (i+1)%batchsize == 0:
         updateneuralnetwork1()
     if (i+1)%1000 == 0:
         print(i+1)
