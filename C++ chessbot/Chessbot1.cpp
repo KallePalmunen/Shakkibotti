@@ -1,12 +1,9 @@
-#include <iostream>
-#include <algorithm>
-
 //missing draw (repetiotion and stalemate)
 
 int board[8][8] = {{30,10,20,50,40,21,11,31}, {1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
          {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
 int moves = 0;
-int positions[10000][8][8];
+std::vector<std::vector<std::vector<int>>> positions = {{{}}};
 int turn = 0;
 int enpassant = -1;
 int bot = 2;
@@ -332,7 +329,8 @@ bool checkmate(int n){
     return true;
 }
 
-void movepieceto(int n, int y0, int x0, int y1, int x1){
+void movepieceto(int n, int y0, int x0, int y1, int x1,
+    bool addposition = true){
     int promoteto;
     if(abs(n) == 50){
         if(abs(x1-x0) > 1){
@@ -363,6 +361,16 @@ void movepieceto(int n, int y0, int x0, int y1, int x1){
         enpassant = -1;
     }
     board[y0][x0] = 0;
+    if(addposition){
+        std::vector<std::vector<int>> currentposition;
+        for(int y = 0; y < 8; y++){
+            std::vector<int> currentposition_x;
+            currentposition_x.insert(currentposition_x.begin(), 
+                board[y], board[y]+8);
+            currentposition.push_back(currentposition_x);
+        }
+        positions.push_back(currentposition);
+    }
 }
 
 void gameend(){

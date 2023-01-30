@@ -120,8 +120,10 @@ def evaluate(n, x0, y0, x1, y1):
     return evaluate2(n, x1, y1)+evaluate1(n,x0,y0)
 
 def evaluate2(n, x1, y1):
-    n1 = Chessbot1.board[min(7, x1 + 1)][min(7, y1+1)]
-    n2 = Chessbot1.board[min(7, x1 + 1)][max(0, y1-1)]
+    n1 = Chessbot1.board[min(7, x1 + 1)][min(7, y1+1)]*(x1 != 7 and\
+        y1 != 7)
+    n2 = Chessbot1.board[min(7, x1 + 1)][max(0, y1-1)]*(x1 != 7 and\
+        y1 != 0)
     evaluation = math.copysign((n != 0 and abs(n) < 9)*(1+(abs(x1 - 7*(n < 0))*((y1 > 2 and y1 < 6)*((y1 == 5)*0.01+(y1 != 5)*0.05) + 0.001)\
                 - (Chessbot1.moves < 60 and y1 < 2)*(abs(x1 - 7*(n < 0)) > 2)*0.03))\
                 + 3*(abs(n) > 9 and abs(n) < 30) + \
@@ -134,8 +136,10 @@ def evaluate2(n, x1, y1):
     return evaluation
 
 def evaluate1(n, x0, y0):
-    n1 = Chessbot1.board[min(7, x0 + 1)][min(7, y0+1)]
-    n2 = Chessbot1.board[min(7, x0 + 1)][max(0, y0-1)]
+    n1 = Chessbot1.board[min(7, x0 + 1)][min(7, y0+1)]*(x0 != 7 and\
+        y0 != 7)
+    n2 = Chessbot1.board[min(7, x0 + 1)][max(0, y0-1)]*(x0 != 7 and\
+        y0 != 0)
     evaluation = -math.copysign((n != 0 and abs(n) < 9)*(1+(abs(x0 - 7*(n < 0))*((y0 > 2 and y0 < 6)*((y0 == 5)*0.01+(y0 != 5)*0.05) + 0.001)\
                 - (Chessbot1.moves < 60 and y0 < 2)*(abs(x0 - 7*(n < 0)) > 2)*0.03))\
                 + 3*(abs(n) > 9 and abs(n) < 30) + \
@@ -149,8 +153,11 @@ def evaluate1(n, x0, y0):
 
 def evaluate0(x0, y0):
     n = Chessbot1.board[x0][y0]
-    n1 = Chessbot1.board[min(7, x0 + 1)][min(7, y0+1)]
-    n2 = Chessbot1.board[min(7, x0 + 1)][max(0, y0-1)]
+    #n1 and n2 are squares where a threatening pawn could be
+    n1 = Chessbot1.board[min(7, x0 + 1)][min(7, y0+1)]*(x0 != 7 and\
+        y0 != 7)
+    n2 = Chessbot1.board[min(7, x0 + 1)][max(0, y0-1)]*(x0 != 7 and\
+        y0 != 0)
     return -math.copysign((n != 0 and abs(n) < 9)*(1+(abs(x0 - 7*(n < 0))*((y0 > 2 and y0 < 6)*((y0 == 5)*0.01+(y0 != 5)*0.05) + 0.001)\
                 - (Chessbot1.moves < 60 and y0 < 2)*(abs(x0 - 7*(n < 0)) > 2)*0.03))\
                 + 3*(abs(n) > 9 and abs(n) < 30) + \
@@ -302,6 +309,8 @@ def blackmove(n01, x01, y01, x11, y11, best):
 def bmove(n01, x01, y01, x11, y11, best):
     if Chessbot1.checkmate(-50):
         return 250000
+    if Chessbot1.stalemate(-50):
+        return 0
     movescore3 = [1000000]
     evaluation0 = evaluate(n01, x01, y01, x11, y11)
     for i in range(8):
@@ -554,6 +563,7 @@ def wmove(n01, x01, y01, x11, y11, best):
     return max(movescore2)+evaluation0
 
 def whitemove():
+    #save current state
     moves = Chessbot1.moves
     enpassant = Chessbot1.enpassant
     board = str(Chessbot1.board)
@@ -605,10 +615,11 @@ def basicbot():
     Chessbot1.turn = (Chessbot1.bot == 0)
     end = time.time()
     print(end-start)
-    if(score >= 250000):
+    if(score >= 200000):
         Chessbot1.evaltext = "M"
+        print(score)
         Chessbot1.evalscore = 1000
-    elif(score <= -250000):
+    elif(score <= -200000):
         Chessbot1.evaltext = "-M"
         Chessbot1.evalscore = -1000
     else:
