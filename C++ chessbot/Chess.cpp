@@ -1,14 +1,17 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <chrono>
 #include "Chessbot1.cpp"
 #include "basicbot.cpp"
 
 int main(){
     std::string exit;
-    basicbot();
     printboard();
     while(true){
+        basicbot();
+        printboard();
+        gameend();
         movepiece();
         printboard();
         gameend();
