@@ -100,6 +100,7 @@ void reorder(){
 
 void whitemove1(){
     //save current state
+    order.clear();
     int temp_moves = moves;
     int temp_enpassant = enpassant;
     int temp_board[8][8];

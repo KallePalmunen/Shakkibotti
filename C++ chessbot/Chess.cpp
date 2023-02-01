@@ -12,7 +12,9 @@ int main(){
         basicbot();
         printboard();
         gameend();
-        movepiece();
+        while(turn == 1){
+            movepiece();
+        }
         printboard();
         gameend();
     }
