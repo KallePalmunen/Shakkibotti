@@ -98,9 +98,10 @@ void reorder(){
     }
 }
 
-double blackmove1(int n0, int y00, int x00, int y10, int x10, double best){
-    if(checkmate(-50)){
-        return 500000;
+double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves){
+    int piece_sign = (nmoremoves%2 == 1)-(nmoremoves%2 == 0);
+    if(checkmate(piece_sign*50)){
+        return piece_sign*500000/(nmoremoves+1);
     }
     //stalemate check here
     int temp_moves = moves;
@@ -116,13 +117,13 @@ double blackmove1(int n0, int y00, int x00, int y10, int x10, double best){
     int temp_pieces[6][2];
     std::copy(&pieces[0][0], &pieces[0][0]+12, 
         &temp_pieces[0][0]);
-    turn = 1;
+    turn = int(nmoremoves%2 == 0);
     std::vector<double> movescore;
-    double best_movescore = 1000000;
+    double best_movescore = -piece_sign*1000000;
     double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][1]; n2++){
-            int n = -(10*n1+n2+int(n1 == 0));
+            int n = piece_sign*(10*n1+n2+int(n1 == 0));
             int *pindex;
             pindex = std::find(&board[0][0], &board[0][0]+64, n);
             if(pindex != &board[0][0]+64){
@@ -133,15 +134,32 @@ double blackmove1(int n0, int y00, int x00, int y10, int x10, double best){
                     for(int x1 = 0; x1 < 8; x1++){
                         if(canmove(n, y0, x0, y1, x1)){
                             double evaluation_minus = evaluate_change(y1, x1, -1);
-                            double current_movescore = evaluate_move(n, y0, x0, y1, x1)
-                                + evaluation_minus;
+                            double current_movescore;
+                            if(nmoremoves == 0){
+                                current_movescore = evaluate_move(n, y0, x0, y1, x1)
+                                    + evaluation_minus;
+                            }
                             movepieceto(n, y0, x0, y1, x1, false);
+                            if(nmoremoves != 0){
+                                current_movescore = nth_move(n, y0, x0, y1, x1, 
+                                    best_movescore-evaluation_minus, nmoremoves-1) + evaluation_minus;
+                            }
                             double total_movescore = current_movescore 
                                 + previous_movescore;
-                            if(total_movescore <= best){
+                            if(n == -1 && n0 == 40 && nmoremoves == 2
+                                && y10 == 5 && x10 ==1){
+                                std::cout << "score=" << total_movescore << '\n';
+                            }
+                            if((total_movescore <= best && nmoremoves%2 == 0)
+                                || (total_movescore >= best && nmoremoves%2 == 1)){
+                                if(n == -1 && n0 == 40 && nmoremoves == 2
+                                && y10 == 5 && x10 ==1){
+                                std::cout << "best=" << best << '\n';
+                                }
                                 return total_movescore;
                             }
-                            if(total_movescore < best_movescore){
+                            if((total_movescore < best_movescore && nmoremoves%2 == 0)
+                                || (total_movescore > best_movescore && nmoremoves%2 == 1)){
                                 best_movescore = total_movescore;
                             }
                             movescore.push_back(total_movescore);
@@ -156,15 +174,19 @@ double blackmove1(int n0, int y00, int x00, int y10, int x10, double best){
                                 &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
                             std::copy(&temp_pieces[0][0], 
                                 &temp_pieces[0][0]+12, &pieces[0][0]);
-                            turn = 1;
+                            turn = int(nmoremoves%2 == 0);
                         }
                     }
                 }
             }
         }
     }
-    turn = 0;
-    return *std::min_element(&movescore[0], &movescore[0]+movescore.size());
+    turn = int(nmoremoves%2 == 1);
+    if(nmoremoves%2 == 0){
+        return *std::min_element(&movescore[0], &movescore[0]+movescore.size());
+    }else{
+       return *std::max_element(&movescore[0], &movescore[0]+movescore.size()); 
+    }
 }
 
 void whitemove1(){
@@ -199,8 +221,12 @@ void whitemove1(){
         //partial repetition check here
         //else
         double current_movescore = 
-            blackmove1(n, y0, x0, y1, x1, best_movescore) + evaluation_minus;
+            nth_move(n, y0, x0, y1, x1, 
+            best_movescore-evaluation_minus, 2) + evaluation_minus;
         movescore.push_back(current_movescore);
+        if(n == 40 && y1 == 5 && x1 == 1){
+            std::cout << current_movescore << ',' << best_movescore << '\n';
+        }
         if(current_movescore > best_movescore){
             best_movescore = current_movescore;
         }
@@ -233,7 +259,7 @@ void basicbot(){
     whitemove1();
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
-        <std::chrono::seconds>(stop - start);
+        <std::chrono::milliseconds>(stop - start);
     int score = 0;
     score += bestmove[5];
     int n = bestmove[0];
@@ -244,5 +270,5 @@ void basicbot(){
     movepieceto(n, y0, x0, y1, x1);
     turn = 1;
     printboard();
-    std::cout << duration.count() << '\n';
+    std::cout << duration.count()/1000.0 << '\n';
 }

@@ -10,7 +10,6 @@ int main(){
     printboard();
     while(true){
         basicbot();
-        printboard();
         gameend();
         while(turn == 1){
             movepiece();
