@@ -15,7 +15,6 @@ int main(){
         while(turn == 1){
             movepiece();
         }
-        printboard();
         gameend();
     }
 

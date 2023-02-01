@@ -59,7 +59,7 @@ void reorder(){
             for(int y1 = 0; y1 < 8; y1++){
                 for(int x1 = 0; x1 < 8; x1++){
                     if(canmove(n, y0, x0, y1, x1)){
-                        int evaluation_minus = evaluate_change(y1, x1, -1);
+                        double evaluation_minus = evaluate_change(y1, x1, -1);
                         movepieceto(n, y0, x0, y1, x1, true);
                         turn = 1;
                         //repetition check here
@@ -98,6 +98,75 @@ void reorder(){
     }
 }
 
+double blackmove1(int n0, int y00, int x00, int y10, int x10, double best){
+    if(checkmate(-50)){
+        return 500000;
+    }
+    //stalemate check here
+    int temp_moves = moves;
+    int temp_enpassant = enpassant;
+    int temp_board[8][8];
+    std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
+    int temp_kingmoved[2];
+    std::copy(&kingmoved[0], &kingmoved[0]+2, 
+        &temp_kingmoved[0]);
+    int temp_rookmoved[2][2];
+    std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
+        &temp_rookmoved[0][0]);
+    int temp_pieces[6][2];
+    std::copy(&pieces[0][0], &pieces[0][0]+12, 
+        &temp_pieces[0][0]);
+    turn = 1;
+    std::vector<double> movescore;
+    double best_movescore = 1000000;
+    double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
+    for(int n1 = 0; n1 < 6; n1++){
+        for(int n2 = 0; n2 < pieces[n1][1]; n2++){
+            int n = -(10*n1+n2+int(n1 == 0));
+            int *pindex;
+            pindex = std::find(&board[0][0], &board[0][0]+64, n);
+            if(pindex != &board[0][0]+64){
+                int nposition = std::distance(&board[0][0], pindex);
+                int y0 = nposition/8;
+                int x0 = nposition-y0*8;
+                for(int y1 = 0; y1 < 8; y1++){
+                    for(int x1 = 0; x1 < 8; x1++){
+                        if(canmove(n, y0, x0, y1, x1)){
+                            double evaluation_minus = evaluate_change(y1, x1, -1);
+                            double current_movescore = evaluate_move(n, y0, x0, y1, x1)
+                                + evaluation_minus;
+                            movepieceto(n, y0, x0, y1, x1, false);
+                            double total_movescore = current_movescore 
+                                + previous_movescore;
+                            if(total_movescore <= best){
+                                return total_movescore;
+                            }
+                            if(total_movescore < best_movescore){
+                                best_movescore = total_movescore;
+                            }
+                            movescore.push_back(total_movescore);
+                            //return to saved state
+                            moves = temp_moves;
+                            enpassant = temp_enpassant;
+                            std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
+                            &board[0][0]);
+                            std::copy(&temp_kingmoved[0], 
+                                &temp_kingmoved[0]+2, &kingmoved[0]);
+                            std::copy(&temp_rookmoved[0][0], 
+                                &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
+                            std::copy(&temp_pieces[0][0], 
+                                &temp_pieces[0][0]+12, &pieces[0][0]);
+                            turn = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    turn = 0;
+    return *std::min_element(&movescore[0], &movescore[0]+movescore.size());
+}
+
 void whitemove1(){
     //save current state
     order.clear();
@@ -114,9 +183,8 @@ void whitemove1(){
     int temp_pieces[6][2];
     std::copy(&pieces[0][0], &pieces[0][0]+12, 
         &temp_pieces[0][0]);
-    std::vector<std::vector<std::vector<int>>> temp_positions
-        = positions;
-    std::vector<double> movescore = {};
+    std::vector<double> movescore;
+    double best_movescore = -1000000;
     reorder();
     for(int i = 0; i < order.size(); i++){
         int n = order[i][0];
@@ -124,15 +192,18 @@ void whitemove1(){
         int x0 = order[i][2];
         int y1 = order[i][3];
         int x1 = order[i][4];
-        int evaluation_minus = evaluate_change(y1, x1, -1);
+        double evaluation_minus = evaluate_change(y1, x1, -1);
         movepieceto(n, y0, x0, y1, x1, true);
         turn = 1;
         //repetition check here
         //partial repetition check here
         //else
-        movescore.push_back(
-            evaluate_move(n, y0, x0, y1, x1) 
-            + evaluation_minus);
+        double current_movescore = 
+            blackmove1(n, y0, x0, y1, x1, best_movescore) + evaluation_minus;
+        movescore.push_back(current_movescore);
+        if(current_movescore > best_movescore){
+            best_movescore = current_movescore;
+        }
 
         //return to saved state
         moves = temp_moves;
@@ -163,7 +234,6 @@ void basicbot(){
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
         <std::chrono::seconds>(stop - start);
-    std::cout << duration.count() << '\n';
     int score = 0;
     score += bestmove[5];
     int n = bestmove[0];
@@ -173,4 +243,6 @@ void basicbot(){
     int x1 = bestmove[4];
     movepieceto(n, y0, x0, y1, x1);
     turn = 1;
+    printboard();
+    std::cout << duration.count() << '\n';
 }
