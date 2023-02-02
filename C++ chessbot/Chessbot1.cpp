@@ -1,9 +1,8 @@
-//missing draw (repetiotion and stalemate)
 
 int board[8][8] = {{30,10,20,50,40,21,11,31}, {1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
          {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
 int moves = 0;
-std::vector<std::vector<std::vector<int>>> positions = {{{}}};
+std::vector<std::vector<std::vector<int>>> positions;
 int turn = 0;
 int enpassant = -1;
 int bot = 2;
@@ -25,6 +24,17 @@ void printboard(){
         }
         std::cout << "\n";
     };
+}
+
+void add_to_positions(){
+    std::vector<std::vector<int>> currentposition;
+    for(int y = 0; y < 8; y++){
+        std::vector<int> currentposition_x;
+        currentposition_x.insert(currentposition_x.begin(), 
+            board[y], board[y]+8);
+        currentposition.push_back(currentposition_x);
+    }
+    positions.push_back(currentposition);
 }
 
 //intsign tells the sign of an integer
@@ -361,16 +371,54 @@ void movepieceto(int n, int y0, int x0, int y1, int x1,
         enpassant = -1;
     }
     board[y0][x0] = 0;
+    moves += 1;
     if(addposition){
-        std::vector<std::vector<int>> currentposition;
-        for(int y = 0; y < 8; y++){
-            std::vector<int> currentposition_x;
-            currentposition_x.insert(currentposition_x.begin(), 
-                board[y], board[y]+8);
-            currentposition.push_back(currentposition_x);
-        }
-        positions.push_back(currentposition);
+        add_to_positions();
     }
+}
+
+bool stalemate(int n){
+    if(check(n)){
+        return false;
+    }
+    for(int n1 = 1; n1 < 51; n1++){
+        int piecen = intsign(n)*n1;
+        int *pindex;
+        pindex = std::find(&board[0][0], &board[0][0]+64, piecen);
+        if(pindex != &board[0][0]+64){
+            int ppos = std::distance(&board[0][0], pindex);
+            int y0 = ppos/8;
+            int x0 = ppos-y0*8;
+            if(movesomewhere(piecen, y0, x0)){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool compareposition(int moment){
+    for(int y = 0; y < 8; y++){
+        for(int x = 0; x < 8; x++){
+            if(positions[moment][y][x] != board[y][x]){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool repetition(int this_moment){
+    int repetitions = 0;
+    for(int moment = this_moment%2; moment < this_moment; moment += 2){
+        if(compareposition(moment)){
+            repetitions++;
+            if(repetitions >= 2){
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void gameend(){
@@ -381,6 +429,12 @@ void gameend(){
     if(checkmate(50)){
         std::cout << "Black won" << '\n';
     }
+    if((turn == 0 && stalemate(50)) || (turn == 1 && stalemate(-50))
+        || repetition(moves)){
+            std::cout << "Draw" << '\n';
+            turn = -1;
+    }
+        
 }
 
 void movepiece(){

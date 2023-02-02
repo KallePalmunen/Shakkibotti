@@ -7,10 +7,14 @@
 
 int main(){
     std::string exit;
+    add_to_positions();
     printboard();
     while(true){
         basicbot();
         gameend();
+        if(turn == -1){
+            return 0;
+        }
         while(turn == 1){
             movepiece();
         }
