@@ -5,7 +5,7 @@ int moves = 0;
 std::vector<std::vector<std::vector<int>>> positions;
 int turn = 0;
 int enpassant = -1;
-int bot = 2;
+int bot = 0;
 bool promotemenu = false;
 double evalscore = 0.0;
 std::string evaltext = "";

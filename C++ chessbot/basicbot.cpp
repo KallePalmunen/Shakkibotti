@@ -39,8 +39,7 @@ double evaluate_move(int n, int y0, int x0, int y1, int x1){
 double fulleval(){
     double evaluation = 0;
     for(int n = 1; n < 51; n++){
-        int *pindex;
-        pindex = std::find(&board[0][0], &board[0][0]+64, n);
+        int *pindex = std::find(&board[0][0], &board[0][0]+64, n);
         if(pindex != &board[0][0]+64){
             int nposition = std::distance(&board[0][0], pindex);
             int y0 = nposition/8;
@@ -76,8 +75,7 @@ void reorder(){
     std::vector<double> movescore;
     std::vector<std::vector<int>> starting_order;
     for(int n = 1; n < 51; n++){
-        int *pindex;
-        pindex = std::find(&board[0][0], &board[0][0]+64, n);
+        int *pindex = std::find(&board[0][0], &board[0][0]+64, n);
         if(pindex != &board[0][0]+64){
             int nposition = std::distance(&board[0][0], pindex);
             int y0 = nposition/8;
@@ -87,7 +85,6 @@ void reorder(){
                     if(canmove(n, y0, x0, y1, x1)){
                         double evaluation_minus = evaluate_change(y1, x1, -1);
                         movepieceto(n, y0, x0, y1, x1, true);
-                        turn = 1;
                         if(repetition(moves) || stalemate(50) || stalemate(-50)){
                             movescore.push_back(-fulleval()
                             -(evaluate_move(n, y0, x0, y1, x1)
@@ -116,13 +113,11 @@ void reorder(){
                         std::copy(&temp_pieces[0][0], 
                             &temp_pieces[0][0]+12, &pieces[0][0]);
                         positions.pop_back();
-                        turn = 0;
                     }
                 }
             }
         }
     }
-    turn = 0;
     for(int i = 0; i < movescore.size(); i++){
         int maxindex = std::distance(&movescore[0],
             std::max_element(&movescore[0], &movescore[0]+movescore.size()));
@@ -136,28 +131,31 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     if(checkmate(piece_sign*50)){
         return -piece_sign*500000/(ntimes-nmoremoves+1.0);
     }
-    int temp_moves = moves;
-    int temp_enpassant = enpassant;
+    int temp_moves;
+    int temp_enpassant;
     int temp_board[8][8];
-    std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
     int temp_kingmoved[2];
-    std::copy(&kingmoved[0], &kingmoved[0]+2, 
-        &temp_kingmoved[0]);
     int temp_rookmoved[2][2];
-    std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
-        &temp_rookmoved[0][0]);
     int temp_pieces[6][2];
-    std::copy(&pieces[0][0], &pieces[0][0]+12, 
-        &temp_pieces[0][0]);
-    turn = int(nmoremoves%2 == 0);
-    std::vector<double> movescore;
+    if(nmoremoves != 0){
+        temp_moves = moves;
+        temp_enpassant = enpassant;
+        std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
+        std::copy(&kingmoved[0], &kingmoved[0]+2, 
+            &temp_kingmoved[0]);
+        std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
+            &temp_rookmoved[0][0]);
+        std::copy(&pieces[0][0], &pieces[0][0]+12, 
+            &temp_pieces[0][0]);
+    }
+    double movescore[1024];
+    int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
     double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][1]; n2++){
             int n = piece_sign*(10*n1+n2+int(n1 == 0));
-            int *pindex;
-            pindex = std::find(&board[0][0], &board[0][0]+64, n);
+            int *pindex = std::find(&board[0][0], &board[0][0]+64, n);
             if(pindex != &board[0][0]+64){
                 int nposition = std::distance(&board[0][0], pindex);
                 int y0 = nposition/8;
@@ -170,9 +168,8 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             if(nmoremoves == 0){
                                 current_movescore = evaluate_move(n, y0, x0, y1, x1)
                                     + evaluation_minus;
-                            }
-                            movepieceto(n, y0, x0, y1, x1, false);
-                            if(nmoremoves != 0){
+                            }else{
+                                movepieceto(n, y0, x0, y1, x1, false);
                                 current_movescore = nth_move(n, y0, x0, y1, x1, 
                                     best_movescore-evaluation_minus, nmoremoves-1) + evaluation_minus;
                             }
@@ -186,32 +183,33 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                                 || (total_movescore > best_movescore && nmoremoves%2 == 1)){
                                 best_movescore = total_movescore;
                             }
-                            movescore.push_back(total_movescore);
+                            movescore[movescore_size] = total_movescore;
+                            movescore_size++;
                             //return to saved state
-                            moves = temp_moves;
-                            enpassant = temp_enpassant;
-                            std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-                            &board[0][0]);
-                            std::copy(&temp_kingmoved[0], 
-                                &temp_kingmoved[0]+2, &kingmoved[0]);
-                            std::copy(&temp_rookmoved[0][0], 
-                                &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
-                            std::copy(&temp_pieces[0][0], 
-                                &temp_pieces[0][0]+12, &pieces[0][0]);
-                            turn = int(nmoremoves%2 == 0);
+                            if(nmoremoves != 0){
+                                moves = temp_moves;
+                                enpassant = temp_enpassant;
+                                std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
+                                &board[0][0]);
+                                std::copy(&temp_kingmoved[0], 
+                                    &temp_kingmoved[0]+2, &kingmoved[0]);
+                                std::copy(&temp_rookmoved[0][0], 
+                                    &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
+                                std::copy(&temp_pieces[0][0], 
+                                    &temp_pieces[0][0]+12, &pieces[0][0]);
+                            }
                         }
                     }
                 }
             }
         }
     }
-    turn = int(nmoremoves%2 == 1);
-    if(movescore.size() == 0){
+    if(movescore_size == 0){
         return 0.0;
     }else if(nmoremoves%2 == 0){
-        return *std::min_element(&movescore[0], &movescore[0]+movescore.size());
+        return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
     }else{
-       return *std::max_element(&movescore[0], &movescore[0]+movescore.size()); 
+       return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
     }
 }
 
@@ -242,7 +240,6 @@ void whitemove1(){
         int x1 = order[i][4];
         double evaluation_minus = evaluate_change(y1, x1, -1);
         movepieceto(n, y0, x0, y1, x1, true);
-        turn = 1;
         if(repetition(moves) || stalemate(50) || stalemate(-50)){
             movescore.push_back(-fulleval()
             -(nth_move(n, y0, x0, y1, x1, 
@@ -256,7 +253,7 @@ void whitemove1(){
         }else{
             double current_movescore = 
                 nth_move(n, y0, x0, y1, x1, 
-                best_movescore-evaluation_minus, 4) + evaluation_minus;
+                best_movescore-evaluation_minus, ntimes) + evaluation_minus;
             movescore.push_back(current_movescore);
             if(current_movescore > best_movescore){
                 best_movescore = current_movescore;
@@ -275,7 +272,6 @@ void whitemove1(){
         std::copy(&temp_pieces[0][0], 
             &temp_pieces[0][0]+12, &pieces[0][0]);
         positions.pop_back();
-        turn = 0;
     }
     turn = 0;
     int maxindex = std::distance(std::begin(movescore),
