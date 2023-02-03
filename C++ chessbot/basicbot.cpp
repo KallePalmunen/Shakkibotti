@@ -152,7 +152,9 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
     double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
-    for(int n1 = 0; n1 < 6; n1++){
+    for(int n0 = 0; n0 < 6; n0++){
+        int n1 = int(1*(n0 == 0)+2*(n0 == 1)+3*(n0 == 2)+4*(n0 == 3)
+        + 5*(n0 == 5));
         for(int n2 = 0; n2 < pieces[n1][1]; n2++){
             int n = piece_sign*(10*n1+n2+int(n1 == 0));
             int *pindex = std::find(&board[0][0], &board[0][0]+64, n);
@@ -191,12 +193,16 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                                 enpassant = temp_enpassant;
                                 std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
                                 &board[0][0]);
-                                std::copy(&temp_kingmoved[0], 
-                                    &temp_kingmoved[0]+2, &kingmoved[0]);
-                                std::copy(&temp_rookmoved[0][0], 
-                                    &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
-                                std::copy(&temp_pieces[0][0], 
-                                    &temp_pieces[0][0]+12, &pieces[0][0]);
+                                if(n1 == 5){
+                                    std::copy(&temp_kingmoved[0], 
+                                        &temp_kingmoved[0]+2, &kingmoved[0]);
+                                }else if(n1 == 3){
+                                    std::copy(&temp_rookmoved[0][0], 
+                                        &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
+                                }else if(n1 == 0){
+                                    std::copy(&temp_pieces[0][0], 
+                                        &temp_pieces[0][0]+12, &pieces[0][0]);
+                                }
                             }
                         }
                     }
