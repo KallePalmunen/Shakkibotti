@@ -148,7 +148,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
         std::copy(&pieces[0][0], &pieces[0][0]+12, 
             &temp_pieces[0][0]);
     }
-    double movescore[1024];
+    double movescore[332];
     int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
     double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
@@ -302,6 +302,13 @@ void basicbot(){
     int y1 = bestmove[3];
     int x1 = bestmove[4];
     movepieceto(n, y0, x0, y1, x1);
+    if(duration.count()/1000.0 < 0.3){
+        ntimes += 2;
+    }
+    if(duration.count()/1000.0 > 120){
+        ntimes -= 2;
+        std::cout << "depth = " << ntimes/2 << '\n';
+    }
     turn = 1;
     printboard();
     std::cout << duration.count()/1000.0 << '\n';

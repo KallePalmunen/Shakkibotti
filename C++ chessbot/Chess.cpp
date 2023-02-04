@@ -18,6 +18,9 @@ int main(){
         while(turn == 1){
             movepiece();
         }
+        if(turn == -1){
+            return 0;
+        }
         gameend();
     }
 
