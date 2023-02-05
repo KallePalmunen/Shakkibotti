@@ -1,5 +1,5 @@
 
-int board[8][8] = {{30,10,20,50,40,21,11,31}, {1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
+int board[8][8] = {{30,10,20,50,40,21,11,31},{1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
          {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
 int moves = 0;
 std::vector<std::vector<std::vector<int>>> positions;
@@ -212,18 +212,16 @@ bool promote(int n, int y1){
     return false;
 }
 
-bool check(int n){
-    int *index;
-    index = std::find(&board[0][0], &board[0][0]+64, n);
-    int kingy;
-    int kingx;
-
-    if(index != &board[0][0]+64){
-        int kingpos = std::distance(&board[0][0], index);
-        kingy = kingpos/8;
-        kingx = kingpos-kingy*8;
-    }else{
-        return true;
+bool check(int n, int kingy = -1, int kingx = -1){
+    if(kingy == -1){
+        int *index = std::find(&board[0][0], &board[0][0]+64, n);
+        if(index != &board[0][0]+64){
+            int kingpos = std::distance(&board[0][0], index);
+            kingy = kingpos/8;
+            kingx = kingpos-kingy*8;
+        }else{
+            return true;
+        }
     }
 
     for(int n1 = 0; n1 < 6; n1++){
@@ -270,7 +268,7 @@ bool castle(int n, int y0, int x0, int y1, int x1){
     return false;
 }
 
-bool pin(int n, int y0, int x0, int y1, int x1){
+bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     board[y0][x0] = 0;
     int movetosquare = board[y1][x1];
     board[y1][x1] = n;
@@ -281,7 +279,7 @@ bool pin(int n, int y0, int x0, int y1, int x1){
         enpassanted = board[y1-intsign(y1 - y0)][x1];
         board[y1-intsign(y1 - y0)][x1] = 0;
     }
-    if(!check(intsign(n)*50)){
+    if(!check(intsign(n)*50, kingy, kingx)){
         board[y0][x0] = n;
         board[y1][x1] = movetosquare;
         if(enpassanted != -100){
@@ -297,19 +295,23 @@ bool pin(int n, int y0, int x0, int y1, int x1){
     return true;
 }
 
-bool canmove(int n, int y0, int x0, int y1, int x1){
+bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = -1){
+    if(abs(n) == 50){
+        kingy = -1;
+        kingx = -1;
+    }
     if((piecemove(n, y0, x0, y1, x1) 
     || (abs(n) == 50 && castle(n, y0, x0, y1, x1)))
-    && !pin(n, y0, x0, y1, x1)){
+    && !pin(n, y0, x0, y1, x1, kingy, kingx)){
         return true;
     }
     return false;
 }
 
-bool movesomewhere(int n, int y0, int x0){
+bool movesomewhere(int n, int y0, int x0, int kingy = -1, int kingx = -1){
     for(int y1 = 0; y1 < 8; y1++){
         for(int x1 = 0; x1 < 8; x1++){
-            if(canmove(n, y0, x0, y1, x1)){
+            if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
                 return true;
             }
         }
@@ -317,8 +319,8 @@ bool movesomewhere(int n, int y0, int x0){
     return false;
 }
 
-bool checkmate(int n){
-    if(!check(n)){
+bool checkmate(int n, int kingy = -1, int kingx = -1){
+    if(!check(n, kingy, kingx)){
         return false;
     }
     for(int n1 = 0; n1 < 6; n1++){
@@ -330,7 +332,7 @@ bool checkmate(int n){
                 int ppos = std::distance(&board[0][0], pindex);
                 int y0 = ppos/8;
                 int x0 = ppos-y0*8;
-                if(movesomewhere(piecen, y0, x0)){
+                if(movesomewhere(piecen, y0, x0, kingy, kingx)){
                     return false;
                 }
             }

@@ -16,17 +16,26 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
     if(n == -100){
         n = board[y][x];
     }
-    return changesign*intsign(n)*((n != 0 && abs(n) < 9)
-        *(1+(abs(y - 7*(n < 0))*((x > 2 && x < 6)*((x == 5)
-        *0.01+(x != 5)*0.05) + 0.001)
-        - (moves < 60 && x < 2)*(abs(y - 7*(n < 0)) > 2)*0.03))
+    return changesign*intsign(n)*(
+        //pawns
+        (n != 0 && abs(n) < 9)*(1+(abs(y - 7*(n < 0))*((x > 2 && x < 6)
+        *((x == 5)*0.01+(x != 5)*0.05) + 0.001)
+        - (moves < 60 && x < 2)*(abs(y - 7*(n < 0)) > 2)*0.03)
+        //promoting
+        +8*(y == 7*(n > 0)))
+        //knights and bishops
         + 3*(abs(n) > 9 && abs(n) < 30) + 
+        //rooks
         (5+ (!((y == 0 || y == 7) && (x == 0 || x == 7)))*0.01)
         *(abs(n) > 29 && abs(n) < 40) + 
-        9*(abs(n) > 39)+ ((abs(n) >= 10 && abs(n) < 30) 
+        //queens
+        9*(abs(n) > 39)
+        //developed
+        + ((abs(n) >= 10 && abs(n) < 30) 
         || (abs(n) >= 40 && abs(n) < 50))*(y != 7*(n < 0))
         *(0.05+0.001*(abs(y - 7*(n < 0)) > 1))
         + (abs(n) >= 10 && abs(n) < 20 && x > 1 && x < 6)*0.01
+        //kings
         + ((abs(n) == 50) && (y == 0 || y == 7) 
         && (x == 1 || x == 5))*0.05);
 }
@@ -128,7 +137,16 @@ void reorder(){
 
 double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves){
     int piece_sign = (nmoremoves%2 == 1)-(nmoremoves%2 == 0);
-    if(checkmate(piece_sign*50)){
+    int *king_index = std::find(&board[0][0], &board[0][0]+64, piece_sign*50);
+    int kingy = -1, kingx = -1;
+    if(king_index != &board[0][0]+64){
+        int king_position = std::distance(&board[0][0], king_index);
+        kingy = king_position/8;
+        kingx = king_position-kingy*8;
+    }else{
+        return -piece_sign*500000/(ntimes-nmoremoves+1.0);
+    }
+    if(checkmate(piece_sign*50, kingy, kingx)){
         return -piece_sign*500000/(ntimes-nmoremoves+1.0);
     }
     int temp_moves;
@@ -164,7 +182,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                 int x0 = nposition-y0*8;
                 for(int y1 = 0; y1 < 8; y1++){
                     for(int x1 = 0; x1 < 8; x1++){
-                        if(canmove(n, y0, x0, y1, x1)){
+                        if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
                             double evaluation_minus = evaluate_change(y1, x1, -1);
                             double current_movescore;
                             if(nmoremoves == 0){
@@ -289,12 +307,12 @@ void whitemove1(){
 }
 
 void basicbot(){
+    double score = fulleval();
     auto start = std::chrono::high_resolution_clock::now();
     whitemove1();
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
         <std::chrono::milliseconds>(stop - start);
-    int score = 0;
     score += bestmove[5];
     int n = bestmove[0];
     int y0 = bestmove[1];
@@ -304,12 +322,14 @@ void basicbot(){
     movepieceto(n, y0, x0, y1, x1);
     if(duration.count()/1000.0 < 0.3){
         ntimes += 2;
+        std::cout << "depth = " << ntimes/2+1 << '\n';
     }
     if(duration.count()/1000.0 > 120){
         ntimes -= 2;
-        std::cout << "depth = " << ntimes/2 << '\n';
+        std::cout << "depth = " << ntimes/2+1 << '\n';
     }
     turn = 1;
     printboard();
     std::cout << duration.count()/1000.0 << '\n';
+    std::cout << '(' << n << ',' << y1 << ',' << x1 << ')' << score << '\n';
 }
