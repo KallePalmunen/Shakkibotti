@@ -34,15 +34,12 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
         + ((abs(n) >= 10 && abs(n) < 30) 
         || (abs(n) >= 40 && abs(n) < 50))*(y != 7*(n < 0))
         *(0.05+0.001*(abs(y - 7*(n < 0)) > 1))
-        + (abs(n) >= 10 && abs(n) < 20 && x > 1 && x < 6)*0.01
-        //kings
-        + ((abs(n) == 50) && (y == 0 || y == 7) 
-        && (x == 1 || x == 5))*0.05);
+        + (abs(n) >= 10 && abs(n) < 20 && x > 1 && x < 6)*0.01);
 }
 
 double evaluate_move(int n, int y0, int x0, int y1, int x1){
     return evaluate_change(y1, x1, 1, n) + 
-        evaluate_change(y0, x0, -1, n);
+        evaluate_change(y0, x0, -1, n) + (castled[int(n < 0)] == 1)*0.1;
 }
 
 double fulleval(){
@@ -63,6 +60,7 @@ double fulleval(){
             evaluation += evaluate_change(y0, x0, 1, -n);
         }
     }
+    evaluation -= (castled[0]+castled[1]);
     return evaluation;
 }
 
@@ -75,6 +73,9 @@ void reorder(){
     int temp_kingmoved[2];
     std::copy(&kingmoved[0], &kingmoved[0]+2, 
         &temp_kingmoved[0]);
+    int temp_castled[2];
+    std::copy(&castled[0], &castled[0]+2, 
+        &temp_castled[0]);
     int temp_rookmoved[2][2];
     std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
         &temp_rookmoved[0][0]);
@@ -117,6 +118,8 @@ void reorder(){
                         &board[0][0]);
                         std::copy(&temp_kingmoved[0], 
                             &temp_kingmoved[0]+2, &kingmoved[0]);
+                        std::copy(&temp_castled[0], &temp_castled[0]+2, 
+                            &castled[0]);
                         std::copy(&temp_rookmoved[0][0], 
                             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
                         std::copy(&temp_pieces[0][0], 
@@ -153,6 +156,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     int temp_enpassant;
     int temp_board[8][8];
     int temp_kingmoved[2];
+    int temp_castled[2];
     int temp_rookmoved[2][2];
     int temp_pieces[6][2];
     if(nmoremoves != 0){
@@ -161,6 +165,8 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
         std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
         std::copy(&kingmoved[0], &kingmoved[0]+2, 
             &temp_kingmoved[0]);
+        std::copy(&castled[0], &castled[0]+2, 
+            &temp_castled[0]);
         std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
             &temp_rookmoved[0][0]);
         std::copy(&pieces[0][0], &pieces[0][0]+12, 
@@ -214,6 +220,8 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                                 if(n1 == 5){
                                     std::copy(&temp_kingmoved[0], 
                                         &temp_kingmoved[0]+2, &kingmoved[0]);
+                                    std::copy(&temp_castled[0], &temp_castled[0]+2, 
+                                        &castled[0]);
                                 }else if(n1 == 3){
                                     std::copy(&temp_rookmoved[0][0], 
                                         &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
@@ -247,6 +255,9 @@ void whitemove1(){
     int temp_kingmoved[2];
     std::copy(&kingmoved[0], &kingmoved[0]+2, 
         &temp_kingmoved[0]);
+    int temp_castled[2];
+    std::copy(&castled[0], &castled[0]+2, 
+        &temp_castled[0]);
     int temp_rookmoved[2][2];
     std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
         &temp_rookmoved[0][0]);
@@ -291,6 +302,8 @@ void whitemove1(){
         &board[0][0]);
         std::copy(&temp_kingmoved[0], 
             &temp_kingmoved[0]+2, &kingmoved[0]);
+        std::copy(&temp_castled[0], &temp_castled[0]+2, 
+            &castled[0]);
         std::copy(&temp_rookmoved[0][0], 
             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
         std::copy(&temp_pieces[0][0], 
@@ -320,11 +333,12 @@ void basicbot(){
     int y1 = bestmove[3];
     int x1 = bestmove[4];
     movepieceto(n, y0, x0, y1, x1);
-    if(duration.count()/1000.0 < 0.3){
+    if(duration.count()/1000.0 < 0.3 && abs(n) != 50){
         ntimes += 2;
         std::cout << "depth = " << ntimes/2+1 << '\n';
     }
-    if(duration.count()/1000.0 > 120){
+    if(duration.count()/1000.0 > 120 
+    || (duration.count()/1000.0 > 30 && ntimes > 4)){
         ntimes -= 2;
         std::cout << "depth = " << ntimes/2+1 << '\n';
     }

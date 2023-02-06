@@ -6,6 +6,7 @@ std::vector<std::vector<std::vector<int>>> positions;
 int turn = 0;
 int enpassant = -1;
 int bot = 0;
+int castled[2] = {0,0};
 bool promotemenu = false;
 double evalscore = 0.0;
 std::string evaltext = "";
@@ -351,6 +352,7 @@ void movepieceto(int n, int y0, int x0, int y1, int x1,
             int rookx = (x1 > 4)*7;
             board[y1][rookx] = 0;
             board[y1][x1 + intsign(4-x1)] = whichrook;
+            castled[(n < 0)] = 1;
         }
         kingmoved[(n>0)] = 1;
     }
