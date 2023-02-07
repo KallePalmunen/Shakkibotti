@@ -1,7 +1,7 @@
 
 int bestmove[6];
 std::vector<std::vector<int>> order;
-int ntimes = 4;
+int ntimes = 2;
 
 bool partialrepetition(int current_moment){
     for(int moment = current_moment%2; moment < current_moment; moment += 2){
@@ -326,6 +326,17 @@ void basicbot(){
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
         <std::chrono::milliseconds>(stop - start);
+    while(duration.count()/1000.0 < 0.4){
+        ntimes += 2;
+        whitemove1();
+        stop = std::chrono::high_resolution_clock::now();
+        duration = std::chrono::duration_cast
+            <std::chrono::milliseconds>(stop - start);
+    }
+    std::cout << "depth = " << ntimes/2+1 << '\n';
+    if(ntimes > 4){
+        ntimes = 4;
+    }
     score += bestmove[5];
     int n = bestmove[0];
     int y0 = bestmove[1];
@@ -333,15 +344,6 @@ void basicbot(){
     int y1 = bestmove[3];
     int x1 = bestmove[4];
     movepieceto(n, y0, x0, y1, x1);
-    if(duration.count()/1000.0 < 0.3 && abs(n) != 50){
-        ntimes += 2;
-        std::cout << "depth = " << ntimes/2+1 << '\n';
-    }
-    if(duration.count()/1000.0 > 120 
-    || (duration.count()/1000.0 > 30 && ntimes > 4)){
-        ntimes -= 2;
-        std::cout << "depth = " << ntimes/2+1 << '\n';
-    }
     turn = 1;
     printboard();
     std::cout << duration.count()/1000.0 << '\n';
