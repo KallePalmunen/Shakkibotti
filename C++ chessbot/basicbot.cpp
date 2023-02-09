@@ -82,6 +82,9 @@ void reorder(){
     int temp_pieces[6][2];
     std::copy(&pieces[0][0], &pieces[0][0]+12, 
         &temp_pieces[0][0]);
+    int temp_piece_positions[50][2][2];
+    std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
+        &temp_piece_positions[0][0][0]);
     std::vector<double> movescore;
     std::vector<std::vector<int>> starting_order;
     for(int n = 1; n < 51; n++){
@@ -124,6 +127,8 @@ void reorder(){
                             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
                         std::copy(&temp_pieces[0][0], 
                             &temp_pieces[0][0]+12, &pieces[0][0]);
+                        std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
+                            &piece_positions[0][0][0]);
                         positions.pop_back();
                     }
                 }
@@ -140,13 +145,9 @@ void reorder(){
 
 double last_move(int n0, int y00, int x00, int y10, int x10, double best){
     int piece_sign = int(bot == 1)-int(bot == 0);
-    int *king_index = std::find(&board[0][0], &board[0][0]+64, piece_sign*50);
-    int kingy = -1, kingx = -1;
-    if(king_index != &board[0][0]+64){
-        int king_position = std::distance(&board[0][0], king_index);
-        kingy = king_position/8;
-        kingx = king_position-kingy*8;
-    }else{
+    int kingy = piece_positions[49][1][0];
+    int kingx = piece_positions[49][1][1];
+    if(kingy == -1){
         return -piece_sign*500000/(ntimes+1.0);
     }
     if(checkmate(piece_sign*50, kingy, kingx)){
@@ -201,14 +202,10 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
 
 double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves){
     int piece_sign = (nmoremoves%2 == 1)-(nmoremoves%2 == 0);
-    int *king_index = std::find(&board[0][0], &board[0][0]+64, piece_sign*50);
-    int kingy = -1, kingx = -1;
-    if(king_index != &board[0][0]+64){
-        int king_position = std::distance(&board[0][0], king_index);
-        kingy = king_position/8;
-        kingx = king_position-kingy*8;
-    }else{
-        return -piece_sign*500000/(ntimes-nmoremoves+1.0);
+    int kingy = piece_positions[49][1][0];
+    int kingx = piece_positions[49][1][1];
+    if(kingy == -1){
+        return -piece_sign*500000/(ntimes+1.0);
     }
     if(checkmate(piece_sign*50, kingy, kingx)){
         return -piece_sign*500000/(ntimes-nmoremoves+1.0);
@@ -229,6 +226,9 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     int temp_pieces[6][2];
     std::copy(&pieces[0][0], &pieces[0][0]+12, 
         &temp_pieces[0][0]);
+    int temp_piece_positions[50][2][2];
+    std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
+        &temp_piece_positions[0][0][0]);
     double movescore[332];
     int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
@@ -273,6 +273,8 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             enpassant = temp_enpassant;
                             std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
                             &board[0][0]);
+                            std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
+                                &piece_positions[0][0][0]);
                             if(n1 == 5){
                                 std::copy(&temp_kingmoved[0], 
                                     &temp_kingmoved[0]+2, &kingmoved[0]);
@@ -319,6 +321,9 @@ void whitemove1(){
     int temp_pieces[6][2];
     std::copy(&pieces[0][0], &pieces[0][0]+12, 
         &temp_pieces[0][0]);
+    int temp_piece_positions[50][2][2];
+    std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
+        &temp_piece_positions[0][0][0]);
     std::vector<double> movescore;
     double best_movescore = -1000000;
     reorder();
@@ -363,6 +368,8 @@ void whitemove1(){
             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
         std::copy(&temp_pieces[0][0], 
             &temp_pieces[0][0]+12, &pieces[0][0]);
+        std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
+            &piece_positions[0][0][0]);
         positions.pop_back();
     }
     turn = 0;

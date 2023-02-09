@@ -7,6 +7,7 @@
 
 int main(){
     std::string exit;
+    locate_pieces();
     add_to_positions();
     printboard();
     while(true){

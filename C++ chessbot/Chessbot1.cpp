@@ -5,6 +5,7 @@ int moves = 0;
 std::vector<std::vector<std::vector<int>>> positions;
 int turn = 0;
 int enpassant = -1;
+int piece_positions[50][2][2];
 int bot = 0;
 int castled[2] = {0,0};
 bool promotemenu = false;
@@ -17,6 +18,32 @@ int pieces[6][2] = {{8,8},{2,2},{2,2},{2,2},{1,1},{1,1}};
 int kingmoved[2] = {0,0};
 //black left, right - white left, right
 int rookmoved[2][2] = {{0,0},{0,0}};
+
+void locate_pieces(){
+    for(int n = 1; n < 51; n++){
+        int *piece_index = std::find(&board[0][0], &board[0][0]+64, n);
+        if(piece_index != &board[0][0]+64){
+            int ppos = std::distance(&board[0][0], piece_index);
+            int y0 = ppos/8;
+            int x0 = ppos-y0*8;
+            piece_positions[n-1][0][0] = y0;
+            piece_positions[n-1][0][1] = x0;
+        }else{
+            piece_positions[n-1][0][0] = -1;
+            piece_positions[n-1][0][1] = -1;
+        }
+        piece_index = std::find(&board[0][0], &board[0][0]+64, -n);
+        if(piece_index != &board[0][0]+64){
+            int ppos = std::distance(&board[0][0], piece_index);
+            int y0 = ppos/8;
+            int x0 = ppos-y0*8;
+            piece_positions[n-1][1][0] = y0;
+            piece_positions[n-1][1][1] = x0;
+        }else{
+            piece_positions[n-1][1][0] = -1;
+        }
+    }
+}
 
 void printboard(){
     for(int i = 0; i < 8; i++){
@@ -228,12 +255,9 @@ bool check(int n, int kingy = -1, int kingx = -1){
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][(n > 0)]; n2++){
             int piecen = -intsign(n)*(n1*10+n2+(n1 == 0));
-            int *pindex;
-            pindex = std::find(&board[0][0], &board[0][0]+64, piecen);
-            if(pindex != &board[0][0]+64){
-                int ppos = std::distance(&board[0][0], pindex);
-                int y0 = ppos/8;
-                int x0 = ppos-y0*8;
+            if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
+                int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
+                int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
                 if(piecemove(piecen, y0, x0, kingy, kingx)){
                     return true;
                 }
@@ -256,13 +280,16 @@ bool castle(int n, int y0, int x0, int y1, int x1){
             }
             board[y0][x0] = 0;
             board[y0][squarex] = n;
+            piece_positions[49][int(n<0)][1] = squarex;
             if(i < 3 && check(n)){
                 board[y0][x0] = n;
                 board[y0][squarex] = 0;
+                piece_positions[49][int(n<0)][1] = x0;
                 return false;
             }
             board[y0][x0] = n;
             board[y0][squarex] = 0;
+            piece_positions[49][int(n<0)][1] = x0;
         }
         return true;
     }
@@ -273,23 +300,34 @@ bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     board[y0][x0] = 0;
     int movetosquare = board[y1][x1];
     board[y1][x1] = n;
+    piece_positions[abs(n)-1][int(n<0)][0] = y1;
+    piece_positions[abs(n)-1][int(n<0)][1] = x1;
+    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
     //checks if you can prevent the mate in next turn 
     //by enpassanting the checking piece
     int enpassanted = -100;
     if(enpassant >= 0 && x1*8+y1 == enpassant){
         enpassanted = board[y1-intsign(y1 - y0)][x1];
         board[y1-intsign(y1 - y0)][x1] = 0;
+        piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
     }
     if(!check(intsign(n)*50, kingy, kingx)){
         board[y0][x0] = n;
         board[y1][x1] = movetosquare;
+        piece_positions[abs(n)-1][int(n<0)][0] = y0;
+        piece_positions[abs(n)-1][int(n<0)][1] = x0;
+        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
         if(enpassanted != -100){
             board[y1-intsign(y1 - y0)][x1] = enpassanted;
+            piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
         }
         return false;
     }
     board[y0][x0] = n;
     board[y1][x1] = movetosquare;
+    piece_positions[abs(n)-1][int(n<0)][0] = y0;
+    piece_positions[abs(n)-1][int(n<0)][1] = x0;
+    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
     if(enpassanted != -100){
         board[y1-intsign(y1 - y0)][x1] = enpassanted;
     }
@@ -327,10 +365,10 @@ bool checkmate(int n, int kingy = -1, int kingx = -1){
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
             int piecen = intsign(n)*(n1*10+n2);
-            int *pindex;
-            pindex = std::find(&board[0][0], &board[0][0]+64, piecen);
-            if(pindex != &board[0][0]+64){
-                int ppos = std::distance(&board[0][0], pindex);
+            int *piece_index;
+            piece_index = std::find(&board[0][0], &board[0][0]+64, piecen);
+            if(piece_index != &board[0][0]+64){
+                int ppos = std::distance(&board[0][0], piece_index);
                 int y0 = ppos/8;
                 int x0 = ppos-y0*8;
                 if(movesomewhere(piecen, y0, x0, kingy, kingx)){
@@ -342,9 +380,11 @@ bool checkmate(int n, int kingy = -1, int kingx = -1){
     return true;
 }
 
-void movepieceto(int n, int y0, int x0, int y1, int x1,
-    bool addposition = true){
+void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true){
     int promoteto;
+    if(board[y1][x1] != 0){
+        piece_positions[abs(board[y1][x1])-1][int(n>0)][0] = -1;
+    }
     if(abs(n) == 50){
         if(abs(x1-x0) > 1){
             //castle
@@ -353,6 +393,8 @@ void movepieceto(int n, int y0, int x0, int y1, int x1,
             board[y1][rookx] = 0;
             board[y1][x1 + intsign(4-x1)] = whichrook;
             castled[(n < 0)] = 1;
+            piece_positions[abs(whichrook)-1][int(n<0)][0] = y1;
+            piece_positions[abs(whichrook)-1][int(n<0)][1] = x1 + intsign(4-x1);
         }
         kingmoved[(n>0)] = 1;
     }
@@ -365,9 +407,13 @@ void movepieceto(int n, int y0, int x0, int y1, int x1,
         pieces[promoteto][(n < 0)]++;
     }else{
         board[y1][x1] = n;
+        piece_positions[abs(n)-1][int(n<0)][0] = y1;
+        piece_positions[abs(n)-1][int(n<0)][1] = x1;
     }
     if(enpassant >= 0 && x1*8+y1 == enpassant){
         board[y1-intsign(y1 - y0)][x1] = 0;
+        piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
+        piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][1] = -1;
     }
     if(abs(n) < 10 && abs(y1-y0) > 1){
         enpassant = x1*8+y0+intsign(y1 - y0);
@@ -387,10 +433,9 @@ bool stalemate(int n){
     }
     for(int n1 = 1; n1 < 51; n1++){
         int piecen = intsign(n)*n1;
-        int *pindex;
-        pindex = std::find(&board[0][0], &board[0][0]+64, piecen);
-        if(pindex != &board[0][0]+64){
-            int ppos = std::distance(&board[0][0], pindex);
+        int *piece_index = std::find(&board[0][0], &board[0][0]+64, piecen);
+        if(piece_index != &board[0][0]+64){
+            int ppos = std::distance(&board[0][0], piece_index);
             int y0 = ppos/8;
             int x0 = ppos-y0*8;
             if(movesomewhere(piecen, y0, x0)){
