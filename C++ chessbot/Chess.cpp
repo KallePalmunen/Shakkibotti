@@ -24,6 +24,5 @@ int main(){
         }
         gameend();
     }
-
     return 0;
 }

@@ -365,12 +365,9 @@ bool checkmate(int n, int kingy = -1, int kingx = -1){
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
             int piecen = intsign(n)*(n1*10+n2);
-            int *piece_index;
-            piece_index = std::find(&board[0][0], &board[0][0]+64, piecen);
-            if(piece_index != &board[0][0]+64){
-                int ppos = std::distance(&board[0][0], piece_index);
-                int y0 = ppos/8;
-                int x0 = ppos-y0*8;
+            if(piece_positions[piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1]){
+                int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
+                int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
                 if(movesomewhere(piecen, y0, x0, kingy, kingx)){
                     return false;
                 }
@@ -405,15 +402,17 @@ void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true)
         promoteto = 4;
         board[y1][x1] = intsign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
         pieces[promoteto][(n < 0)]++;
+        piece_positions[abs(board[y1][x1])-1][int(board[y1][x1]<0)][0] = y1;
+        piece_positions[abs(board[y1][x1])-1][int(board[y1][x1]<0)][1] = x1;
+        piece_positions[abs(n)-1][int(n<0)][0] = -1;
     }else{
         board[y1][x1] = n;
         piece_positions[abs(n)-1][int(n<0)][0] = y1;
         piece_positions[abs(n)-1][int(n<0)][1] = x1;
     }
     if(enpassant >= 0 && x1*8+y1 == enpassant){
-        board[y1-intsign(y1 - y0)][x1] = 0;
         piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
-        piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][1] = -1;
+        board[y1-intsign(y1 - y0)][x1] = 0;
     }
     if(abs(n) < 10 && abs(y1-y0) > 1){
         enpassant = x1*8+y0+intsign(y1 - y0);
@@ -433,11 +432,9 @@ bool stalemate(int n){
     }
     for(int n1 = 1; n1 < 51; n1++){
         int piecen = intsign(n)*n1;
-        int *piece_index = std::find(&board[0][0], &board[0][0]+64, piecen);
-        if(piece_index != &board[0][0]+64){
-            int ppos = std::distance(&board[0][0], piece_index);
-            int y0 = ppos/8;
-            int x0 = ppos-y0*8;
+        if(piece_positions[piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1]){
+            int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
+            int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
             if(movesomewhere(piecen, y0, x0)){
                 return false;
             }
