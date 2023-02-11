@@ -139,8 +139,8 @@ void reorder(){
 
 double last_move(int n0, int y00, int x00, int y10, int x10, double best){
     int piece_sign = int(bot == 1)-int(bot == 0);
-    int kingy = piece_positions[49][1][0];
-    int kingx = piece_positions[49][1][1];
+    int kingy = piece_positions[49][int(n0>0)][0];
+    int kingx = piece_positions[49][int(n0>0)][1];
     if(kingy == -1){
         return -piece_sign*500000/(ntimes+1.0);
     }
@@ -194,8 +194,8 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
 
 double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves){
     int piece_sign = (nmoremoves%2 == 1)-(nmoremoves%2 == 0);
-    int kingy = piece_positions[49][1][0];
-    int kingx = piece_positions[49][1][1];
+    int kingy = piece_positions[49][int(n0>0)][0];
+    int kingx = piece_positions[49][int(n0>0)][1];
     if(kingy == -1){
         return -piece_sign*500000/(ntimes+1.0);
     }
@@ -374,7 +374,7 @@ void basicbot(){
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
         <std::chrono::milliseconds>(stop - start);
-    while(duration.count()/1000.0 < 0.4){
+    while(duration.count()/1000.0 < 0.3){
         ntimes += 2;
         whitemove1();
         stop = std::chrono::high_resolution_clock::now();
