@@ -364,10 +364,74 @@ void whitemove1(){
     for(int i = 0; i < 5; i++){
         bestmove[i] = order[maxindex][i];
     }
-    bestmove[5] = movescore[maxindex];
+        bestmove[5] = movescore[maxindex];
 }
 
-void basicbot(){
+std::vector<std::vector<std::vector<std::vector<int>>>> open_openingbook(const std::string& filename) {
+    // Open the file
+    std::ifstream infile(filename, std::ios::binary);
+    // Read the size of the outer vector
+    int outer_size;
+    infile.read(reinterpret_cast<char*>(&outer_size), sizeof(outer_size));
+
+    // Read the contents of the vector
+    std::vector<std::vector<std::vector<std::vector<int>>>> myvector(outer_size);
+    for (int i = 0; i < outer_size; i++) {
+        int outer_inner_size;
+        infile.read(reinterpret_cast<char*>(&outer_inner_size), sizeof(outer_inner_size));
+        myvector[i].resize(outer_inner_size);
+        for (int j = 0; j < outer_inner_size; j++) {
+            int inner_inner_size;
+            infile.read(reinterpret_cast<char*>(&inner_inner_size), sizeof(inner_inner_size));
+            myvector[i][j].resize(inner_inner_size);
+            for (int k = 0; k < inner_inner_size; k++) {
+                int inner_most_size;
+                infile.read(reinterpret_cast<char*>(&inner_most_size), sizeof(inner_most_size));
+                myvector[i][j][k].resize(inner_most_size);
+                for (int l = 0; l < inner_most_size; l++) {
+                int value;
+                infile.read(reinterpret_cast<char*>(&value), sizeof(value));
+                myvector[i][j][k][l] = value;
+                }
+            }
+        }
+    }
+
+    // Close the file and return the vector
+    infile.close();
+    return myvector;
+}
+
+bool compare_to_book(std::vector<std::vector<int>> book_board){
+    for(int j = 0; j < 8; j++){
+        for(int k = 0; k < 8; k++){
+            if(book_board[j][k] != board[j][k]){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool read_openingbook(){
+    std::vector<std::vector<std::vector<std::vector<int>>>> openingbook = open_openingbook("openingbook.bin");
+    for(int i = 0; i < openingbook.size(); i++){
+        if(compare_to_book(openingbook[i][0])){
+            std::vector<int> bookmove = openingbook[i][1][0];
+            movepieceto(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]);
+            return true;
+        }
+    }
+    return false;
+}
+
+int basicbot(){
+    if(read_openingbook()){
+        turn = int(bot == 0);
+        std::cout << "book" << '\n';
+        printboard();
+        return 0;
+    }
     double score = fulleval();
     auto start = std::chrono::high_resolution_clock::now();
     whitemove1();
@@ -375,6 +439,9 @@ void basicbot(){
     auto duration = std::chrono::duration_cast
         <std::chrono::milliseconds>(stop - start);
     while(duration.count()/1000.0 < 0.3){
+        if(abs(bestmove[5]) > 10000){
+            break;
+        }
         ntimes += 2;
         whitemove1();
         stop = std::chrono::high_resolution_clock::now();
@@ -382,8 +449,8 @@ void basicbot(){
             <std::chrono::milliseconds>(stop - start);
     }
     std::cout << "depth = " << ntimes/2+1 << '\n';
-    if(ntimes > 4){
-        ntimes = 4;
+    if(ntimes > 2){
+        ntimes = 2;
     }
     score += bestmove[5];
     int n = bestmove[0];
@@ -392,8 +459,9 @@ void basicbot(){
     int y1 = bestmove[3];
     int x1 = bestmove[4];
     movepieceto(n, y0, x0, y1, x1);
-    turn = 1;
+    turn = int(bot == 0);
     printboard();
     std::cout << duration.count()/1000.0 << '\n';
     std::cout << '(' << n << ',' << y1 << ',' << x1 << ')' << score << '\n';
+    return 0;
 }

@@ -2,11 +2,13 @@
 #include <algorithm>
 #include <vector>
 #include <chrono>
+#include <fstream>
+#include <string>
+#include <sstream>
 #include "Chessbot1.cpp"
 #include "basicbot.cpp"
 
 int main(){
-    std::string exit;
     locate_pieces();
     add_to_positions();
     printboard();
