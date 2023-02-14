@@ -1,7 +1,24 @@
 
 int bestmove[6];
-std::vector<std::vector<int>> order;
 int ntimes = 2;
+double pawn_position_eval[8][8] = {{8.0,8.0,8.0,8.0,8.0,8.0,8.0,8.0},{0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
+,{0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1},{0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05},{0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0}
+,{0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05},{0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05},{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0}};
+double knight_position_eval[8][8] = {{-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5},{-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4}
+,{-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3},{-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3},{-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3}
+,{-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3},{-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4},{-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5}};
+double bishop_position_eval[8][8] = {{-0.2,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.2},{-0.1,0.0,0.0,0.0,0.0,0.0,0.0,-0.1}
+,{-0.1,0.0,0.05,0.1,0.1,0.05,0.0,-0.1},{-0.1,0.05,0.05,0.1,0.1,0.05,0.05,-0.1},{-0.1,0.0,0.1,0.1,0.1,0.1,0.0,-0.1}
+,{-0.1,0.1,0.01,0.1,0.1,0.1,0.1,-0.1},{-0.1,0.05,0.0,0.0,0.0,0.0,0.05,-0.1},{-0.2,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.2}};
+double rook_position_eval[8][8] = {{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},{0.05,0.1,0.1,0.1,0.1,0.1,0.1,0.05}
+,{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05}
+,{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{0.0,0.0,0.0,0.5,0.5,0.0,0.0,0.0}};
+double queen_position_eval[8][8] = {{-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2},{-0.1,0.0,0.0,0.0,0.0,0.0,0.0,-0.1}
+,{-0.1,0.0,0.05,0.05,0.05,0.05,0.0,-0.1},{-0.05,0.0,0.05,0.05,0.05,0.05,0.0,-0.05},{0.0,0.0,0.05,0.05,0.05,0.05,0.0,-0.05}
+,{-0.1,0.05,0.05,0.05,0.05,0.05,0.0,-0.1},{-0.1,0.0,0.05,0.0,0.0,0.0,0.0,-0.1},{-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2}};
+double king_position_eval[8][8] = {{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3}
+,{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.2,-0.3,-0.3,-0.4,-0.4,-0.3,-0.3,-0.2}
+,{-0.1,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.1},{0.2,0.2,0.0,0.0,0.0,0.0,0.2,0.2},{0.2,0.3,0.1,0.0,0.0,0.1,0.3,0.2}};
 
 bool partialrepetition(int current_moment){
     for(int moment = current_moment%2; moment < current_moment; moment += 2){
@@ -16,25 +33,23 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
     if(n == -100){
         n = board[y][x];
     }
+    if(n == 0){
+        return 0.0;
+    }
     return changesign*intsign(n)*(
         //pawns
-        (n != 0 && abs(n) < 9)*(1+(abs(y - 7*(n < 0))*((x > 2 && x < 6)
-        *((x == 5)*0.01+(x != 5)*0.05) + 0.001)
-        - (moves < 60 && x < 2)*(abs(y - 7*(n < 0)) > 2)*0.03)
-        //promoting
-        +8*(y == 7*(n > 0)))
+        (1+0.1*pawn_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(n != 0 && abs(n) < 9)
         //knights and bishops
-        + 3*(abs(n) > 9 && abs(n) < 30) + 
+        + (3+0.1*knight_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 9 && abs(n) < 20) + 
+        //bishops
+        + (3+0.1*bishop_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 19 && abs(n) < 30) + 
         //rooks
-        (5+ (!((y == 0 || y == 7) && (x == 0 || x == 7)))*0.01)
+        (5+0.1*rook_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])
         *(abs(n) > 29 && abs(n) < 40) + 
         //queens
-        9*(abs(n) > 39)
-        //developed
-        + ((abs(n) >= 10 && abs(n) < 30) 
-        || (abs(n) >= 40 && abs(n) < 50))*(y != 7*(n < 0))
-        *(0.05+0.001*(abs(y - 7*(n < 0)) > 1))
-        + (abs(n) >= 10 && abs(n) < 20 && x > 1 && x < 6)*0.01);
+        (9+0.1*queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 39)
+        //kings
+        +0.1*king_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
 }
 
 double evaluate_move(int n, int y0, int x0, int y1, int x1){
@@ -60,7 +75,7 @@ double fulleval(){
     return evaluation;
 }
 
-void reorder(){
+std::vector<std::vector<int>> reorder(){
     //save current state
     int temp_moves = moves;
     int temp_enpassant = enpassant;
@@ -129,12 +144,14 @@ void reorder(){
             }
         }
     }
+    std::vector<std::vector<int>> return_vector;
     for(int i = 0; i < movescore.size(); i++){
         int maxindex = std::distance(&movescore[0],
             std::max_element(&movescore[0], &movescore[0]+movescore.size()));
-        order.push_back(starting_order[maxindex]);
+        return_vector.push_back(starting_order[maxindex]);
         movescore[maxindex] = -1000000;
     }
+    return return_vector;
 }
 
 double last_move(int n0, int y00, int x00, int y10, int x10, double best){
@@ -290,7 +307,6 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
 
 void whitemove1(){
     //save current state
-    order.clear();
     int temp_moves = moves;
     int temp_enpassant = enpassant;
     int temp_board[8][8];
@@ -312,7 +328,7 @@ void whitemove1(){
         &temp_piece_positions[0][0][0]);
     std::vector<double> movescore;
     double best_movescore = -1000000;
-    reorder();
+    std::vector<std::vector<int>> order = reorder();
     for(int i = 0; i < order.size(); i++){
         int n = order[i][0];
         int y0 = order[i][1];
