@@ -1,7 +1,7 @@
 
 int bestmove[6];
 int ntimes = 2;
-double pawn_position_eval[8][8] = {{8.0,8.0,8.0,8.0,8.0,8.0,8.0,8.0},{0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
+double pawn_position_eval[8][8] = {{80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0},{0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
 ,{0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1},{0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05},{0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0}
 ,{0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05},{0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05},{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0}};
 double knight_position_eval[8][8] = {{-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5},{-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4}
@@ -47,9 +47,7 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
         (5+0.1*rook_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])
         *(abs(n) > 29 && abs(n) < 40) + 
         //queens
-        (9+0.1*queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 39)
-        //kings
-        +0.1*king_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+        (9+0.1*queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 39));
 }
 
 double evaluate_move(int n, int y0, int x0, int y1, int x1){
@@ -99,13 +97,13 @@ std::vector<std::vector<int>> reorder(){
     std::vector<double> movescore;
     std::vector<std::vector<int>> starting_order;
     for(int n = 1; n < 51; n++){
-        if(piece_positions[piece_positions[abs(n)-1][int(n<0)][0] != -1]){
+        if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
             int y0 = piece_positions[abs(n)-1][int(n<0)][0];
             int x0 = piece_positions[abs(n)-1][int(n<0)][1];
             for(int y1 = 0; y1 < 8; y1++){
                 for(int x1 = 0; x1 < 8; x1++){
                     if(canmove(n, y0, x0, y1, x1)){
-                        double evaluation_minus = evaluate_change(y1, x1, -1);
+                        double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                         movepieceto(n, y0, x0, y1, x1, true);
                         if(repetition(moves) || stalemate(50) || stalemate(-50)){
                             movescore.push_back(-fulleval()
@@ -173,13 +171,13 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
         + 5*(n0 == 5));
         for(int n2 = 0; n2 < pieces[n1][1]; n2++){
             int n = piece_sign*(10*n1+n2+int(n1 == 0));
-            if(piece_positions[piece_positions[abs(n)-1][int(n<0)][0] != -1]){
+            if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
                 for(int y1 = 0; y1 < 8; y1++){
                     for(int x1 = 0; x1 < 8; x1++){
                         if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
-                            double evaluation_minus = evaluate_change(y1, x1, -1);
+                            double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             double current_movescore = evaluate_move(n, y0, x0, y1, x1)
                                 + evaluation_minus;
                             double total_movescore = current_movescore 
@@ -247,13 +245,13 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
         + 5*(n0 == 5));
         for(int n2 = 0; n2 < pieces[n1][1]; n2++){
             int n = piece_sign*(10*n1+n2+int(n1 == 0));
-            if(piece_positions[piece_positions[abs(n)-1][int(n<0)][0] != -1]){
+            if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
                 for(int y1 = 0; y1 < 8; y1++){
                     for(int x1 = 0; x1 < 8; x1++){
                         if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
-                            double evaluation_minus = evaluate_change(y1, x1, -1);
+                            double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             double current_movescore;
                             movepieceto(n, y0, x0, y1, x1, false);
                             if(nmoremoves == 1){
@@ -335,7 +333,7 @@ void whitemove1(){
         int x0 = order[i][2];
         int y1 = order[i][3];
         int x1 = order[i][4];
-        double evaluation_minus = evaluate_change(y1, x1, -1);
+        double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
         movepieceto(n, y0, x0, y1, x1, true);
         if(repetition(moves) || stalemate(50) || stalemate(-50)){
             movescore.push_back(-fulleval()
@@ -454,7 +452,7 @@ int basicbot(){
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
         <std::chrono::milliseconds>(stop - start);
-    while(duration.count()/1000.0 < 0.3){
+    while(duration.count()/1000.0 < 0.2){
         if(abs(bestmove[5]) > 10000){
             break;
         }

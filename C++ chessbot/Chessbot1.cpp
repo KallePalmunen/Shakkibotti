@@ -72,6 +72,7 @@ int intsign(int a){
 }
 
 bool pawnmove(int n, int y0, int x0, int y1, int x1){
+    int piece_sign = int(n>1)-int(n<1);
     if(n > 0){
         if((x1 == x0 && (y1-y0 == 1 || (y1-y0 == 2 && y0 == 1 
             && board[y1-1][x1] == 0)) && board[y1][x1] == 0) || 
@@ -81,7 +82,7 @@ bool pawnmove(int n, int y0, int x0, int y1, int x1){
                 return true;
         }
         return false;
-    }else if(n < 0){
+    }if(n < 0){
         if ((x1 == x0 && (y0-y1 == 1 || (y0-y1 == 2 && y0 == 6 
             && board[y1+1][x1] == 0)) && board[y1][x1] == 0) ||
             (y0-y1 == 1 && board[y1][x1] > 0 && 
@@ -112,30 +113,36 @@ bool knightmove(int n, int y0, int x0, int y1, int x1){
 //longmove checks if there is anything in the way when moving bishops, rooks and queens. It also checks whether there is a piece in the endsquare
 
 bool longmove(int n, int y0, int x0, int y1, int x1){
+    int y = y0, x = x0, xplus = (x1 != x0)*intsign(x1-x0)
+    , yplus = (y1 != y0)*intsign(y1-y0);
     if(n > 0){
+        if(board[y1][x1] > 0){
+            return false;
+        }
         for(int i = 1; i < 8; i++){
-            if(y0 + (y1 != y0)*intsign(y1-y0)*i == y1 
-                && x0 + (x1 != x0)*intsign(x1-x0)*i == x1 
-                && board[y1][x1] <= 0){
-                    return true;
+            y += yplus;
+            x += xplus;
+            if(y == y1 && x == x1){
+                return true;
             }
-            if(board[y0 + (y1 != y0)*intsign(y1-y0)*i]
-                [x0 + (x1 != x0)*intsign(x1-x0)*i] != 0){
-                    return false;
+            if(board[y][x] != 0){
+                return false;
             }
         }
         return false;
     }
     if(n < 0){
+        if(board[y1][x1] < 0){
+            return false;
+        }
         for(int i = 1; i < 8; i++){
-            if(y0 + (y1 != y0)*intsign(y1-y0)*i == y1 
-                && x0 + (x1 != x0)*intsign(x1-x0)*i == x1 
-                && board[y1][x1] >= 0){
-                    return true;
+            y += yplus;
+            x += xplus;
+            if(y == y1 && x == x1){
+                return true;
             }
-            if(board[y0 + (y1 != y0)*intsign(y1-y0)*i]
-                [x0 + (x1 != x0)*intsign(x1-x0)*i] != 0){
-                    return false;
+            if(board[y][x] != 0){
+                return false;
             }
         }
         return false;
@@ -184,42 +191,39 @@ bool kingmove(int n, int y0, int x0, int y1, int x1){
 }
 
 bool piecemove(int n, int y0, int x0, int y1, int x1){
-    if(y1 < 8 && x1 < 8 && x1 >= 0 && y1 >= 0 && y0>=0){
-        if(abs(n) < 10){
-            if(pawnmove(n, y0, x0, y1, x1)){
-                return true;
-            }
-            return false;
+    if(abs(n) < 10){
+        if(pawnmove(n, y0, x0, y1, x1)){
+            return true;
         }
-        if(abs(n) < 20 && abs(n) >= 10){
-            if(knightmove(n, y0, x0, y1, x1)){
-                return true;
-            }
-            return false;
+        return false;
+    }
+    if(abs(n) < 20 && abs(n) >= 10){
+        if(knightmove(n, y0, x0, y1, x1)){
+            return true;
         }
-        if(abs(n) < 30 && abs(n) >= 20){
-            if(bishopmove(n, y0, x0, y1, x1)){
-                return true;
-            }
-            return false;
+        return false;
+    }
+    if(abs(n) < 30 && abs(n) >= 20){
+        if(bishopmove(n, y0, x0, y1, x1)){
+            return true;
         }
-        if(abs(n) < 40 && abs(n) >= 30){
-            if(rookmove(n, y0, x0, y1, x1)){
-                return true;
-            }
-            return false;
+        return false;
+    }
+    if(abs(n) < 40 && abs(n) >= 30){
+        if(rookmove(n, y0, x0, y1, x1)){
+            return true;
         }
-        if(abs(n) < 50 && abs(n) >= 40){
-            if(queenmove(n, y0, x0, y1, x1)){
-                return true;
-            }
-            return false;
+        return false;
+    }
+    if(abs(n) < 50 && abs(n) >= 40){
+        if(queenmove(n, y0, x0, y1, x1)){
+            return true;
         }
-        if(abs(n) >= 50){
-            if(kingmove(n, y0, x0, y1, x1)){
-                return true;
-            }
-            return false;
+        return false;
+    }
+    if(abs(n) >= 50){
+        if(kingmove(n, y0, x0, y1, x1)){
+            return true;
         }
         return false;
     }
@@ -251,7 +255,6 @@ bool check(int n, int kingy = -1, int kingx = -1){
             return true;
         }
     }
-
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][(n > 0)]; n2++){
             int piecen = -intsign(n)*(n1*10+n2+(n1 == 0));
@@ -335,14 +338,15 @@ bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
 }
 
 bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = -1){
-    if(abs(n) == 50){
-        kingy = -1;
-        kingx = -1;
-    }
-    if((piecemove(n, y0, x0, y1, x1) 
-    || (abs(n) == 50 && castle(n, y0, x0, y1, x1)))
-    && !pin(n, y0, x0, y1, x1, kingy, kingx)){
-        return true;
+    if(piecemove(n, y0, x0, y1, x1) 
+    || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
+        if(abs(n) == 50){
+            kingy = -1;
+            kingx = -1;
+        }
+        if(!pin(n, y0, x0, y1, x1, kingy, kingx)){
+            return true;
+        }
     }
     return false;
 }
@@ -365,7 +369,7 @@ bool checkmate(int n, int kingy = -1, int kingx = -1){
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
             int piecen = intsign(n)*(n1*10+n2);
-            if(piece_positions[piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1]){
+            if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                 int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
                 int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
                 if(movesomewhere(piecen, y0, x0, kingy, kingx)){
@@ -432,7 +436,7 @@ bool stalemate(int n){
     }
     for(int n1 = 1; n1 < 51; n1++){
         int piecen = intsign(n)*n1;
-        if(piece_positions[piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1]){
+        if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
             int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
             int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
             if(movesomewhere(piecen, y0, x0)){
@@ -495,7 +499,8 @@ void movepiece(){
             int pos = std::distance(&board[0][0], index);
             int y0 = pos/8;
             int x0 = pos-y0*8;
-            if(canmove(move, y0, x0, movetoy, movetox)){
+            if(movetoy < 8 && movetox < 8 && movetox >= 0 && movetoy >= 0 && y0>=0 
+            && canmove(move, y0, x0, movetoy, movetox)){
                 movepieceto(move, y0, x0, movetoy, movetox);
             }else{
                 std::cout << "Illegal move" << "\n";
