@@ -151,17 +151,20 @@ std::vector<std::vector<int>> reorder(){
         }
     }
     std::vector<std::vector<int>> return_vector;
+    int index;
     for(int i = 0; i < movescore.size(); i++){
         if(intsign(bot==0)){
             int maxindex = std::distance(&movescore[0],
                 std::max_element(&movescore[0], &movescore[0]+movescore.size()));
             return_vector.push_back(starting_order[maxindex]);
+            index = maxindex;
         } else{
             int minindex = std::distance(&movescore[0],
                 std::min_element(&movescore[0], &movescore[0]+movescore.size()));
             return_vector.push_back(starting_order[minindex]);
+            index = minindex;
         }
-        movescore[maxindex] = -1000000*intsign(bot==0);
+        movescore[index] = -1000000*intsign(bot==0);
     }
     return return_vector;
 }
@@ -184,7 +187,7 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
         //Goes through the piece types in peculiar order
         int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
         + 5*(n00 == 5));
-        for(int n2 = 0; n2 < pieces[n1][piecesign!=1]; n2++){
+        for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
             int n = piece_sign*(10*n1+n2+int(n1 == 0));
             if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
@@ -258,7 +261,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     for(int n00 = 0; n00 < 6; n00++){
         int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
         + 5*(n00 == 5));
-        for(int n2 = 0; n2 < pieces[n1][piecesign!=1]; n2++){
+        for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
             int n = piece_sign*(10*n1+n2+int(n1 == 0));
             if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
@@ -278,12 +281,12 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             }
                             double total_movescore = current_movescore 
                                 + previous_movescore;
-                            if((total_movescore <= best && (piecesign!=1))
-                                || (total_movescore >= best && (piecesign==1))){
+                            if((total_movescore <= best && (piece_sign!=1))
+                                || (total_movescore >= best && (piece_sign==1))){
                                 return total_movescore;
                             }
-                            if((total_movescore < best_movescore && (piecesign!=1))
-                                || (total_movescore > best_movescore && (piecesign==1))){
+                            if((total_movescore < best_movescore && (piece_sign!=1))
+                                || (total_movescore > best_movescore && (piece_sign==1))){
                                 best_movescore = total_movescore;
                             }
                             movescore[movescore_size] = total_movescore;
@@ -311,7 +314,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     }
     if(movescore_size == 0){
         return 0.0;
-    }else if((piecesign!=1)){
+    }else if((piece_sign!=1)){
         return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
     }else{
        return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
@@ -456,7 +459,7 @@ bool read_openingbook(){
 
 int basicbot(){
     //
-    if(read_openingbook()){
+    if(bot == 0 && read_openingbook()){
         turn = int(bot == 0);
         std::cout << "book" << '\n';
         printboard();

@@ -13,12 +13,14 @@ int main(){
     add_to_positions();
     printboard();
     while(true){
-        basicbot();
+        if(turn == bot){
+            basicbot();
+        }
         gameend();
         if(turn == -1){
             return 0;
         }
-        while(turn == 1){
+        while(turn != bot){
             movepiece();
         }
         if(turn == -1){
