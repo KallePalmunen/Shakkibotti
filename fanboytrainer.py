@@ -337,7 +337,7 @@ def setrightvalue2(rand):
 
 datalen = len(data)
 
-times = 20000
+times = 100000
 
 start = time.time()
 cost = 0

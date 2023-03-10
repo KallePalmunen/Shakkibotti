@@ -68,7 +68,7 @@ void add_to_positions(){
 //intsign tells the sign of an integer
 
 int intsign(int a){
-    return (a > 0)-(a < 0);
+    return (a > 0)-(a <= 0);
 }
 
 bool pawnmove(int n, int y0, int x0, int y1, int x1){
