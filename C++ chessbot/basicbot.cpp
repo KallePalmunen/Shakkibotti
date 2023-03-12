@@ -153,12 +153,12 @@ std::vector<std::vector<int>> reorder(){
     std::vector<std::vector<int>> return_vector;
     int index;
     for(int i = 0; i < movescore.size(); i++){
-        if(intsign(bot==0)){
+        if(bot==0){
             int maxindex = std::distance(&movescore[0],
                 std::max_element(&movescore[0], &movescore[0]+movescore.size()));
             return_vector.push_back(starting_order[maxindex]);
             index = maxindex;
-        } else{
+        }else{
             int minindex = std::distance(&movescore[0],
                 std::min_element(&movescore[0], &movescore[0]+movescore.size()));
             return_vector.push_back(starting_order[minindex]);
@@ -221,7 +221,7 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
     }else if(bot == 0){
         return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
     }else{
-       return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
+        return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
     }
 }
 
@@ -317,7 +317,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     }else if((piece_sign!=1)){
         return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
     }else{
-       return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
+        return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
     }
 }
 
@@ -391,12 +391,18 @@ void firstmove(){
         positions.pop_back();
     }
     turn = int(bot == 0);
-    int maxindex = std::distance(std::begin(movescore),
+    int bestindex;
+    if(bot == 0){
+        bestindex = std::distance(std::begin(movescore),
         std::max_element(std::begin(movescore), std::end(movescore)));
-    for(int i = 0; i < 5; i++){
-        bestmove[i] = order[maxindex][i];
+    }else{
+        bestindex = std::distance(std::begin(movescore),
+        std::min_element(std::begin(movescore), std::end(movescore)));
     }
-        bestmove[5] = movescore[maxindex];
+    for(int i = 0; i < 5; i++){
+        bestmove[i] = order[bestindex][i];
+    }
+    bestmove[5] = movescore[bestindex];
 }
 
 std::vector<std::vector<std::vector<std::vector<int>>>> open_openingbook(const std::string& filename) {
@@ -458,7 +464,6 @@ bool read_openingbook(){
 }
 
 int basicbot(){
-    //
     if(bot == 0 && read_openingbook()){
         turn = int(bot == 0);
         std::cout << "book" << '\n';

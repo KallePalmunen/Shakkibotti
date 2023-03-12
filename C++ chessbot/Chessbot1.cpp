@@ -6,6 +6,7 @@ std::vector<std::vector<std::vector<int>>> positions;
 int turn = 0;
 int enpassant = -1;
 int piece_positions[50][2][2];
+//white == 0, black == 1
 int bot = 0;
 int castled[2] = {0,0};
 bool promotemenu = false;
