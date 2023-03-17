@@ -343,7 +343,7 @@ void firstmove(){
     std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
         &temp_piece_positions[0][0][0]);
     std::vector<double> movescore;
-    double best_movescore = -1000000;
+    double best_movescore = -intsign(bot == 0)*1000000;
     std::vector<std::vector<int>> order = reorder();
     for(int i = 0; i < order.size(); i++){
         int n = order[i][0];
@@ -368,7 +368,8 @@ void firstmove(){
                 nth_move(n, y0, x0, y1, x1, 
                 best_movescore-evaluation_minus, ntimes) + evaluation_minus;
             movescore.push_back(current_movescore);
-            if(current_movescore > best_movescore){
+            if((current_movescore > best_movescore && bot == 0) 
+                || (current_movescore < best_movescore && bot == 1)){
                 best_movescore = current_movescore;
             }
         }
