@@ -108,18 +108,14 @@ std::vector<std::vector<int>> reorder(){
                         double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                         movepieceto(n, y0, x0, y1, x1, true);
                         if(repetition(moves) || stalemate(50) || stalemate(-50)){
-                            movescore.push_back(-fulleval()
-                            -(evaluate_move(n, y0, x0, y1, x1)
-                            + evaluation_minus));
+                            movescore.push_back(-fulleval());
                         }else if(partialrepetition(moves)){
                             if(bot == 0){
-                                movescore.push_back(std::min(0.0, (-fulleval()
-                                -(evaluate_move(n, y0, x0, y1, x1)
-                                + evaluation_minus))));
+                                movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1) 
+                                + evaluation_minus, -fulleval()));
                             }else{
-                                movescore.push_back(std::max(0.0, (-fulleval()
-                                -(evaluate_move(n, y0, x0, y1, x1)
-                                + evaluation_minus))));
+                                movescore.push_back(std::max(evaluate_move(n, y0, x0, y1, x1) 
+                                + evaluation_minus, -fulleval()));
                             }    
                         }else{
                             movescore.push_back(
@@ -354,15 +350,15 @@ void firstmove(){
         double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
         movepieceto(n, y0, x0, y1, x1, true);
         if(repetition(moves) || stalemate(50) || stalemate(-50)){
-            movescore.push_back(-fulleval()
-            -(nth_move(n, y0, x0, y1, x1, 
-            best_movescore-evaluation_minus, ntimes)
-            + evaluation_minus));
+            movescore.push_back(-fulleval());
         }else if(partialrepetition(moves)){
-            movescore.push_back(std::min(0.0, (-fulleval()
-            -(nth_move(n, y0, x0, y1, x1, 
-            best_movescore-evaluation_minus, ntimes)
-            + evaluation_minus))));
+            if(bot == 0){
+                movescore.push_back(std::min(nth_move(n, y0, x0, y1, x1, 
+                best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
+            }else{
+                movescore.push_back(std::max(nth_move(n, y0, x0, y1, x1, 
+                best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
+            } 
         }else{
             double current_movescore = 
                 nth_move(n, y0, x0, y1, x1, 
