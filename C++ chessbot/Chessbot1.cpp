@@ -489,24 +489,19 @@ void gameend(){
 }
 
 void movepiece(){
-    int move, movetox, movetoy;
-    std::cin >> move;
-    std::cin >> movetoy;
-    std::cin >> movetox;
-    if((move > 0 && turn == 0) || (move < 0 && turn == 1)){
-        int *index;
-        index = std::find(&board[0][0], &board[0][0]+64,move);
-        if(index != &board[0][0]+64){
-            int pos = std::distance(&board[0][0], index);
-            int y0 = pos/8;
-            int x0 = pos-y0*8;
-            if(movetoy < 8 && movetox < 8 && movetox >= 0 && movetoy >= 0 && y0>=0 
-            && canmove(move, y0, x0, movetoy, movetox)){
-                movepieceto(move, y0, x0, movetoy, movetox);
-            }else{
-                std::cout << "Illegal move" << "\n";
-                return;
-            }
+    std::string input;
+    std::cin >> input;
+    std::vector<int> move = convert_from_png(input);
+    int y0 = move[0];
+    int x0 = move[1];
+    int movetoy = move[2];
+    int movetox = move[3];
+    int piece = board[y0][x0];
+    std::cout << piece << ',' << y0 << ',' << x0 << ',' << movetoy << ',' << movetox << '\n'; 
+    if((piece > 0 && turn == 0) || (piece < 0 && turn == 1)){
+        if(movetoy < 8 && movetox < 8 && movetox >= 0 && movetoy >= 0 && y0>=0 
+        && canmove(piece, y0, x0, movetoy, movetox)){
+            movepieceto(piece, y0, x0, movetoy, movetox);
         }else{
             std::cout << "Illegal move" << "\n";
             return;

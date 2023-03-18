@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include "pgnconverter.cpp"
 #include "Chessbot1.cpp"
 #include "basicbot.cpp"
 

@@ -501,6 +501,6 @@ int basicbot(){
     turn = int(bot == 0);
     printboard();
     std::cout << duration.count()/1000.0 << '\n';
-    std::cout << '(' << n << ',' << y1 << ',' << x1 << ')' << score << '\n';
+    std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
     return 0;
 }
