@@ -12,6 +12,10 @@
 int main(){
     locate_pieces();
     add_to_positions();
+    set_can_move_positions();
+    for(int i = 0; i < can_move_positions[1][19].size(); i++){
+        std::cout << can_move_positions[1][19][i][0] << ',' << can_move_positions[1][19][i][1] << '\n';
+    }
     printboard();
     while(true){
         if(turn == bot){

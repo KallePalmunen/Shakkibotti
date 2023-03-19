@@ -19,6 +19,8 @@ double queen_position_eval[8][8] = {{-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2},
 double king_position_eval[8][8] = {{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3}
 ,{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.2,-0.3,-0.3,-0.4,-0.4,-0.3,-0.3,-0.2}
 ,{-0.1,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.1},{0.2,0.2,0.0,0.0,0.0,0.0,0.2,0.2},{0.2,0.3,0.1,0.0,0.0,0.1,0.3,0.2}};
+//coordinates where it could be possible for a given piece to move to
+std::vector<std::vector<std::vector<std::vector<int>>>> can_move_positions;
 
 bool partialrepetition(int current_moment){
     for(int moment = current_moment%2; moment < current_moment; moment += 2){
@@ -27,6 +29,180 @@ bool partialrepetition(int current_moment){
         }
     }
     return false;
+}
+
+void update_can_move_positions(int color, int n, int y0, int x0){
+    if(abs(n) > 9 && abs(n) < 20){
+        can_move_positions[color][abs(n)-1].resize(0);
+        if(y0 > 0){
+            if(x0 < 6){
+                can_move_positions[color][abs(n)-1].push_back({y0-1, x0+2});
+            }
+            if(x0 > 1){
+                can_move_positions[color][abs(n)-1].push_back({y0-1, x0-2});
+            }
+            if(y0 > 1){
+                if(x0 < 7){
+                    can_move_positions[color][abs(n)-1].push_back({y0-2, x0+1});
+                }
+                if(x0 > 0){
+                    can_move_positions[color][abs(n)-1].push_back({y0-2, x0-1});
+                }
+            }
+        }
+        if(y0 < 7){
+            if(x0 < 6){
+                can_move_positions[color][abs(n)-1].push_back({y0+1, x0+2});
+            }
+            if(x0 > 1){
+                can_move_positions[color][abs(n)-1].push_back({y0+1, x0-2});
+            }
+            if(y0 < 6){
+                if(x0 < 7){
+                    can_move_positions[color][abs(n)-1].push_back({y0+2, x0+1});
+                }
+                if(x0 > 0){
+                    can_move_positions[color][abs(n)-1].push_back({y0+2, x0-1});
+                }
+            }
+        }
+        return;
+    }
+    if(abs(n) < 10){
+        can_move_positions[color][abs(n)-1].resize(0);
+        if(n > 0){
+            can_move_positions[color][abs(n)-1] = {{y0+1, x0}, {y0+1, x0+1}, {y0+1, x0-1}};
+            if(y0 == 1){
+                can_move_positions[color][abs(n)-1].push_back({y0+2, x0});
+            }
+            return;
+        }
+        if(n < 0){
+            can_move_positions[color][abs(n)-1] = {{y0-1, x0}, {y0-1, x0+1}, {y0-1, x0-1}};
+            if(y0 == 6){
+                can_move_positions[color][abs(n)-1].push_back({y0-2, x0});
+            }
+            return;
+        }
+        return;
+    }
+    if(abs(n) > 19 && abs(n) < 30 && false){
+        can_move_positions[color][abs(n)-1].resize(0);
+        for(int x1 = 0; x1 < 8; x1++){
+            for(int y1 = 0; y1 < 8; y1++){
+                can_move_positions[color][abs(n)-1].push_back({y1, x1});
+            }
+        }
+        return;
+    }
+    if(abs(n) > 19 && abs(n) < 30){
+        can_move_positions[color][abs(n)-1].resize(0);
+        for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0-i, x0-i});
+        }
+        for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0-i, x0+i});
+        }
+        for(int i = 1; x0+i < 8 && y0+i < 8; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0+i, x0+i});
+        }
+        for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0+i, x0-i});
+        }
+        return;
+    }
+    if(abs(n) > 29 && abs(n) < 40){
+        can_move_positions[color][abs(n)-1].resize(0);
+        for(int x1 = 0; x1 < 8; x1++){
+            if(x1 != x0){
+                can_move_positions[color][abs(n)-1].push_back({y0, x1});
+            }
+        }
+        for(int y1 = 0; y1 < 8; y1++){
+            if(y1 != y0){
+                can_move_positions[color][abs(n)-1].push_back({y1, x0});
+            }
+        }
+        return;
+    }
+    if(abs(n) > 39 && abs(n) < 50){
+        can_move_positions[color][abs(n)-1].resize(0);
+        for(int x1 = 0; x1 < 8; x1++){
+            for(int y1 = 0; y1 < 8; y1++){
+                can_move_positions[color][abs(n)-1].push_back({y1, x1});
+            }
+        }
+        return;
+    }
+    if(abs(n) > 39 && abs(n) < 50 && false){
+        can_move_positions[color][abs(n)-1].resize(0);
+        for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0-i, x0-i});
+        }
+        for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0-i, x0+i});
+        }
+        for(int i = 1; x0+i < 8 && y0+i < 8; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0+i, x0+i});
+        }
+        for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
+            can_move_positions[color][abs(n)-1].push_back({y0+i, x0-i});
+        }
+        for(int x1 = 0; x1 < 8; x1++){
+            if(x1 != x0){
+                can_move_positions[color][abs(n)-1].push_back({y0, x1});
+            }
+        }
+        for(int y1 = 0; y1 < 8; y1++){
+            if(y1 != y0){
+                can_move_positions[color][abs(n)-1].push_back({y1, x0});
+            }
+        }
+        return;
+    }
+    if(abs(n) == 50){
+        can_move_positions[color][abs(n)-1].resize(0);
+        if(y0 > 0){
+            can_move_positions[color][abs(n)-1].push_back({y0-1, x0});
+            if(x0 > 0){
+               can_move_positions[color][abs(n)-1].push_back({y0-1, x0-1}); 
+            }
+            if(x0 < 7){
+               can_move_positions[color][abs(n)-1].push_back({y0-1, x0+1}); 
+            }
+        }
+        if(x0 > 0){
+            can_move_positions[color][abs(n)-1].push_back({y0, x0-1});
+            if(x0 == 3){
+                can_move_positions[color][abs(n)-1].push_back({y0, x0-2});
+                can_move_positions[color][abs(n)-1].push_back({y0, x0+2});
+            }
+        }
+        if(x0 < 7){
+            can_move_positions[color][abs(n)-1].push_back({y0, x0+1});
+        }
+        if(y0 < 7){
+            can_move_positions[color][abs(n)-1].push_back({y0+1, x0});
+            if(x0 > 0){
+               can_move_positions[color][abs(n)-1].push_back({y0+1, x0-1}); 
+            }
+            if(x0 < 7){
+               can_move_positions[color][abs(n)-1].push_back({y0+1, x0+1}); 
+            }
+        }
+        return;
+    }
+}
+
+void set_can_move_positions(){
+    for(int i = 0; i < 2; i++){
+        can_move_positions.push_back({});
+        for(int n = 1; n < 51; n++){
+            can_move_positions[i].push_back({});
+            update_can_move_positions(i, n, piece_positions[n-1][i][0]
+            , piece_positions[n-1][i][1]);
+        }
+    }
 }
 
 double evaluate_change(int y, int x, int changesign, int n = -100){
@@ -188,25 +364,25 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
             if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
-                for(int y1 = 0; y1 < 8; y1++){
-                    for(int x1 = 0; x1 < 8; x1++){
-                        if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
-                            double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                            double current_movescore = evaluate_move(n, y0, x0, y1, x1)
-                                + evaluation_minus;
-                            double total_movescore = current_movescore 
-                                + previous_movescore;
-                            if((total_movescore <= best && bot == 0)
-                                || (total_movescore >= best && bot == 1)){
-                                return total_movescore;
-                            }
-                            if((total_movescore < best_movescore && bot == 0)
-                                || (total_movescore > best_movescore && bot == 1)){
-                                best_movescore = total_movescore;
-                            }
-                            movescore[movescore_size] = total_movescore;
-                            movescore_size++;
+                for(int i = 0; i < can_move_positions[int(bot == 0)][abs(n)-1].size(); i++){
+                    int y1 = can_move_positions[int(bot == 0)][abs(n)-1][i][0];
+                    int x1 = can_move_positions[int(bot == 0)][abs(n)-1][i][1];
+                    if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
+                        double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
+                        double current_movescore = evaluate_move(n, y0, x0, y1, x1)
+                            + evaluation_minus;
+                        double total_movescore = current_movescore 
+                            + previous_movescore;
+                        if((total_movescore <= best && bot == 0)
+                            || (total_movescore >= best && bot == 1)){
+                            return total_movescore;
                         }
+                        if((total_movescore < best_movescore && bot == 0)
+                            || (total_movescore > best_movescore && bot == 1)){
+                            best_movescore = total_movescore;
+                        }
+                        movescore[movescore_size] = total_movescore;
+                        movescore_size++;
                     }
                 }
             }
@@ -265,6 +441,9 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                 for(int y1 = 0; y1 < 8; y1++){
                     for(int x1 = 0; x1 < 8; x1++){
                         if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
+                            if(nmoremoves > 1){
+                                update_can_move_positions(bot, n, y1, x1);
+                            }
                             double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             double current_movescore;
                             movepieceto(n, y0, x0, y1, x1, false);
@@ -290,6 +469,9 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             //return to saved state
                             moves = temp_moves;
                             enpassant = temp_enpassant;
+                            if(nmoremoves > 1){
+                                update_can_move_positions(bot, n, y0, x0);
+                            }
                             std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
                             &board[0][0]);
                             std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
@@ -347,6 +529,7 @@ void firstmove(){
         int x0 = order[i][2];
         int y1 = order[i][3];
         int x1 = order[i][4];
+        update_can_move_positions(bot, n, y1, x1);
         double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
         movepieceto(n, y0, x0, y1, x1, true);
         if(repetition(moves) || stalemate(50) || stalemate(-50)){
@@ -373,6 +556,7 @@ void firstmove(){
         //return to saved state
         moves = temp_moves;
         enpassant = temp_enpassant;
+        update_can_move_positions(bot, n, y0, x0);
         std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
         &board[0][0]);
         std::copy(&temp_kingmoved[0], 
