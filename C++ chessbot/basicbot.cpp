@@ -19,8 +19,6 @@ double queen_position_eval[8][8] = {{-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2},
 double king_position_eval[8][8] = {{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3}
 ,{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.2,-0.3,-0.3,-0.4,-0.4,-0.3,-0.3,-0.2}
 ,{-0.1,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.1},{0.2,0.2,0.0,0.0,0.0,0.0,0.2,0.2},{0.2,0.3,0.1,0.0,0.0,0.1,0.3,0.2}};
-//coordinates where it could be possible for a given piece to move to
-std::vector<std::vector<std::vector<std::vector<int>>>> can_move_positions;
 
 bool partialrepetition(int current_moment){
     for(int moment = current_moment%2; moment < current_moment; moment += 2){
@@ -29,151 +27,6 @@ bool partialrepetition(int current_moment){
         }
     }
     return false;
-}
-
-void update_can_move_positions(int color, int piece, int y0, int x0){
-    if(piece > 9 && piece < 20){
-        can_move_positions[color][piece-1].resize(0);
-        if(y0 > 0){
-            if(x0 < 6){
-                can_move_positions[color][piece-1].push_back({y0-1, x0+2});
-            }
-            if(x0 > 1){
-                can_move_positions[color][piece-1].push_back({y0-1, x0-2});
-            }
-            if(y0 > 1){
-                if(x0 < 7){
-                    can_move_positions[color][piece-1].push_back({y0-2, x0+1});
-                }
-                if(x0 > 0){
-                    can_move_positions[color][piece-1].push_back({y0-2, x0-1});
-                }
-            }
-        }
-        if(y0 < 7){
-            if(x0 < 6){
-                can_move_positions[color][piece-1].push_back({y0+1, x0+2});
-            }
-            if(x0 > 1){
-                can_move_positions[color][piece-1].push_back({y0+1, x0-2});
-            }
-            if(y0 < 6){
-                if(x0 < 7){
-                    can_move_positions[color][piece-1].push_back({y0+2, x0+1});
-                }
-                if(x0 > 0){
-                    can_move_positions[color][piece-1].push_back({y0+2, x0-1});
-                }
-            }
-        }
-        return;
-    }
-    if(abs(piece) < 10){
-        can_move_positions[color][piece-1].resize(0);
-        if(color == 0){
-            can_move_positions[color][piece-1] = {{y0+1, x0}, {y0+1, x0+1}, {y0+1, x0-1}};
-            if(y0 == 1){
-                can_move_positions[color][piece-1].push_back({y0+2, x0});
-            }
-            return;
-        }
-        if(color == 1){
-            can_move_positions[color][piece-1] = {{y0-1, x0}, {y0-1, x0+1}, {y0-1, x0-1}};
-            if(y0 == 6){
-                can_move_positions[color][piece-1].push_back({y0-2, x0});
-            }
-            return;
-        }
-        return;
-    }
-    if(piece > 19 && piece < 30){
-        can_move_positions[color][piece-1].resize(0);
-        for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0-i});
-        }
-        for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0+i});
-        }
-        for(int i = 1; x0+i < 8 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0+i});
-        }
-        for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0-i});
-        }
-        return;
-    }
-    if(piece > 29 && piece < 40){
-        can_move_positions[color][piece-1].resize(0);
-        for(int x1 = 0; x1 < 8; x1++){
-            if(x1 != x0){
-                can_move_positions[color][piece-1].push_back({y0, x1});
-            }
-        }
-        for(int y1 = 0; y1 < 8; y1++){
-            if(y1 != y0){
-                can_move_positions[color][piece-1].push_back({y1, x0});
-            }
-        }
-        return;
-    }
-    if(piece > 39 && piece < 50){
-        can_move_positions[color][piece-1].resize(0);
-        for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0-i});
-        }
-        for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0+i});
-        }
-        for(int i = 1; x0+i < 8 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0+i});
-        }
-        for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0-i});
-        }
-        for(int x1 = 0; x1 < 8; x1++){
-            if(x1 != x0){
-                can_move_positions[color][piece-1].push_back({y0, x1});
-            }
-        }
-        for(int y1 = 0; y1 < 8; y1++){
-            if(y1 != y0){
-                can_move_positions[color][piece-1].push_back({y1, x0});
-            }
-        }
-        return;
-    }
-    if(piece == 50){
-        can_move_positions[color][piece-1].resize(0);
-        if(y0 > 0){
-            can_move_positions[color][piece-1].push_back({y0-1, x0});
-            if(x0 > 0){
-               can_move_positions[color][piece-1].push_back({y0-1, x0-1}); 
-            }
-            if(x0 < 7){
-               can_move_positions[color][piece-1].push_back({y0-1, x0+1}); 
-            }
-        }
-        if(x0 > 0){
-            can_move_positions[color][piece-1].push_back({y0, x0-1});
-            if(x0 == 3){
-                can_move_positions[color][piece-1].push_back({y0, x0-2});
-                can_move_positions[color][piece-1].push_back({y0, x0+2});
-            }
-        }
-        if(x0 < 7){
-            can_move_positions[color][piece-1].push_back({y0, x0+1});
-        }
-        if(y0 < 7){
-            can_move_positions[color][piece-1].push_back({y0+1, x0});
-            if(x0 > 0){
-               can_move_positions[color][piece-1].push_back({y0+1, x0-1}); 
-            }
-            if(x0 < 7){
-               can_move_positions[color][piece-1].push_back({y0+1, x0+1}); 
-            }
-        }
-        return;
-    }
 }
 
 void set_can_move_positions(){
@@ -694,6 +547,7 @@ int basicbot(){
     int x0 = bestmove[2];
     int y1 = bestmove[3];
     int x1 = bestmove[4];
+    update_can_move_positions(bot, abs(n), y1, x1);
     movepieceto(n, y0, x0, y1, x1);
     turn = int(bot == 0);
     printboard();
