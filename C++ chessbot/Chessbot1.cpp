@@ -8,7 +8,7 @@ int enpassant = -1;
 //[n-1][color][coordinate], white == 0, black == 1, y == 0, x == 1
 int piece_positions[50][2][2];
 //white == 0, black == 1
-int bot = 1;
+int bot = 0;
 int castled[2] = {0,0};
 bool promotemenu = false;
 double evalscore = 0.0;
@@ -649,7 +649,6 @@ void movepiece(){
     if((piece > 0 && turn == 0) || (piece < 0 && turn == 1)){
         if(movetoy < 8 && movetox < 8 && movetox >= 0 && movetoy >= 0 && y0>=0 
         && canmove(piece, y0, x0, movetoy, movetox)){
-            update_can_move_positions(turn, abs(piece), movetoy, movetox);
             movepieceto(piece, y0, x0, movetoy, movetox);
         }else{
             std::cout << "Illegal move" << "\n";

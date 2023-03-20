@@ -30,22 +30,10 @@ bool partialrepetition(int current_moment){
 }
 
 void set_can_move_positions(){
+    can_move_positions.resize(0);
     for(int i = 0; i < 2; i++){
         can_move_positions.push_back({});
-        for(int n = 1; n < 41; n++){
-            can_move_positions[i].push_back({});
-            update_can_move_positions(i, n, piece_positions[n-1][i][0]
-            , piece_positions[n-1][i][1]);
-        }
-        for(int n = 41; n < 50; n++){
-            can_move_positions[i].push_back({});
-            for(int y1 = 0; y1 < 8; y1++){
-                for(int x1 = 0; x1 < 8; x1++){
-                    can_move_positions[i][abs(n)-1].push_back({y1, x1});
-                }
-            }
-        }
-        for(int n = 50; n < 51; n++){
+        for(int n = 1; n < 51; n++){
             can_move_positions[i].push_back({});
             update_can_move_positions(i, n, piece_positions[n-1][i][0]
             , piece_positions[n-1][i][1]);
@@ -297,6 +285,10 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             double current_movescore;
                             movepieceto(n, y0, x0, y1, x1, false);
+                            if(nmoremoves%2 == 0 && abs(n) < 10 && ((color == 0 && y1 == 7) 
+                            || (color == 1 && y1 == 0))){
+                                update_can_move_positions(color, abs(board[y1][x1]), y1, x1);
+                            }
                             if(abs(n) == 50 && abs(x1-x0) > 1 && nmoremoves%2 == 0){
                                 update_can_move_positions(color, 30
                                 , piece_positions[30-1][color][0], piece_positions[30-1][color][1]);
@@ -547,7 +539,6 @@ int basicbot(){
     int x0 = bestmove[2];
     int y1 = bestmove[3];
     int x1 = bestmove[4];
-    update_can_move_positions(bot, abs(n), y1, x1);
     movepieceto(n, y0, x0, y1, x1);
     turn = int(bot == 0);
     printboard();
