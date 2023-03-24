@@ -202,10 +202,10 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
                 for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
-                    for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j++){
-                        int y1 = can_move_positions[abs(n)-1][i][j][0];
-                        int x1 = can_move_positions[abs(n)-1][i][j][1];
-                        if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
+                    for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
+                        int y1 = can_move_positions[abs(n)-1][i][j];
+                        int x1 = can_move_positions[abs(n)-1][i][j+1];
+                        if(botcanmove(n, y0, x0, y1, x1, kingy, kingx)){
                             double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             double current_movescore = evaluate_move(n, y0, x0, y1, x1)
                                 + evaluation_minus;
@@ -221,6 +221,9 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
                             }
                             movescore[movescore_size] = total_movescore;
                             movescore_size++;
+                            if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                                break;
+                            }
                         }else if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
                             break;
                         }
@@ -309,6 +312,16 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             }
                             double total_movescore = current_movescore 
                                 + previous_movescore;
+                            //restore can_move_positions
+                            if(nmoremoves%2 == 0){
+                                update_can_move_positions(color, abs(n), y0, x0);
+                            }
+                            if(abs(n) == 50 && abs(x1-x0) > 1 && nmoremoves%2 == 0){
+                                update_can_move_positions(color, 30
+                                , piece_positions[30-1][color][0], piece_positions[30-1][color][1]);
+                                update_can_move_positions(color, 31
+                                , piece_positions[31-1][color][0], piece_positions[31-1][color][1]);
+                            }
                             if((total_movescore <= best && (piece_sign!=1))
                                 || (total_movescore >= best && (piece_sign==1))){
                                 return total_movescore;
@@ -322,19 +335,10 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             //return to saved state
                             moves = temp_moves;
                             enpassant = temp_enpassant;
-                            if(nmoremoves%2 == 0){
-                                update_can_move_positions(color, abs(n), y0, x0);
-                            }
                             std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
                             &board[0][0]);
                             std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
                             &piece_positions[0][0][0]);
-                            if(abs(n) == 50 && abs(x1-x0) > 1 && nmoremoves%2 == 0){
-                                update_can_move_positions(color, 30
-                                , piece_positions[30-1][color][0], piece_positions[30-1][color][1]);
-                                update_can_move_positions(color, 31
-                                , piece_positions[31-1][color][0], piece_positions[31-1][color][1]);
-                            }
                             std::copy(&temp_kingmoved[0], 
                                 &temp_kingmoved[0]+2, &kingmoved[0]);
                             std::copy(&temp_castled[0], &temp_castled[0]+2, 
@@ -395,13 +399,8 @@ void firstmove(bool all = true){
         int x0 = order[i][2];
         int y1 = order[i][3];
         int x1 = order[i][4];
-        update_can_move_positions(bot, abs(n), y1, x1);
         double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
         movepieceto(n, y0, x0, y1, x1, true);
-        if(abs(n) == 50 && abs(x1-x0) > 1){
-            update_can_move_positions(bot, 30, piece_positions[30-1][bot][0], piece_positions[30-1][bot][1]);
-            update_can_move_positions(bot, 31, piece_positions[31-1][bot][0], piece_positions[31-1][bot][1]);
-        }
         if(repetition(moves) || stalemate(50) || stalemate(-50)){
             movescore.push_back(-fulleval());
         }else if(partialrepetition(moves)){
@@ -426,7 +425,6 @@ void firstmove(bool all = true){
         //return to saved state
         moves = temp_moves;
         enpassant = temp_enpassant;
-        update_can_move_positions(bot, abs(n), y0, x0);
         std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
         &board[0][0]);
         std::copy(&temp_kingmoved[0], 
@@ -439,10 +437,6 @@ void firstmove(bool all = true){
             &temp_pieces[0][0]+12, &pieces[0][0]);
         std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
             &piece_positions[0][0][0]);
-        if(abs(n) == 50 && abs(x1-x0) > 1){
-            update_can_move_positions(bot, 30, piece_positions[30-1][bot][0], piece_positions[30-1][bot][1]);
-            update_can_move_positions(bot, 31, piece_positions[31-1][bot][0], piece_positions[31-1][bot][1]);
-        }
         positions.pop_back();
     }
     turn = int(bot == 0);
