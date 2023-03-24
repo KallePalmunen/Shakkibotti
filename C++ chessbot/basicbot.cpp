@@ -35,13 +35,10 @@ bool partialrepetition(int current_moment){
 
 void set_can_move_positions(){
     can_move_positions.resize(0);
-    for(int i = 0; i < 2; i++){
+    for(int n = 1; n < 51; n++){
         can_move_positions.push_back({});
-        for(int n = 1; n < 51; n++){
-            can_move_positions[i].push_back({});
-            update_can_move_positions(i, n, piece_positions[n-1][i][0]
-            , piece_positions[n-1][i][1]);
-        }
+        update_can_move_positions(int(bot == 0), n, piece_positions[n-1][int(bot ==0)][0]
+        , piece_positions[n-1][int(bot == 0)][1]);
     }
 }
 
@@ -204,25 +201,29 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
             if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
-                for(int i = 0; i < can_move_positions[int(bot == 0)][abs(n)-1].size(); i++){
-                    int y1 = can_move_positions[int(bot == 0)][abs(n)-1][i][0];
-                    int x1 = can_move_positions[int(bot == 0)][abs(n)-1][i][1];
-                    if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
-                        double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                        double current_movescore = evaluate_move(n, y0, x0, y1, x1)
-                            + evaluation_minus;
-                        double total_movescore = current_movescore 
-                            + previous_movescore;
-                        if((total_movescore <= best && bot == 0)
-                            || (total_movescore >= best && bot == 1)){
-                            return total_movescore;
+                for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
+                    for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j++){
+                        int y1 = can_move_positions[abs(n)-1][i][j][0];
+                        int x1 = can_move_positions[abs(n)-1][i][j][1];
+                        if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
+                            double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
+                            double current_movescore = evaluate_move(n, y0, x0, y1, x1)
+                                + evaluation_minus;
+                            double total_movescore = current_movescore 
+                                + previous_movescore;
+                            if((total_movescore <= best && bot == 0)
+                                || (total_movescore >= best && bot == 1)){
+                                return total_movescore;
+                            }
+                            if((total_movescore < best_movescore && bot == 0)
+                                || (total_movescore > best_movescore && bot == 1)){
+                                best_movescore = total_movescore;
+                            }
+                            movescore[movescore_size] = total_movescore;
+                            movescore_size++;
+                        }else if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                            break;
                         }
-                        if((total_movescore < best_movescore && bot == 0)
-                            || (total_movescore > best_movescore && bot == 1)){
-                            best_movescore = total_movescore;
-                        }
-                        movescore[movescore_size] = total_movescore;
-                        movescore_size++;
                     }
                 }
             }
