@@ -42,6 +42,20 @@ void set_can_move_positions(){
     }
 }
 
+void get_pinners(int piece_sign, int kingy, int kingx){
+    pinners.clear();
+    for(int n1 = 0; n1 < 6; n1++){
+        for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
+            int n = piece_sign*(10*n1+n2+int(n1 == 0));
+            int y0 = piece_positions[abs(n)-1][int(n<0)][0];
+            int x0 = piece_positions[abs(n)-1][int(n<0)][1];
+            if(piecemove(n, y0, x0, kingy, kingx)){
+                pinners.push_back(n);
+            }
+        }
+    }
+}
+
 double evaluate_change(int y, int x, int changesign, int n = -100){
     if(n == -100){
         n = board[y][x];
@@ -188,6 +202,7 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
     if(checkmate(piece_sign*50, kingy, kingx)){
         return -piece_sign*500000/(ntimes+1.0);
     }
+    get_pinners(-piece_sign, kingy, kingx);
     double movescore[304];
     int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
