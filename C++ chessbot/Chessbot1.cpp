@@ -493,143 +493,166 @@ void gameend(){
 
 void update_can_move_positions(int color, int piece, int y0, int x0){
     if(piece > 9 && piece < 20){
-        can_move_positions[color][piece-1].resize(0);
+        can_move_positions[piece-1].resize(0);
+        can_move_positions[piece-1].push_back({});
         if(y0 > 0){
             if(x0 < 6){
-                can_move_positions[color][piece-1].push_back({y0-1, x0+2});
+                can_move_positions[piece-1][0].push_back({y0-1, x0+2});
             }
             if(x0 > 1){
-                can_move_positions[color][piece-1].push_back({y0-1, x0-2});
+                can_move_positions[piece-1][0].push_back({y0-1, x0-2});
             }
             if(y0 > 1){
                 if(x0 < 7){
-                    can_move_positions[color][piece-1].push_back({y0-2, x0+1});
+                    can_move_positions[piece-1][0].push_back({y0-2, x0+1});
                 }
                 if(x0 > 0){
-                    can_move_positions[color][piece-1].push_back({y0-2, x0-1});
+                    can_move_positions[piece-1][0].push_back({y0-2, x0-1});
                 }
             }
         }
         if(y0 < 7){
             if(x0 < 6){
-                can_move_positions[color][piece-1].push_back({y0+1, x0+2});
+                can_move_positions[piece-1][0].push_back({y0+1, x0+2});
             }
             if(x0 > 1){
-                can_move_positions[color][piece-1].push_back({y0+1, x0-2});
+                can_move_positions[piece-1][0].push_back({y0+1, x0-2});
             }
             if(y0 < 6){
                 if(x0 < 7){
-                    can_move_positions[color][piece-1].push_back({y0+2, x0+1});
+                    can_move_positions[piece-1][0].push_back({y0+2, x0+1});
                 }
                 if(x0 > 0){
-                    can_move_positions[color][piece-1].push_back({y0+2, x0-1});
+                    can_move_positions[piece-1][0].push_back({y0+2, x0-1});
                 }
             }
         }
         return;
     }
     if(abs(piece) < 10){
-        can_move_positions[color][piece-1].resize(0);
+        can_move_positions[piece-1].resize(0);
+        can_move_positions[piece-1].push_back({});
         if(color == 0){
-            can_move_positions[color][piece-1] = {{y0+1, x0}, {y0+1, x0+1}, {y0+1, x0-1}};
+            can_move_positions[piece-1][0] = {{y0+1, x0}, {y0+1, x0+1}, {y0+1, x0-1}};
             if(y0 == 1){
-                can_move_positions[color][piece-1].push_back({y0+2, x0});
+                can_move_positions[piece-1][0].push_back({y0+2, x0});
             }
             return;
         }
         if(color == 1){
-            can_move_positions[color][piece-1] = {{y0-1, x0}, {y0-1, x0+1}, {y0-1, x0-1}};
+            can_move_positions[piece-1][0] = {{y0-1, x0}, {y0-1, x0+1}, {y0-1, x0-1}};
             if(y0 == 6){
-                can_move_positions[color][piece-1].push_back({y0-2, x0});
+                can_move_positions[piece-1][0].push_back({y0-2, x0});
             }
             return;
         }
         return;
     }
     if(piece > 19 && piece < 30){
-        can_move_positions[color][piece-1].resize(0);
+        can_move_positions[piece-1].resize(0);
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0-i});
+            can_move_positions[piece-1][0].push_back({y0-i, x0-i});
         }
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0+i});
+            can_move_positions[piece-1][1].push_back({y0-i, x0+i});
         }
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0+i < 8 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0+i});
+            can_move_positions[piece-1][2].push_back({y0+i, x0+i});
         }
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0-i});
+            can_move_positions[piece-1][3].push_back({y0+i, x0-i});
         }
         return;
     }
     if(piece > 29 && piece < 40){
-        can_move_positions[color][piece-1].resize(0);
-        for(int x1 = 0; x1 < 8; x1++){
-            if(x1 != x0){
-                can_move_positions[color][piece-1].push_back({y0, x1});
-            }
+        can_move_positions[piece-1].resize(0);
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; x0-i >= 0; i++){
+            can_move_positions[piece-1][0].push_back({y0, x0-i});
         }
-        for(int y1 = 0; y1 < 8; y1++){
-            if(y1 != y0){
-                can_move_positions[color][piece-1].push_back({y1, x0});
-            }
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; x0+i < 8; i++){
+            can_move_positions[piece-1][1].push_back({y0, x0+i});
+        }
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; y0-i >= 0; i++){
+            can_move_positions[piece-1][2].push_back({y0-i, x0});
+        }
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; y0+i < 8; i++){
+            can_move_positions[piece-1][3].push_back({y0+i, x0});
         }
         return;
     }
     if(piece > 39 && piece < 50){
-        can_move_positions[color][piece-1].resize(0);
+        can_move_positions[piece-1].resize(0);
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0-i});
+            can_move_positions[piece-1][0].push_back({y0-i, x0-i});
         }
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
-            can_move_positions[color][piece-1].push_back({y0-i, x0+i});
+            can_move_positions[piece-1][1].push_back({y0-i, x0+i});
         }
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0+i < 8 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0+i});
+            can_move_positions[piece-1][2].push_back({y0+i, x0+i});
         }
+        can_move_positions[piece-1].push_back({});
         for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
-            can_move_positions[color][piece-1].push_back({y0+i, x0-i});
+            can_move_positions[piece-1][3].push_back({y0+i, x0-i});
         }
-        for(int x1 = 0; x1 < 8; x1++){
-            if(x1 != x0){
-                can_move_positions[color][piece-1].push_back({y0, x1});
-            }
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; x0-i >= 0; i++){
+            can_move_positions[piece-1][4].push_back({y0, x0-i});
         }
-        for(int y1 = 0; y1 < 8; y1++){
-            if(y1 != y0){
-                can_move_positions[color][piece-1].push_back({y1, x0});
-            }
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; x0+i < 8; i++){
+            can_move_positions[piece-1][5].push_back({y0, x0+i});
+        }
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; y0-i >= 0; i++){
+            can_move_positions[piece-1][6].push_back({y0-i, x0});
+        }
+        can_move_positions[piece-1].push_back({});
+        for(int i = 1; y0+i < 8; i++){
+            can_move_positions[piece-1][7].push_back({y0+i, x0});
         }
         return;
     }
     if(piece == 50){
-        can_move_positions[color][piece-1].resize(0);
+        can_move_positions[piece-1].resize(0);
+        can_move_positions[piece-1].push_back({});
         if(y0 > 0){
-            can_move_positions[color][piece-1].push_back({y0-1, x0});
+            can_move_positions[piece-1][0].push_back({y0-1, x0});
             if(x0 > 0){
-               can_move_positions[color][piece-1].push_back({y0-1, x0-1}); 
+               can_move_positions[piece-1][0].push_back({y0-1, x0-1}); 
             }
             if(x0 < 7){
-               can_move_positions[color][piece-1].push_back({y0-1, x0+1}); 
+               can_move_positions[piece-1][0].push_back({y0-1, x0+1}); 
             }
         }
         if(x0 > 0){
-            can_move_positions[color][piece-1].push_back({y0, x0-1});
+            can_move_positions[piece-1][0].push_back({y0, x0-1});
             if(x0 == 3){
-                can_move_positions[color][piece-1].push_back({y0, x0-2});
-                can_move_positions[color][piece-1].push_back({y0, x0+2});
+                can_move_positions[piece-1][0].push_back({y0, x0-2});
+                can_move_positions[piece-1][0].push_back({y0, x0+2});
             }
         }
         if(x0 < 7){
-            can_move_positions[color][piece-1].push_back({y0, x0+1});
+            can_move_positions[piece-1][0].push_back({y0, x0+1});
         }
         if(y0 < 7){
-            can_move_positions[color][piece-1].push_back({y0+1, x0});
+            can_move_positions[piece-1][0].push_back({y0+1, x0});
             if(x0 > 0){
-               can_move_positions[color][piece-1].push_back({y0+1, x0-1}); 
+               can_move_positions[piece-1][0].push_back({y0+1, x0-1}); 
             }
             if(x0 < 7){
-               can_move_positions[color][piece-1].push_back({y0+1, x0+1}); 
+               can_move_positions[piece-1][0].push_back({y0+1, x0+1}); 
             }
         }
         return;
