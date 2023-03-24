@@ -12,11 +12,13 @@
 int main(){
     locate_pieces();
     add_to_positions();
+    set_can_move_positions();
     printboard();
     while(true){
         if(turn == bot){
             basicbot();
         }
+        set_can_move_positions();
         gameend();
         if(turn == -1){
             return 0;
@@ -24,6 +26,7 @@ int main(){
         while(turn != bot){
             movepiece();
         }
+        set_can_move_positions();
         if(turn == -1){
             return 0;
         }
