@@ -15,6 +15,7 @@ double evalscore = 0.0;
 std::string evaltext = "";
 //coordinates where it could be possible for a given piece to move to
 std::vector<std::vector<std::vector<int>>> can_move_positions;
+std::vector<int> pinners;
 
 //pawns, knights, bishops, rooks, queens and kings (W,B)
 int pieces[6][2] = {{8,8},{2,2},{2,2},{2,2},{1,1},{1,1}};
@@ -217,17 +218,13 @@ bool piecemove(int n, int y0, int x0, int y1, int x1){
 }
 
 bool botpiecemove(int n, int y0, int x0, int y1, int x1){
-    if(abs(n) >= 10){
-        if(n > 0 && board[y1][x1] <= 0){
-            return true;
-        }
-        if(n < 0 && board[y1][x1] >= 0){
-            return true;
-        }
+    if(n * board[y1][x1] > 0){
         return false;
-    }else{
+    }
+    if(abs(n) < 10){
         return pawnmove(n, y0, x0, y1, x1);
     }
+    return true;
 }
 
 bool promote(int n, int y1){
@@ -264,6 +261,20 @@ bool check(int n, int kingy = -1, int kingx = -1){
                 if(piecemove(piecen, y0, x0, kingy, kingx)){
                     return true;
                 }
+            }
+        }
+    }
+    return false;
+}
+
+bool botcheck(int n, int kingy, int kingx){
+    for(int i = 0; i < pinners.size(); i++){
+        int piecen = pinners[i];
+        if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
+            int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
+            int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
+            if(piecemove(piecen, y0, x0, kingy, kingx)){
+                return true;
             }
         }
     }
@@ -337,6 +348,47 @@ bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     return true;
 }
 
+bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
+    if(pinners.size() == 0){
+        return false;
+    }
+    board[y0][x0] = 0;
+    int movetosquare = board[y1][x1];
+    board[y1][x1] = n;
+    piece_positions[abs(n)-1][int(n<0)][0] = y1;
+    piece_positions[abs(n)-1][int(n<0)][1] = x1;
+    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
+    //checks if you can prevent the mate in next turn 
+    //by enpassanting the checking piece
+    int enpassanted = -100;
+    if(enpassant >= 0 && x1*8+y1 == enpassant){
+        enpassanted = board[y1-intsign(y1 - y0)][x1];
+        board[y1-intsign(y1 - y0)][x1] = 0;
+        piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
+    }
+    if(!botcheck(intsign(n)*50, kingy, kingx)){
+        board[y0][x0] = n;
+        board[y1][x1] = movetosquare;
+        piece_positions[abs(n)-1][int(n<0)][0] = y0;
+        piece_positions[abs(n)-1][int(n<0)][1] = x0;
+        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+        if(enpassanted != -100){
+            board[y1-intsign(y1 - y0)][x1] = enpassanted;
+            piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
+        }
+        return false;
+    }
+    board[y0][x0] = n;
+    board[y1][x1] = movetosquare;
+    piece_positions[abs(n)-1][int(n<0)][0] = y0;
+    piece_positions[abs(n)-1][int(n<0)][1] = x0;
+    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+    if(enpassanted != -100){
+        board[y1-intsign(y1 - y0)][x1] = enpassanted;
+    }
+    return true;
+}
+
 bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = -1){
     if(piecemove(n, y0, x0, y1, x1) 
     || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
@@ -352,15 +404,14 @@ bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = 
 }
 
 bool botcanmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = -1){
-    if(botpiecemove(n, y0, x0, y1, x1) 
-    || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
-        if(abs(n) == 50){
-            kingy = -1;
-            kingx = -1;
+    if(abs(n) < 50){
+        if(botpiecemove(n, y0, x0, y1, x1)){
+            return (!botpin(n, y0, x0, y1, x1, kingy, kingx));
         }
-        if(!pin(n, y0, x0, y1, x1, kingy, kingx)){
-            return true;
-        }
+        return false;
+    }
+    if(botpiecemove(n, y0, x0, y1, x1) || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
+        return (!pin(n, y0, x0, y1, x1, -1, -1));
     }
     return false;
 }
