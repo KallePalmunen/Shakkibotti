@@ -63,18 +63,27 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
     if(n == 0){
         return 0.0;
     }
-    return changesign*intsign(n)*(
-        //pawns
-        (1+0.1*pawn_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(n != 0 && abs(n) < 9)
-        //knights and bishops
-        + (3+0.1*knight_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 9 && abs(n) < 20) + 
-        //bishops
-        + (3+0.1*bishop_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 19 && abs(n) < 30) + 
-        //rooks
-        (5+0.1*rook_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])
-        *(abs(n) > 29 && abs(n) < 40) + 
-        //queens
-        (9+0.1*queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])*(abs(n) > 39));
+    //pawns
+    if(n != 0 && abs(n) < 9){
+        return changesign*intsign(n)*(1+0.1*pawn_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    }
+    //knights and bishops
+    if(abs(n) > 9 && abs(n) < 20){
+        return changesign*intsign(n)*(3+0.1*knight_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    }
+    //bishops
+    if(abs(n) > 19 && abs(n) < 30){
+        return changesign*intsign(n)*(3+0.1*bishop_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    }
+    //rooks
+    if(abs(n) > 29 && abs(n) < 40){
+        return changesign*intsign(n)*(5+0.1*rook_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    }
+    //queens
+    if(abs(n) > 39 && abs(n) < 50){
+        return changesign*intsign(n)*(9+0.1*queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    }
+    return 0.0;
 }
 
 double evaluate_move(int n, int y0, int x0, int y1, int x1){
@@ -589,5 +598,6 @@ int basicbot(){
         <std::chrono::milliseconds>(stop - start);
     std::cout << duration.count()/1000.0 << '\n';
     std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
+    std::cout << timer << '\n';
     return 0;
 }

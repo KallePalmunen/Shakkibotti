@@ -16,6 +16,7 @@ std::string evaltext = "";
 //coordinates where it could be possible for a given piece to move to
 std::vector<std::vector<std::vector<int>>> can_move_positions;
 std::vector<int> pinners;
+float timer = 0.0;
 
 //pawns, knights, bishops, rooks, queens and kings (W,B)
 int pieces[6][2] = {{8,8},{2,2},{2,2},{2,2},{1,1},{1,1}};
@@ -393,8 +394,8 @@ bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = 
     if(piecemove(n, y0, x0, y1, x1) 
     || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
         if(abs(n) == 50){
-            kingy = -1;
-            kingx = -1;
+            kingy = y1;
+            kingx = x1;
         }
         if(!pin(n, y0, x0, y1, x1, kingy, kingx)){
             return true;
@@ -411,7 +412,7 @@ bool botcanmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx
         return false;
     }
     if(botpiecemove(n, y0, x0, y1, x1) || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
-        return (!pin(n, y0, x0, y1, x1, -1, -1));
+        return (!pin(n, y0, x0, y1, x1, y1, x1));
     }
     return false;
 }
