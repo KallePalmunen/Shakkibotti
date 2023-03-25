@@ -538,8 +538,13 @@ bool compare_to_book(std::vector<std::vector<int>> book_board){
     return true;
 }
 
-bool read_openingbook(){
-    std::vector<std::vector<std::vector<std::vector<int>>>> openingbook = open_openingbook("openingbook.bin");
+bool read_openingbook(int color){
+    std::vector<std::vector<std::vector<std::vector<int>>>> openingbook;
+    if(color == 0){
+        openingbook = open_openingbook("openingbook.bin");
+    }else{
+        openingbook = open_openingbook("bopeningbook.bin");
+    }
     for(int i = 0; i < openingbook.size(); i++){
         if(compare_to_book(openingbook[i][0])){
             std::vector<int> bookmove = openingbook[i][1][0];
@@ -552,7 +557,7 @@ bool read_openingbook(){
 }
 
 int basicbot(){
-    if(bot == 0 && read_openingbook()){
+    if(read_openingbook(bot)){
         turn = int(bot == 0);
         std::cout << "book" << '\n';
         printboard();
