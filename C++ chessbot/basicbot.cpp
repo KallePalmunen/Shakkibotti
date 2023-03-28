@@ -208,14 +208,14 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
     if(kingy == -1){
         return -piece_sign*500000/(ntimes+1.0);
     }
-    if(checkmate(piece_sign*50, kingy, kingx)){
+    get_pinners(-piece_sign, kingy, kingx);
+    if(botcheckmate(piece_sign*50, kingy, kingx)){
         return -piece_sign*500000/(ntimes+1.0);
     }
-    get_pinners(-piece_sign, kingy, kingx);
+    double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
     double movescore[304];
     int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
-    double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
     for(int n00 = 0; n00 < 6; n00++){
         //Goes through the piece types in peculiar order
         int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
@@ -225,11 +225,12 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
             if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
+                bool pinnable = ispinnable(n, y0, x0, kingy, kingx);
                 for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
                     for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
                         int y1 = can_move_positions[abs(n)-1][i][j];
                         int x1 = can_move_positions[abs(n)-1][i][j+1];
-                        if(botcanmove(n, y0, x0, y1, x1, kingy, kingx)){
+                        if(botcanmove(n, y0, x0, y1, x1, pinnable, kingy, kingx)){
                             double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             double current_movescore = evaluate_move(n, y0, x0, y1, x1)
                                 + evaluation_minus;
@@ -603,6 +604,6 @@ int basicbot(){
         <std::chrono::milliseconds>(stop - start);
     std::cout << duration.count()/1000.0 << '\n';
     std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
-    std::cout << timer << '\n';
+    //std::cout << timer << '\n';
     return 0;
 }

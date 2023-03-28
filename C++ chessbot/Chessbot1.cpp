@@ -8,7 +8,7 @@ int enpassant = -1;
 //[n-1][color][coordinate], white == 0, black == 1, y == 0, x == 1
 int piece_positions[50][2][2];
 //white == 0, black == 1
-int bot = 0;
+int bot = 1;
 int castled[2] = {0,0};
 bool promotemenu = false;
 double evalscore = 0.0;
@@ -390,6 +390,19 @@ bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     return true;
 }
 
+bool ispinnable(int n, int y0, int x0, int kingy, int kingx){
+    if(pinners.size() == 0){
+        return false;
+    }
+    board[y0][x0] = 0;
+    if(!botcheck(intsign(n)*50, kingy, kingx)){
+        board[y0][x0] = n;
+        return false;
+    }
+    board[y0][x0] = n;
+    return true;
+}
+
 bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = -1){
     if(piecemove(n, y0, x0, y1, x1) 
     || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
@@ -404,9 +417,12 @@ bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = 
     return false;
 }
 
-bool botcanmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = -1){
+bool botcanmove(int n, int y0, int x0, int y1, int x1, bool pinnable, int kingy = -1, int kingx = -1){
     if(abs(n) < 50){
         if(botpiecemove(n, y0, x0, y1, x1)){
+            if(!pinnable){
+                return true;
+            }
             return (!botpin(n, y0, x0, y1, x1, kingy, kingx));
         }
         return false;
@@ -430,6 +446,25 @@ bool movesomewhere(int n, int y0, int x0, int kingy = -1, int kingx = -1){
 
 bool checkmate(int n, int kingy = -1, int kingx = -1){
     if(!check(n, kingy, kingx)){
+        return false;
+    }
+    for(int n1 = 0; n1 < 6; n1++){
+        for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
+            int piecen = intsign(n)*(n1*10+n2);
+            if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
+                int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
+                int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
+                if(movesomewhere(piecen, y0, x0, kingy, kingx)){
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool botcheckmate(int n, int kingy = -1, int kingx = -1){
+    if(!botcheck(n, kingy, kingx)){
         return false;
     }
     for(int n1 = 0; n1 < 6; n1++){
