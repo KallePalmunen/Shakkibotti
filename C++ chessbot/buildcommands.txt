@@ -1,0 +1,6 @@
+Set-ExecutionPolicy Unrestricted -Scope Process
+cd C:\Users\mikae\emsdk
+.\emsdk install latest
+.\emsdk activate latest
+cd "C:\Users\mikae\Documents\GitHub\Shakkibotti\C++ chessbot\"
+emcc -O3 -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -s EXPORTED_FUNCTIONS='["_sum", "_movepiece", "_basicbot"]' -o chessbot.js "C:\Users\mikae\Documents\GitHub\Shakkibotti\C++ chessbot\Chess.cpp"
