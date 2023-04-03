@@ -149,6 +149,10 @@ extern "C" {
         };
     }
 
+    int get_board_element(int y, int x){
+        return board[y][x];
+    }
+
     void add_to_positions(){
         std::vector<std::vector<int>> currentposition;
         for(int y = 0; y < 8; y++){
