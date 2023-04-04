@@ -3,4 +3,4 @@ cd C:\Users\mikae\emsdk
 .\emsdk install latest
 .\emsdk activate latest
 cd "C:\Users\mikae\Documents\GitHub\Shakkibotti\C++ chessbot\"
-emcc -O3 -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -s EXPORTED_FUNCTIONS='["_movepiece", "_basicbot", "_locate_pieces", "_add_to_positions", "_set_can_move_positions", "_printboard", "_gameend", "_get_board_element"]' -o chessbot.js "C:\Users\mikae\Documents\GitHub\Shakkibotti\C++ chessbot\Chess.cpp"
+emcc -O3 -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -s EXPORTED_FUNCTIONS='["_movepiece", "_basicbot", "_locate_pieces", "_add_to_positions", "_set_can_move_positions", "_printboard", "_gameend", "_get_board_element", "_malloc", "_free"]' -o chessbot.js "C:\Users\mikae\Documents\GitHub\Shakkibotti\C++ chessbot\Chess.cpp"

@@ -1364,38 +1364,37 @@ extern "C" {
         }
     }
 
-    std::vector<std::vector<std::vector<std::vector<int>>>> open_openingbook(const std::string& filename) {
-        // Open the file
-        std::ifstream infile(filename, std::ios::binary);
+    std::vector<std::vector<std::vector<std::vector<int>>>> open_openingbook(const char* openingbook, int size) {
+         // Create an input stream with the buffer data
+        std::istringstream ss(std::string(openingbook, openingbook + size), std::ios::binary);
+
         // Read the size of the outer vector
         int outer_size;
-        infile.read(reinterpret_cast<char*>(&outer_size), sizeof(outer_size));
+        ss.read(reinterpret_cast<char*>(&outer_size), sizeof(outer_size));
 
         // Read the contents of the vector
         std::vector<std::vector<std::vector<std::vector<int>>>> myvector(outer_size);
         for (int i = 0; i < outer_size; i++) {
             int outer_inner_size;
-            infile.read(reinterpret_cast<char*>(&outer_inner_size), sizeof(outer_inner_size));
+            ss.read(reinterpret_cast<char*>(&outer_inner_size), sizeof(outer_inner_size));
             myvector[i].resize(outer_inner_size);
             for (int j = 0; j < outer_inner_size; j++) {
                 int inner_inner_size;
-                infile.read(reinterpret_cast<char*>(&inner_inner_size), sizeof(inner_inner_size));
+                ss.read(reinterpret_cast<char*>(&inner_inner_size), sizeof(inner_inner_size));
                 myvector[i][j].resize(inner_inner_size);
                 for (int k = 0; k < inner_inner_size; k++) {
                     int inner_most_size;
-                    infile.read(reinterpret_cast<char*>(&inner_most_size), sizeof(inner_most_size));
+                    ss.read(reinterpret_cast<char*>(&inner_most_size), sizeof(inner_most_size));
                     myvector[i][j][k].resize(inner_most_size);
                     for (int l = 0; l < inner_most_size; l++) {
                     int value;
-                    infile.read(reinterpret_cast<char*>(&value), sizeof(value));
+                    ss.read(reinterpret_cast<char*>(&value), sizeof(value));
                     myvector[i][j][k][l] = value;
                     }
                 }
             }
         }
 
-        // Close the file and return the vector
-        infile.close();
         return myvector;
     }
 
@@ -1410,13 +1409,8 @@ extern "C" {
         return true;
     }
 
-    bool read_openingbook(int color){
-        std::vector<std::vector<std::vector<std::vector<int>>>> openingbook;
-        if(color == 0){
-            openingbook = open_openingbook("openingbook.bin");
-        }else{
-            openingbook = open_openingbook("bopeningbook.bin");
-        }
+    bool read_openingbook(int color, const char* openingbook_data, int size){
+        std::vector<std::vector<std::vector<std::vector<int>>>> openingbook = open_openingbook(openingbook_data, size);
         for(int i = 0; i < openingbook.size(); i++){
             if(compare_to_book(openingbook[i][0])){
                 std::vector<int> bookmove = openingbook[i][1][0];
@@ -1428,8 +1422,8 @@ extern "C" {
         return false;
     }
 
-    const char*  basicbot(){
-        if(read_openingbook(bot)){
+    const char*  basicbot(const char* openingbook_data, int size){
+        if(read_openingbook(bot, openingbook_data, size)){
             turn = int(bot == 0);
             std::cout << "book" << '\n';
             printboard();
