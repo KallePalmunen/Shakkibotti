@@ -92,7 +92,6 @@ extern "C" {
             {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
     int moves = 0;
     std::vector<std::vector<std::vector<int>>> positions;
-    int turn = 0;
     int enpassant = -1;
     //[n-1][color][coordinate], white == 0, black == 1, y == 0, x == 1
     int piece_positions[50][2][2];
@@ -665,20 +664,22 @@ extern "C" {
         return false;
     }
 
-    void gameend(){
+    int gameend(int turn){
+        //returns 2 if white won, 1 if black won, 0 if draw, -1 if game continues
         if(checkmate(-50)){
             std::cout << "White won" << '\n';
-            turn = -1;
+            return 2;
         }
         if(checkmate(50)){
             std::cout << "Black won" << '\n';
+            return 1;
         }
         if((turn == 0 && stalemate(50)) || (turn == 1 && stalemate(-50))
             || repetition(moves)){
                 std::cout << "Draw" << '\n';
-                turn = -1;
+                return 0;
         }
-            
+        return -1;
     }
 
     void update_can_move_positions(int color, int piece, int y0, int x0){
@@ -848,7 +849,7 @@ extern "C" {
             return;
         }
     }
-    int movepiece(const char* js_input){
+    int movepiece(const char* js_input, int turn){
         std::string input(js_input);
         std::vector<int> move = convert_from_png(input);
         int y0 = move[0];
@@ -864,8 +865,8 @@ extern "C" {
             }else{
                 return 0;
             }
-            turn = (turn == 0);
         }else{
+            std::cout << turn << '\n';
             return 0;
         }
         return 1;
@@ -1335,7 +1336,6 @@ extern "C" {
                 &piece_positions[0][0][0]);
             positions.pop_back();
         }
-        turn = int(bot == 0);
         int bestindex;
         bestmove.resize(0);
         if(bot == 0){
@@ -1424,7 +1424,6 @@ extern "C" {
 
     const char*  basicbot(const char* openingbook_data, int size){
         if(read_openingbook(bot, openingbook_data, size)){
-            turn = int(bot == 0);
             std::cout << "book" << '\n';
             printboard();
             return 0;
@@ -1462,8 +1461,6 @@ extern "C" {
         int y1 = bestmove[0][3];
         int x1 = bestmove[0][4];
         movepieceto(n, y0, x0, y1, x1);
-        turn = int(bot == 0);
-        printboard();
         stop = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
