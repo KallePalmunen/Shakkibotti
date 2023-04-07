@@ -2,37 +2,37 @@
 Module.onRuntimeInitialized = function () {
   let ctx = document.getElementById("canvas").getContext("2d");
 
-  let move = "", botcolor = 1, turn = 0;
+  let move = "", botcolor = 1, turn = 0, click = 0, x0, y0, x1, y1;
 
   let boardimg = new Image();
   boardimg.src = "../Images/board.png";
   let wpawnimg = new Image();
-  wpawnimg.src = "../Images/whitepawn.png";
+  wpawnimg.src = "../Images/whitepawn2.png";
   let wknightimg = new Image();
-  wknightimg.src = "../Images/whiteknight.png";
+  wknightimg.src = "../Images/whiteknight2.png";
   let wbishopimg = new Image();
-  wbishopimg.src = "../Images/whitebishop.png";
+  wbishopimg.src = "../Images/whitebishop2.png";
   let wrookimg = new Image();
-  wrookimg.src = "../Images/whiterook.png";
+  wrookimg.src = "../Images/whiterook2.png";
   let wqueenimg = new Image();
-  wqueenimg.src = "../Images/whitequeen.png";
+  wqueenimg.src = "../Images/whitequeen2.png";
   let wkingimg = new Image();
-  wkingimg.src = "../Images/whiteking.png";
+  wkingimg.src = "../Images/whiteking2.png";
   let bpawnimg = new Image();
-  bpawnimg.src = "../Images/blackpawn.png";
+  bpawnimg.src = "../Images/blackpawn2.png";
   let bknightimg = new Image();
-  bknightimg.src = "../Images/blackknight.png";
+  bknightimg.src = "../Images/blackknight2.png";
   let bbishopimg = new Image();
-  bbishopimg.src = "../Images/blackbishop.png";
+  bbishopimg.src = "../Images/blackbishop2.png";
   let brookimg = new Image();
-  brookimg.src = "../Images/blackrook.png";
+  brookimg.src = "../Images/blackrook2.png";
   let bqueenimg = new Image();
-  bqueenimg.src = "../Images/blackqueen.png";
+  bqueenimg.src = "../Images/blackqueen2.png";
   let bkingimg = new Image();
-  bkingimg.src = "../Images/blackking.png";
+  bkingimg.src = "../Images/blackking2.png";
 
   // Interact with the C++ chess bot using ccall or cwrap
-  const movepiece = Module.cwrap('movepiece', 'number', ['string', 'number']);
+  const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number']);
   const locate_pieces = Module.cwrap('locate_pieces', 'null', []);
   const add_to_positions = Module.cwrap('add_to_positions', 'null', ['']);
   const set_can_move_positions = Module.cwrap('set_can_move_positions', 'null', ['']);
@@ -94,33 +94,47 @@ Module.onRuntimeInitialized = function () {
     }
   }
   
-  function keypress(event) {
-    if (event.keyCode === 13) {
-      console.log(turn);
-      move = prompt("move");
-      if(!movepiece(move, turn)){
-        console.log("Illegal move");
-      }else{
-        turn = (turn == 0);
-        drawBoard();
-        set_can_move_positions();
-        if(gameend(turn) >= 0){
-          console.log(gameend(turn))
-          turn = -1;
-        }
-        console.log(basicbot(openingbook[0], openingbook[1]));
-        turn = (turn == 0);
-        drawBoard();
-        set_can_move_positions();
-        if(gameend(turn) >= 0){
-          console.log(gameend(turn))
-          turn = -1;
-        }
+  function make_move(y0, x0, y1, x1){
+    if(!movepiece(y0, x0, y1, x1, turn)){
+      console.log("Illegal move");
+    }else{
+      turn = (turn == 0);
+      drawBoard();
+      set_can_move_positions();
+      if(gameend(turn) >= 0){
+        console.log(gameend(turn))
+        turn = -1;
+      }
+      console.log(basicbot(openingbook[0], openingbook[1]));
+      turn = (turn == 0);
+      drawBoard();
+      set_can_move_positions();
+      if(gameend(turn) >= 0){
+        console.log(gameend(turn))
+        turn = -1;
       }
     }
   }
 
-  document.addEventListener('keydown', keypress);
+  function select_pieces(e){
+    let rect = canvas.getBoundingClientRect();
+    if(click == 0){
+      x0 = Math.floor((e.clientX - rect.left)/75);
+      y0 = Math.floor((e.clientY - rect.top)/75);
+      if(get_board(y0, x0) != 0){
+        click = 1;
+      }
+      return;
+    }
+    if(click == 1){
+      x1 = Math.floor((e.clientX - rect.left)/75);
+      y1 = Math.floor((e.clientY - rect.top)/75);
+      make_move(y0, x0, y1, x1);
+      click = 0;
+    }
+  }
+
+  document.addEventListener('mousedown', select_pieces);
 
   (async () => {
       let binaryData;

@@ -849,13 +849,7 @@ extern "C" {
             return;
         }
     }
-    int movepiece(const char* js_input, int turn){
-        std::string input(js_input);
-        std::vector<int> move = convert_from_png(input);
-        int y0 = move[0];
-        int x0 = move[1];
-        int movetoy = move[2];
-        int movetox = move[3];
+    int movepiece(int y0, int x0, int movetoy, int movetox, int turn){
         int piece = board[y0][x0];
         std::cout << piece << ',' << y0 << ',' << x0 << ',' << movetoy << ',' << movetox << '\n'; 
         if((piece > 0 && turn == 0) || (piece < 0 && turn == 1)){
