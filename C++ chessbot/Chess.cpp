@@ -1420,22 +1420,22 @@ extern "C" {
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
-        //while(duration.count()/1000.0 < 0.2){
-        //    if(abs(bestmove[0][5]) > 10000){
-        //        break;
-        //    }
-        //    ntimes += 2;
-        //    firstmove(moves);
-        //    stop = std::chrono::high_resolution_clock::now();
-        //    duration = std::chrono::duration_cast
-        //        <std::chrono::milliseconds>(stop - start);
-        //}
+        while(duration.count()/1000.0 < 0.2){
+            if(abs(bestmove[0][5]) > 10000){
+                break;
+            }
+            ntimes += 2;
+            firstmove(moves);
+            stop = std::chrono::high_resolution_clock::now();
+            duration = std::chrono::duration_cast
+                <std::chrono::milliseconds>(stop - start);
+        }
         std::cout << "depth = " << ntimes/2+1;
-        //if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000){
-        //    ntimes += 2;
-        //    firstmove(false);
-        //    std::cout << '+';
-        //}
+        if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000){
+            ntimes += 2;
+            firstmove(false);
+            std::cout << '+';
+        }
         std::cout << '\n';
         if(ntimes > ntimesmin){
             ntimes = ntimesmin;
@@ -1451,7 +1451,7 @@ extern "C" {
         duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
         std::cout << duration.count()/1000.0 << '\n';
-        //std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
+        std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
         return 0;
         //std::cout << timer << '\n';
     }
