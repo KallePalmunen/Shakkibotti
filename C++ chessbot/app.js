@@ -2,7 +2,7 @@
 Module.onRuntimeInitialized = function () {
   let ctx = document.getElementById("canvas").getContext("2d");
 
-  let move = "", botcolor = 1, turn = 0, click = 0, x0, y0, x1, y1;
+  let move = "", botcolor = 1, turn = 0, click = 0, x0, y0, x1, y1, moves = 0;
 
   let boardimg = new Image();
   boardimg.src = "../Images/board.png";
@@ -37,7 +37,7 @@ Module.onRuntimeInitialized = function () {
   const add_to_positions = Module.cwrap('add_to_positions', 'null', ['']);
   const set_can_move_positions = Module.cwrap('set_can_move_positions', 'null', ['']);
   const printboard = Module.cwrap('printboard', 'null', ['']);
-  const gameend = Module.cwrap('gameend', 'number', ['number']);
+  const gameend = Module.cwrap('gameend', 'number', ['number', 'number']);
   const get_board = Module.cwrap('get_board_element', 'number', ['number, number']);
   let basicbot;
 
@@ -99,18 +99,20 @@ Module.onRuntimeInitialized = function () {
       console.log("Illegal move");
     }else{
       turn = (turn == 0);
+      moves++;
       drawBoard();
       set_can_move_positions();
-      if(gameend(turn) >= 0){
-        console.log(gameend(turn))
+      if(gameend(turn, moves) >= 0){
+        console.log(gameend(turn, moves))
         turn = -1;
       }
-      console.log(basicbot(openingbook[0], openingbook[1]));
+      basicbot(openingbook[0], openingbook[1], moves);
       turn = (turn == 0);
+      moves++;
       drawBoard();
       set_can_move_positions();
-      if(gameend(turn) >= 0){
-        console.log(gameend(turn))
+      if(gameend(turn, moves) >= 0){
+        console.log(gameend(turn, moves))
         turn = -1;
       }
     }
@@ -144,18 +146,16 @@ Module.onRuntimeInitialized = function () {
         binaryData = await loadBinaryData('bopeningbook.bin');
       }
 
-      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number']);
+      basicbot = Module.cwrap('basicbot', 'number', ['number', 'number', 'number']);
 
       const dataPtr = Module._malloc(binaryData.length);
       Module.HEAPU8.set(binaryData, dataPtr);
 
       openingbook = [dataPtr, binaryData.length];
 
-      console.log("hi");
       locate_pieces();
-      add_to_positions();
+      //add_to_positions();
       set_can_move_positions();
-      printboard();
       drawBoard();
   })();
 };
