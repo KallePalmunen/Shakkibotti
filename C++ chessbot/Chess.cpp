@@ -682,8 +682,13 @@ extern "C" {
     }
 
     void update_can_move_positions(int color, int piece, int y0, int x0){
-        if(piece > 9 && piece < 20){
+        if(piece > 0){
             can_move_positions[piece-1].resize(0);
+        }
+        if(y0 < 0 || x0 < 0){
+            return;
+        }
+        if(piece > 9 && piece < 20){
             can_move_positions[piece-1].push_back({});
             if(y0 > 0){
                 if(x0 < 6){
@@ -720,7 +725,6 @@ extern "C" {
             return;
         }
         if(abs(piece) < 10){
-            can_move_positions[piece-1].resize(0);
             can_move_positions[piece-1].push_back({});
             if(color == 0){
                 can_move_positions[piece-1][0] = {y0+1, x0, y0+1, x0+1, y0+1, x0-1};
@@ -739,7 +743,6 @@ extern "C" {
             return;
         }
         if(piece > 19 && piece < 30){
-            can_move_positions[piece-1].resize(0);
             can_move_positions[piece-1].push_back({});
             for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
                 can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-i, x0-i});
@@ -759,7 +762,6 @@ extern "C" {
             return;
         }
         if(piece > 29 && piece < 40){
-            can_move_positions[piece-1].resize(0);
             can_move_positions[piece-1].push_back({});
             for(int i = 1; x0-i >= 0; i++){
                 can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0, x0-i});
@@ -779,7 +781,6 @@ extern "C" {
             return;
         }
         if(piece > 39 && piece < 50){
-            can_move_positions[piece-1].resize(0);
             can_move_positions[piece-1].push_back({});
             for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
                 can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-i, x0-i});
@@ -815,7 +816,6 @@ extern "C" {
             return;
         }
         if(piece == 50){
-            can_move_positions[piece-1].resize(0);
             can_move_positions[piece-1].push_back({});
             if(y0 > 0){
                 can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0});
@@ -1129,7 +1129,72 @@ extern "C" {
         }
     }
 
-    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves){
+    double last_move_test(int n0, int y00, int x00, int y10, int x10, double best){
+        int piece_sign = int(bot == 1)-int(bot == 0);
+        int kingy = piece_positions[49][int(n0>0)][0];
+        int kingx = piece_positions[49][int(n0>0)][1];
+        if(kingy == -1){
+            return -piece_sign*500000/(ntimes+1.0);
+        }
+        get_pinners(-piece_sign, kingy, kingx);
+        if(botcheckmate(piece_sign*50, kingy, kingx)){
+            return -piece_sign*500000/(ntimes+1.0);
+        }
+        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
+        double movescore[304];
+        int movescore_size = 0;
+        double best_movescore = -piece_sign*1000000;
+        for(int n00 = 0; n00 < 6; n00++){
+            //Goes through the piece types in peculiar order
+            int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
+            + 5*(n00 == 5));
+            for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
+                int n = piece_sign*(10*n1+n2+int(n1 == 0));
+                if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
+                    int y0 = piece_positions[abs(n)-1][int(n<0)][0];
+                    int x0 = piece_positions[abs(n)-1][int(n<0)][1];
+                    bool pinnable = ispinnable(n, y0, x0, kingy, kingx);
+                    for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
+                        for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
+                            int y1 = can_move_positions[abs(n)-1][i][j];
+                            int x1 = can_move_positions[abs(n)-1][i][j+1];
+                            if(botcanmove(n, y0, x0, y1, x1, pinnable, kingy, kingx)){
+                                double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
+                                double current_movescore = evaluate_move(n, y0, x0, y1, x1)
+                                    + evaluation_minus;
+                                double total_movescore = current_movescore 
+                                    + previous_movescore;
+                                if((total_movescore <= best && bot == 0)
+                                    || (total_movescore >= best && bot == 1)){
+                                    return total_movescore;
+                                }
+                                if((total_movescore < best_movescore && bot == 0)
+                                    || (total_movescore > best_movescore && bot == 1)){
+                                    best_movescore = total_movescore;
+                                }
+                                movescore[movescore_size] = total_movescore;
+                                movescore_size++;
+                                if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                                    break;
+                                }
+                            }else if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if(movescore_size == 0){
+            return 0.0;
+        }else if(bot == 0){
+            return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
+        }else{
+            return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
+        }
+    }
+
+    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves, bool testvariable){
         int piece_sign = (intsign(bot==0))*((nmoremoves%2 == 1)-(nmoremoves%2 == 0));
         //white == 0, black == 1
         int color = int(piece_sign!=1);
@@ -1191,11 +1256,17 @@ extern "C" {
                                     , piece_positions[31-1][color][0], piece_positions[31-1][color][1]);
                                 }
                                 if(nmoremoves == 1){
-                                    current_movescore = last_move(n, y0, x0, y1, x1, 
-                                        best_movescore-evaluation_minus) + evaluation_minus;
+                                    if(testvariable){
+                                        current_movescore = last_move_test(n, y0, x0, y1, x1, 
+                                            best_movescore-evaluation_minus) + evaluation_minus;
+                                    }
+                                    else{
+                                        current_movescore = last_move(n, y0, x0, y1, x1, 
+                                            best_movescore-evaluation_minus) + evaluation_minus;
+                                    }
                                 }else{
                                     current_movescore = nth_move(n, y0, x0, y1, x1, 
-                                        best_movescore-evaluation_minus, nmoremoves-1) + evaluation_minus;
+                                        best_movescore-evaluation_minus, nmoremoves-1, testvariable) + evaluation_minus;
                                 }
                                 double total_movescore = current_movescore 
                                     + previous_movescore;
@@ -1248,7 +1319,7 @@ extern "C" {
         }
     }
 
-    void firstmove(int moves, bool all = true){
+    void firstmove(int moves, bool testvariable, bool all = true){
         //save current state
         int temp_enpassant = enpassant;
         int temp_board[8][8];
@@ -1299,7 +1370,7 @@ extern "C" {
             //}else{
                 double current_movescore = 
                     nth_move(n, y0, x0, y1, x1, 
-                    best_movescore-evaluation_minus, ntimes) + evaluation_minus;
+                    best_movescore-evaluation_minus, ntimes, testvariable) + evaluation_minus;
                 movescore.push_back(current_movescore);
                 if((current_movescore > best_movescore && bot == 0) 
                     || (current_movescore < best_movescore && bot == 1)){
@@ -1410,13 +1481,14 @@ extern "C" {
     }
 
     int basicbot(const char* openingbook_data, int size, int moves){
+        std::cout << (moves == 9) << '\n';
         if(read_openingbook(bot, openingbook_data, size)){
             std::cout << "book" << '\n';
             return 0;
         }
         double score = fulleval();
         auto start = std::chrono::high_resolution_clock::now();
-        firstmove(moves);
+        firstmove(moves, (moves == 9));
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
@@ -1425,7 +1497,7 @@ extern "C" {
                 break;
             }
             ntimes += 2;
-            firstmove(moves);
+            firstmove(moves, (moves == 9));
             stop = std::chrono::high_resolution_clock::now();
             duration = std::chrono::duration_cast
                 <std::chrono::milliseconds>(stop - start);
@@ -1433,7 +1505,7 @@ extern "C" {
         std::cout << "depth = " << ntimes/2+1;
         if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000){
             ntimes += 2;
-            firstmove(false);
+            firstmove(moves, (moves == 9), false);
             std::cout << '+';
         }
         std::cout << '\n';
