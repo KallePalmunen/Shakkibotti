@@ -51,61 +51,66 @@ Module.onRuntimeInitialized = function () {
   }
 
   function drawBoard(){
-    ctx.drawImage(boardimg, 0, 0);
-    for(let x = 0; x < 8; x++){
-      for(let y = 0; y < 8; y++){
-        if(get_board(y,x) > 0 && get_board(y,x) < 10){
-          ctx.drawImage(wpawnimg, x*75, y*75);
-        }
-        if(get_board(y,x) > 9 && get_board(y,x) < 20){
-          ctx.drawImage(wknightimg, x*75, y*75);
-        }
-        if(get_board(y,x) > 19 && get_board(y,x) < 30){
-          ctx.drawImage(wbishopimg, x*75, y*75);
-        }
-        if(get_board(y,x) > 29 && get_board(y,x) < 40){
-          ctx.drawImage(wrookimg, x*75, y*75);
-        }
-        if(get_board(y,x) > 39 && get_board(y,x) < 50){
-          ctx.drawImage(wqueenimg, x*75, y*75);
-        }
-        if(get_board(y,x) == 50){
-          ctx.drawImage(wkingimg, x*75, y*75);
-        }
-        if(get_board(y,x) < 0 && get_board(y,x) > -10){
-          ctx.drawImage(bpawnimg, x*75, y*75);
-        }
-        if(get_board(y,x) < -9 && get_board(y,x) > -20){
-          ctx.drawImage(bknightimg, x*75, y*75);
-        }
-        if(get_board(y,x) < -19 && get_board(y,x) > -30){
-          ctx.drawImage(bbishopimg, x*75, y*75);
-        }
-        if(get_board(y,x) < -29 && get_board(y,x) > -40){
-          ctx.drawImage(brookimg, x*75, y*75);
-        }
-        if(get_board(y,x) < -39 && get_board(y,x) > -50){
-          ctx.drawImage(bqueenimg, x*75, y*75);
-        }
-        if(get_board(y,x) == -50){
-          ctx.drawImage(bkingimg, x*75, y*75);
+    return new Promise(resolve => {
+      ctx.drawImage(boardimg, 0, 0);
+      for(let x = 0; x < 8; x++){
+        for(let y = 0; y < 8; y++){
+          if(get_board(y,x) > 0 && get_board(y,x) < 10){
+            ctx.drawImage(wpawnimg, x*75, y*75);
+          }
+          if(get_board(y,x) > 9 && get_board(y,x) < 20){
+            ctx.drawImage(wknightimg, x*75, y*75);
+          }
+          if(get_board(y,x) > 19 && get_board(y,x) < 30){
+            ctx.drawImage(wbishopimg, x*75, y*75);
+          }
+          if(get_board(y,x) > 29 && get_board(y,x) < 40){
+            ctx.drawImage(wrookimg, x*75, y*75);
+          }
+          if(get_board(y,x) > 39 && get_board(y,x) < 50){
+            ctx.drawImage(wqueenimg, x*75, y*75);
+          }
+          if(get_board(y,x) == 50){
+            ctx.drawImage(wkingimg, x*75, y*75);
+          }
+          if(get_board(y,x) < 0 && get_board(y,x) > -10){
+            ctx.drawImage(bpawnimg, x*75, y*75);
+          }
+          if(get_board(y,x) < -9 && get_board(y,x) > -20){
+            ctx.drawImage(bknightimg, x*75, y*75);
+          }
+          if(get_board(y,x) < -19 && get_board(y,x) > -30){
+            ctx.drawImage(bbishopimg, x*75, y*75);
+          }
+          if(get_board(y,x) < -29 && get_board(y,x) > -40){
+            ctx.drawImage(brookimg, x*75, y*75);
+          }
+          if(get_board(y,x) < -39 && get_board(y,x) > -50){
+            ctx.drawImage(bqueenimg, x*75, y*75);
+          }
+          if(get_board(y,x) == -50){
+            ctx.drawImage(bkingimg, x*75, y*75);
+          }
         }
       }
-    }
+      requestAnimationFrame(() => resolve());
+    });
   }
   
-  function make_move(y0, x0, y1, x1){
+  async function make_move(y0, x0, y1, x1){
     if(!movepiece(y0, x0, y1, x1, turn)){
       console.log("Illegal move");
     }else{
       turn = (turn == 0);
       moves++;
-      drawBoard();
+      await drawBoard();
       set_can_move_positions();
       if(gameend(turn, moves) >= 0){
         console.log(gameend(turn, moves))
         turn = -1;
       }
+      // wait for next animation frame
+      await new Promise(resolve => setTimeout(resolve, 0));
       basicbot(openingbook[0], openingbook[1], moves);
       turn = (turn == 0);
       moves++;
