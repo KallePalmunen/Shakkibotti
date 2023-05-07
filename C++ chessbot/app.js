@@ -2,7 +2,11 @@
 Module.onRuntimeInitialized = function () {
   let ctx = document.getElementById("canvas").getContext("2d");
 
-  let move = "", botcolor = 1, turn = 0, click = 0, x0, y0, x1, y1, moves = 0;
+  let move = "", botcolor = 1, turn = 0, click = 0, x0, y0, x1, y1, moves = 0, 
+  board = [[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
+  positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]];
 
   let boardimg = new Image();
   boardimg.src = "../Images/board.png";
@@ -96,11 +100,22 @@ Module.onRuntimeInitialized = function () {
       requestAnimationFrame(() => resolve());
     });
   }
+
+  function update_position(){
+    for(let y = 0; y < 8; y++){
+      for(let x = 0; x < 8; x++){
+        board[y][x] = get_board(y,x)
+      }
+    }
+    positions.push(JSON.parse(JSON.stringify(board)));
+    console.log(positions);
+  }
   
   async function make_move(y0, x0, y1, x1){
     if(!movepiece(y0, x0, y1, x1, turn)){
       console.log("Illegal move");
     }else{
+      update_position();
       turn = (turn == 0);
       moves++;
       await drawBoard();
@@ -120,6 +135,7 @@ Module.onRuntimeInitialized = function () {
         console.log(gameend(turn, moves))
         turn = -1;
       }
+      update_position();
     }
   }
 
@@ -128,7 +144,7 @@ Module.onRuntimeInitialized = function () {
     if(click == 0){
       x0 = Math.floor((e.clientX - rect.left)/75);
       y0 = Math.floor((e.clientY - rect.top)/75);
-      if(get_board(y0, x0) != 0){
+      if((get_board(y0, x0) > 0 && botcolor == 1) || (get_board(y0, x0) < 0 && botcolor == 0)){
         click = 1;
       }
       return;
