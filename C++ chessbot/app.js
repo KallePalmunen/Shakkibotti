@@ -126,7 +126,7 @@ Module.onRuntimeInitialized = function () {
       }
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
-      basicbot(openingbook[0], openingbook[1], moves);
+      basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board));
       turn = (turn == 0);
       moves++;
       drawBoard();
@@ -167,7 +167,7 @@ Module.onRuntimeInitialized = function () {
         binaryData = await loadBinaryData('bopeningbook.bin');
       }
 
-      basicbot = Module.cwrap('basicbot', 'number', ['number', 'number', 'number']);
+      basicbot = Module.cwrap('basicbot', 'number', ['number', 'number', 'number', 'string']);
 
       const dataPtr = Module._malloc(binaryData.length);
       Module.HEAPU8.set(binaryData, dataPtr);
