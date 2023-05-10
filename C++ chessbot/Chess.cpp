@@ -139,6 +139,34 @@ extern "C" {
         return {int(move[1]-'0')-1, letter_to_file(move[0]), int(move[3]-'0')-1, letter_to_file(move[2])};
     }
 
+    std::vector<std::vector<int>> convert_board(const char* board_string){
+        int i = 2;
+        std::vector<std::vector<int>> result;
+        for(int y = 0; y < 8; y++){
+            result.push_back({});
+            for(int x = 0; x < 8; x++){
+                std::string element = "";
+                while(true){
+                    if(board_string[i] == ',' || board_string[i] == '[' || board_string[i] == ']'){
+                        i++;
+                    }else{
+                        break;
+                    }
+                }
+                while(true){
+                    if(board_string[i] == ',' || board_string[i] == ']'){
+                        i ++;
+                        break;
+                    }
+                    element += board_string[i];
+                    i++;
+                }
+                result[y].push_back(std::stoi(element));
+            }
+        }
+        return result;
+    }
+
     void locate_pieces(){
         for(int n = 1; n < 51; n++){
             int *piece_index = std::find(&board[0][0], &board[0][0]+64, n);
@@ -1482,8 +1510,15 @@ extern "C" {
         return false;
     }
 
-    int basicbot(const char* openingbook_data, int size, int moves){
-        std::cout << (moves == 9) << '\n';
+    int basicbot(const char* openingbook_data, int size, int moves, const char* board_string){
+        std::vector<std::vector<int>> board_vector = convert_board(board_string);
+        int board2[8][8];
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                board2[y][x] = board_vector[y][x];
+            }
+        }
+        std::cout << "board[0][7]: " << board2[0][7] << '\n';
         if(read_openingbook(bot, openingbook_data, size)){
             std::cout << "book" << '\n';
             return 0;
