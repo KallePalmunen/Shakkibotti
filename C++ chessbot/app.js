@@ -41,7 +41,7 @@ Module.onRuntimeInitialized = function () {
   const add_to_positions = Module.cwrap('add_to_positions', 'null', ['']);
   const set_can_move_positions = Module.cwrap('set_can_move_positions', 'null', ['']);
   const printboard = Module.cwrap('printboard', 'null', ['']);
-  const gameend = Module.cwrap('gameend', 'number', ['number', 'number']);
+  const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string']);
   const get_board = Module.cwrap('get_board_element', 'number', ['number, number']);
   let basicbot;
 
@@ -119,22 +119,22 @@ Module.onRuntimeInitialized = function () {
       moves++;
       await drawBoard();
       set_can_move_positions();
-      if(gameend(turn, moves) >= 0){
-        console.log(gameend(turn, moves))
-        turn = -1;
-      }
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
+      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)) >= 0){
+        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)))
+        turn = -1;
+      }
       basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), JSON.stringify(positions));
       turn = (turn == 0);
       moves++;
       drawBoard();
       set_can_move_positions();
-      if(gameend(turn, moves) >= 0){
-        console.log(gameend(turn, moves))
+      update_position();
+      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)) >= 0){
+        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)))
         turn = -1;
       }
-      update_position();
     }
   }
 

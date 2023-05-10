@@ -6,10 +6,10 @@
 #include <string>
 #include <sstream>
 
-std::vector<std::vector<std::vector<int>>> positions;
+std::vector<std::vector<std::vector<int>>> positions0;
 
 extern "C" {
-    int board[8][8] = {{30,10,20,50,40,21,11,31},{1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
+    int board0[8][8] = {{30,10,20,50,40,21,11,31},{1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
     int enpassant = -1;
     //[n-1][color][coordinate], white == 0, black == 1, y == 0, x == 1
@@ -200,9 +200,9 @@ extern "C" {
 
     void locate_pieces(){
         for(int n = 1; n < 51; n++){
-            int *piece_index = std::find(&board[0][0], &board[0][0]+64, n);
-            if(piece_index != &board[0][0]+64){
-                int ppos = std::distance(&board[0][0], piece_index);
+            int *piece_index = std::find(&board0[0][0], &board0[0][0]+64, n);
+            if(piece_index != &board0[0][0]+64){
+                int ppos = std::distance(&board0[0][0], piece_index);
                 int y0 = ppos/8;
                 int x0 = ppos-y0*8;
                 piece_positions[n-1][0][0] = y0;
@@ -211,9 +211,9 @@ extern "C" {
                 piece_positions[n-1][0][0] = -1;
                 piece_positions[n-1][0][1] = -1;
             }
-            piece_index = std::find(&board[0][0], &board[0][0]+64, -n);
-            if(piece_index != &board[0][0]+64){
-                int ppos = std::distance(&board[0][0], piece_index);
+            piece_index = std::find(&board0[0][0], &board0[0][0]+64, -n);
+            if(piece_index != &board0[0][0]+64){
+                int ppos = std::distance(&board0[0][0], piece_index);
                 int y0 = ppos/8;
                 int x0 = ppos-y0*8;
                 piece_positions[n-1][1][0] = y0;
@@ -227,14 +227,14 @@ extern "C" {
     void printboard(){
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
-                std::cout << board[i][j] << " ";
+                std::cout << board0[i][j] << " ";
             }
             std::cout << "\n";
         };
     }
 
     int get_board_element(int y, int x){
-        return board[y][x];
+        return board0[y][x];
     }
 
     void add_to_positions(){
@@ -242,10 +242,10 @@ extern "C" {
         for(int y = 0; y < 8; y++){
             std::vector<int> currentposition_x;
             currentposition_x.insert(currentposition_x.begin(), 
-                board[y], board[y]+8);
+                board0[y], board0[y]+8);
             currentposition.push_back(currentposition_x);
         }
-        positions.push_back(currentposition);
+        positions0.push_back(currentposition);
     }
 
     //intsign tells the sign of an integer
@@ -258,8 +258,8 @@ extern "C" {
         int piece_sign = int(n>1)-int(n<1);
         if(n > 0){
             if((x1 == x0 && (y1-y0 == 1 || (y1-y0 == 2 && y0 == 1 
-                && board[y1-1][x1] == 0)) && board[y1][x1] == 0) || 
-                (y1-y0 == 1 && board[y1][x1] < 0 && 
+                && board0[y1-1][x1] == 0)) && board0[y1][x1] == 0) || 
+                (y1-y0 == 1 && board0[y1][x1] < 0 && 
                 (x1 - x0 == 1 || x1 - x0 == -1)) 
                 || (x1*8+y1 == enpassant && abs(x1-x0) == 1 && y1 - y0 == 1)){
                     return true;
@@ -267,8 +267,8 @@ extern "C" {
             return false;
         }if(n < 0){
             if ((x1 == x0 && (y0-y1 == 1 || (y0-y1 == 2 && y0 == 6 
-                && board[y1+1][x1] == 0)) && board[y1][x1] == 0) ||
-                (y0-y1 == 1 && board[y1][x1] > 0 && 
+                && board0[y1+1][x1] == 0)) && board0[y1][x1] == 0) ||
+                (y0-y1 == 1 && board0[y1][x1] > 0 && 
                 (x1 - x0 == 1 || x1 - x0 == -1))
                 || (x1*8+y1 == enpassant && abs(x1-x0) == 1 && y0 - y1 == 1)){
                     return true;
@@ -282,10 +282,10 @@ extern "C" {
         if(((y1 - y0 == 2 || y1 - y0 == -2) && (x1 - x0 == 1 || x1 - x0 == -1))
             || ((y1- y0 == 1 || y1 - y0 == -1) &&
             (x1 - x0 == 2 || x1 - x0 == -2))){
-                if(n > 0 && (board[y1][x1] == 0 || board[y1][x1] < 0)){
+                if(n > 0 && (board0[y1][x1] == 0 || board0[y1][x1] < 0)){
                     return true;
                 }
-                if(n < 0 && (board[y1][x1] == 0 || board[y1][x1] > 0)){
+                if(n < 0 && (board0[y1][x1] == 0 || board0[y1][x1] > 0)){
                     return true;
                 }
                 return false;
@@ -299,7 +299,7 @@ extern "C" {
         int y = y0, x = x0, xplus = (x1 != x0)*intsign(x1-x0)
         , yplus = (y1 != y0)*intsign(y1-y0);
         if(n > 0){
-            if(board[y1][x1] > 0){
+            if(board0[y1][x1] > 0){
                 return false;
             }
             for(int i = 1; i < 8; i++){
@@ -308,14 +308,14 @@ extern "C" {
                 if(y == y1 && x == x1){
                     return true;
                 }
-                if(board[y][x] != 0){
+                if(board0[y][x] != 0){
                     return false;
                 }
             }
             return false;
         }
         if(n < 0){
-            if(board[y1][x1] < 0){
+            if(board0[y1][x1] < 0){
                 return false;
             }
             for(int i = 1; i < 8; i++){
@@ -324,7 +324,7 @@ extern "C" {
                 if(y == y1 && x == x1){
                     return true;
                 }
-                if(board[y][x] != 0){
+                if(board0[y][x] != 0){
                     return false;
                 }
             }
@@ -363,10 +363,10 @@ extern "C" {
     bool kingmove(int n, int y0, int x0, int y1, int x1){
         if(abs(y1-y0) <= 1 && abs(x1-x0) <= 1 && 
         !(y1 == y0 && x1 == x0)){
-            if(n > 0 && board[y1][x1] <= 0){
+            if(n > 0 && board0[y1][x1] <= 0){
                 return true;
             }
-            if(n < 0 && board[y1][x1] >= 0){
+            if(n < 0 && board0[y1][x1] >= 0){
                 return true;
             }
         }
@@ -396,7 +396,7 @@ extern "C" {
     }
 
     bool botpiecemove(int n, int y0, int x0, int y1, int x1){
-        if(n * board[y1][x1] > 0){
+        if(n * board0[y1][x1] > 0){
             return false;
         }
         if(abs(n) < 10){
@@ -421,9 +421,9 @@ extern "C" {
 
     bool check(int n, int kingy = -1, int kingx = -1){
         if(kingy == -1){
-            int *index = std::find(&board[0][0], &board[0][0]+64, n);
-            if(index != &board[0][0]+64){
-                int kingpos = std::distance(&board[0][0], index);
+            int *index = std::find(&board0[0][0], &board0[0][0]+64, n);
+            if(index != &board0[0][0]+64){
+                int kingpos = std::distance(&board0[0][0], index);
                 kingy = kingpos/8;
                 kingx = kingpos-kingy*8;
             }else{
@@ -464,23 +464,23 @@ extern "C" {
             return false;
         }
         if(y1 == y0 && (x1 == 1 || x1 == 5) && !check(n) &&
-        board[y0][(x1 > 4)*7] == intsign(n)*(30 + (x1 > 4))){
+        board0[y0][(x1 > 4)*7] == intsign(n)*(30 + (x1 > 4))){
             for(int i = 1; i < 3 + (x1 > 4); i++){
                 int squarex = x0 + i*intsign(x1-x0);
-                if(board[y0][squarex] != 0){
+                if(board0[y0][squarex] != 0){
                     return false;
                 }
-                board[y0][x0] = 0;
-                board[y0][squarex] = n;
+                board0[y0][x0] = 0;
+                board0[y0][squarex] = n;
                 piece_positions[49][int(n<0)][1] = squarex;
                 if(i < 3 && check(n)){
-                    board[y0][x0] = n;
-                    board[y0][squarex] = 0;
+                    board0[y0][x0] = n;
+                    board0[y0][squarex] = 0;
                     piece_positions[49][int(n<0)][1] = x0;
                     return false;
                 }
-                board[y0][x0] = n;
-                board[y0][squarex] = 0;
+                board0[y0][x0] = n;
+                board0[y0][squarex] = 0;
                 piece_positions[49][int(n<0)][1] = x0;
             }
             return true;
@@ -489,9 +489,9 @@ extern "C" {
     }
 
     bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
-        board[y0][x0] = 0;
-        int movetosquare = board[y1][x1];
-        board[y1][x1] = n;
+        board0[y0][x0] = 0;
+        int movetosquare = board0[y1][x1];
+        board0[y1][x1] = n;
         piece_positions[abs(n)-1][int(n<0)][0] = y1;
         piece_positions[abs(n)-1][int(n<0)][1] = x1;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
@@ -499,29 +499,29 @@ extern "C" {
         //by enpassanting the checking piece
         int enpassanted = -100;
         if(enpassant >= 0 && x1*8+y1 == enpassant){
-            enpassanted = board[y1-intsign(y1 - y0)][x1];
-            board[y1-intsign(y1 - y0)][x1] = 0;
+            enpassanted = board0[y1-intsign(y1 - y0)][x1];
+            board0[y1-intsign(y1 - y0)][x1] = 0;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
         }
         if(!check(intsign(n)*50, kingy, kingx)){
-            board[y0][x0] = n;
-            board[y1][x1] = movetosquare;
+            board0[y0][x0] = n;
+            board0[y1][x1] = movetosquare;
             piece_positions[abs(n)-1][int(n<0)][0] = y0;
             piece_positions[abs(n)-1][int(n<0)][1] = x0;
             piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
             if(enpassanted != -100){
-                board[y1-intsign(y1 - y0)][x1] = enpassanted;
+                board0[y1-intsign(y1 - y0)][x1] = enpassanted;
                 piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
             }
             return false;
         }
-        board[y0][x0] = n;
-        board[y1][x1] = movetosquare;
+        board0[y0][x0] = n;
+        board0[y1][x1] = movetosquare;
         piece_positions[abs(n)-1][int(n<0)][0] = y0;
         piece_positions[abs(n)-1][int(n<0)][1] = x0;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
         if(enpassanted != -100){
-            board[y1-intsign(y1 - y0)][x1] = enpassanted;
+            board0[y1-intsign(y1 - y0)][x1] = enpassanted;
         }
         return true;
     }
@@ -530,9 +530,9 @@ extern "C" {
         if(pinners.size() == 0){
             return false;
         }
-        board[y0][x0] = 0;
-        int movetosquare = board[y1][x1];
-        board[y1][x1] = n;
+        board0[y0][x0] = 0;
+        int movetosquare = board0[y1][x1];
+        board0[y1][x1] = n;
         piece_positions[abs(n)-1][int(n<0)][0] = y1;
         piece_positions[abs(n)-1][int(n<0)][1] = x1;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
@@ -540,29 +540,29 @@ extern "C" {
         //by enpassanting the checking piece
         int enpassanted = -100;
         if(enpassant >= 0 && x1*8+y1 == enpassant){
-            enpassanted = board[y1-intsign(y1 - y0)][x1];
-            board[y1-intsign(y1 - y0)][x1] = 0;
+            enpassanted = board0[y1-intsign(y1 - y0)][x1];
+            board0[y1-intsign(y1 - y0)][x1] = 0;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
         }
         if(!botcheck(intsign(n)*50, kingy, kingx)){
-            board[y0][x0] = n;
-            board[y1][x1] = movetosquare;
+            board0[y0][x0] = n;
+            board0[y1][x1] = movetosquare;
             piece_positions[abs(n)-1][int(n<0)][0] = y0;
             piece_positions[abs(n)-1][int(n<0)][1] = x0;
             piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
             if(enpassanted != -100){
-                board[y1-intsign(y1 - y0)][x1] = enpassanted;
+                board0[y1-intsign(y1 - y0)][x1] = enpassanted;
                 piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
             }
             return false;
         }
-        board[y0][x0] = n;
-        board[y1][x1] = movetosquare;
+        board0[y0][x0] = n;
+        board0[y1][x1] = movetosquare;
         piece_positions[abs(n)-1][int(n<0)][0] = y0;
         piece_positions[abs(n)-1][int(n<0)][1] = x0;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
         if(enpassanted != -100){
-            board[y1-intsign(y1 - y0)][x1] = enpassanted;
+            board0[y1-intsign(y1 - y0)][x1] = enpassanted;
         }
         return true;
     }
@@ -571,12 +571,12 @@ extern "C" {
         if(pinners.size() == 0){
             return false;
         }
-        board[y0][x0] = 0;
+        board0[y0][x0] = 0;
         if(!botcheck(intsign(n)*50, kingy, kingx)){
-            board[y0][x0] = n;
+            board0[y0][x0] = n;
             return false;
         }
-        board[y0][x0] = n;
+        board0[y0][x0] = n;
         return true;
     }
 
@@ -661,16 +661,16 @@ extern "C" {
 
     void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true){
         int promoteto;
-        if(board[y1][x1] != 0){
-            piece_positions[abs(board[y1][x1])-1][int(n>0)][0] = -1;
+        if(board0[y1][x1] != 0){
+            piece_positions[abs(board0[y1][x1])-1][int(n>0)][0] = -1;
         }
         if(abs(n) == 50){
             if(abs(x1-x0) > 1){
                 //castle
                 int whichrook = intsign(n)*(30 + (x1 > 4));
                 int rookx = (x1 > 4)*7;
-                board[y1][rookx] = 0;
-                board[y1][x1 + intsign(4-x1)] = whichrook;
+                board0[y1][rookx] = 0;
+                board0[y1][x1 + intsign(4-x1)] = whichrook;
                 castled[(n < 0)] = 1;
                 piece_positions[abs(whichrook)-1][int(n<0)][0] = y1;
                 piece_positions[abs(whichrook)-1][int(n<0)][1] = x1 + intsign(4-x1);
@@ -682,26 +682,26 @@ extern "C" {
         }
         if(promote(n, y1)){
             promoteto = 4;
-            board[y1][x1] = intsign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
+            board0[y1][x1] = intsign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
             pieces[promoteto][(n < 0)]++;
-            piece_positions[abs(board[y1][x1])-1][int(board[y1][x1]<0)][0] = y1;
-            piece_positions[abs(board[y1][x1])-1][int(board[y1][x1]<0)][1] = x1;
+            piece_positions[abs(board0[y1][x1])-1][int(board0[y1][x1]<0)][0] = y1;
+            piece_positions[abs(board0[y1][x1])-1][int(board0[y1][x1]<0)][1] = x1;
             piece_positions[abs(n)-1][int(n<0)][0] = -1;
         }else{
-            board[y1][x1] = n;
+            board0[y1][x1] = n;
             piece_positions[abs(n)-1][int(n<0)][0] = y1;
             piece_positions[abs(n)-1][int(n<0)][1] = x1;
         }
         if(enpassant >= 0 && x1*8+y1 == enpassant){
-            piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
-            board[y1-intsign(y1 - y0)][x1] = 0;
+            piece_positions[abs(board0[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
+            board0[y1-intsign(y1 - y0)][x1] = 0;
         }
         if(abs(n) < 10 && abs(y1-y0) > 1){
             enpassant = x1*8+y0+intsign(y1 - y0);
         }else{
             enpassant = -1;
         }
-        board[y0][x0] = 0;
+        board0[y0][x0] = 0;
         if(addposition){
             //add_to_positions();
         }
@@ -724,10 +724,10 @@ extern "C" {
         return true;
     }
 
-    bool compareposition(int moment){
+    bool compareposition(int moment, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
-                if(positions[moment][y][x] != board[y][x]){
+                if(positions[moment][y][x] != board0[y][x]){
                     return false;
                 }
             }
@@ -735,10 +735,10 @@ extern "C" {
         return true;
     }
 
-    bool repetition(int this_moment){
+    bool repetition(int this_moment, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
         int repetitions = 0;
         for(int moment = this_moment%2; moment < this_moment; moment += 2){
-            if(compareposition(moment)){
+            if(compareposition(moment, board, positions)){
                 repetitions++;
                 if(repetitions >= 2){
                     return true;
@@ -748,8 +748,17 @@ extern "C" {
         return false;
     }
 
-    int gameend(int turn, int moves){
+    int gameend(int turn, int moves, const char* board_string, const char* positions_string){
         //returns 2 if white won, 1 if black won, 0 if draw, -1 if game continues
+        std::vector<std::vector<int>> board_vector = convert_board(board_string, 2);
+        int board[8][8];
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                board[y][x] = board_vector[y][x];
+            }
+        }
+        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
+
         if(checkmate(-50)){
             std::cout << "White won" << '\n';
             return 2;
@@ -758,11 +767,12 @@ extern "C" {
             std::cout << "Black won" << '\n';
             return 1;
         }
-        //if((turn == 0 && stalemate(50)) || (turn == 1 && stalemate(-50))
-        //    || repetition(moves)){
-        //        std::cout << "Draw" << '\n';
-        //        return 0;
-        //}
+        if(
+        //  (turn == 0 && stalemate(50)) || (turn == 1 && stalemate(-50)) || 
+            repetition(moves, board, positions)){
+                std::cout << "Draw" << '\n';
+                return 0;
+        }
         return -1;
     }
 
@@ -934,7 +944,7 @@ extern "C" {
         }
     }
     int movepiece(int y0, int x0, int movetoy, int movetox, int turn){
-        int piece = board[y0][x0];
+        int piece = board0[y0][x0];
         std::cout << piece << ',' << y0 << ',' << x0 << ',' << movetoy << ',' << movetox << '\n'; 
         if((piece > 0 && turn == 0) || (piece < 0 && turn == 1)){
             if(movetoy < 8 && movetox < 8 && movetox >= 0 && movetoy >= 0 && y0>=0 
@@ -950,9 +960,9 @@ extern "C" {
         return 1;
     }
 
-    bool partialrepetition(int current_moment){
+    bool partialrepetition(int current_moment, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
         for(int moment = current_moment%2; moment < current_moment; moment += 2){
-            if(compareposition(moment)){
+            if(compareposition(moment, board, positions)){
                 return true;
             }
         }
@@ -984,7 +994,7 @@ extern "C" {
 
     double evaluate_change(int y, int x, int changesign, int n = -100){
         if(n == -100){
-            n = board[y][x];
+            n = board0[y][x];
         }
         if(n == 0){
             return 0.0;
@@ -1039,7 +1049,7 @@ extern "C" {
         //save current state
         int temp_enpassant = enpassant;
         int temp_board[8][8];
-        std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
+        std::copy(&board0[0][0], &board0[0][0]+64, &temp_board[0][0]);
         int temp_kingmoved[2];
         std::copy(&kingmoved[0], &kingmoved[0]+2, 
             &temp_kingmoved[0]);
@@ -1089,7 +1099,7 @@ extern "C" {
                             //return to saved state
                             enpassant = temp_enpassant;
                             std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-                            &board[0][0]);
+                            &board0[0][0]);
                             std::copy(&temp_kingmoved[0], 
                                 &temp_kingmoved[0]+2, &kingmoved[0]);
                             std::copy(&temp_castled[0], &temp_castled[0]+2, 
@@ -1100,7 +1110,7 @@ extern "C" {
                                 &temp_pieces[0][0]+12, &pieces[0][0]);
                             std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
                                 &piece_positions[0][0][0]);
-                            //positions.pop_back();
+                            //positions0.pop_back();
                         }
                     }
                 }
@@ -1170,10 +1180,10 @@ extern "C" {
                                 }
                                 movescore[movescore_size] = total_movescore;
                                 movescore_size++;
-                                if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                                if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
                                     break;
                                 }
-                            }else if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                            }else if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
                                 break;
                             }
                         }
@@ -1235,10 +1245,10 @@ extern "C" {
                                 }
                                 movescore[movescore_size] = total_movescore;
                                 movescore_size++;
-                                if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                                if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
                                     break;
                                 }
-                            }else if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                            }else if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
                                 break;
                             }
                         }
@@ -1269,7 +1279,7 @@ extern "C" {
         }
         int temp_enpassant = enpassant;
         int temp_board[8][8];
-        std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
+        std::copy(&board0[0][0], &board0[0][0]+64, &temp_board[0][0]);
         int temp_kingmoved[2];
         std::copy(&kingmoved[0], &kingmoved[0]+2, 
             &temp_kingmoved[0]);
@@ -1308,7 +1318,7 @@ extern "C" {
                                 movepieceto(n, y0, x0, y1, x1, false);
                                 if(nmoremoves%2 == 0 && abs(n) < 10 && ((color == 0 && y1 == 7) 
                                 || (color == 1 && y1 == 0))){
-                                    update_can_move_positions(color, abs(board[y1][x1]), y1, x1);
+                                    update_can_move_positions(color, abs(board0[y1][x1]), y1, x1);
                                 }
                                 if(abs(n) == 50 && abs(x1-x0) > 1 && nmoremoves%2 == 0){
                                     update_can_move_positions(color, 30
@@ -1354,7 +1364,7 @@ extern "C" {
                                 //return to saved state
                                 enpassant = temp_enpassant;
                                 std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-                                &board[0][0]);
+                                &board0[0][0]);
                                 std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
                                 &piece_positions[0][0][0]);
                                 std::copy(&temp_kingmoved[0], 
@@ -1384,7 +1394,7 @@ extern "C" {
         //save current state
         int temp_enpassant = enpassant;
         int temp_board[8][8];
-        std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
+        std::copy(&board0[0][0], &board0[0][0]+64, &temp_board[0][0]);
         int temp_kingmoved[2];
         std::copy(&kingmoved[0], &kingmoved[0]+2, 
             &temp_kingmoved[0]);
@@ -1442,7 +1452,7 @@ extern "C" {
             //return to saved state
             enpassant = temp_enpassant;
             std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-            &board[0][0]);
+            &board0[0][0]);
             std::copy(&temp_kingmoved[0], 
                 &temp_kingmoved[0]+2, &kingmoved[0]);
             std::copy(&temp_castled[0], &temp_castled[0]+2, 
@@ -1453,7 +1463,7 @@ extern "C" {
                 &temp_pieces[0][0]+12, &pieces[0][0]);
             std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
                 &piece_positions[0][0][0]);
-            //positions.pop_back();
+            //positions0.pop_back();
         }
         int bestindex;
         bestmove.resize(0);
@@ -1520,7 +1530,7 @@ extern "C" {
     bool compare_to_book(std::vector<std::vector<int>> book_board){
         for(int j = 0; j < 8; j++){
             for(int k = 0; k < 8; k++){
-                if(book_board[j][k] != board[j][k]){
+                if(book_board[j][k] != board0[j][k]){
                     return false;
                 }
             }
@@ -1544,13 +1554,13 @@ extern "C" {
     int basicbot(const char* openingbook_data, int size, int moves, const char* board_string
     , const char* positions_string){
         std::vector<std::vector<int>> board_vector = convert_board(board_string, 2);
-        int board2[8][8];
+        int board[8][8];
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-                board2[y][x] = board_vector[y][x];
+                board[y][x] = board_vector[y][x];
             }
         }
-        std::vector<std::vector<std::vector<int>>> positions2 = convert_positions(positions_string, moves);
+        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
 
         if(read_openingbook(bot, openingbook_data, size)){
             std::cout << "book" << '\n';
