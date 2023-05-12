@@ -38,7 +38,6 @@ Module.onRuntimeInitialized = function () {
   // Interact with the C++ chess bot using ccall or cwrap
   const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number']);
   const locate_pieces = Module.cwrap('locate_pieces', 'null', []);
-  const add_to_positions = Module.cwrap('add_to_positions', 'null', ['']);
   const set_can_move_positions = Module.cwrap('set_can_move_positions', 'null', ['']);
   const printboard = Module.cwrap('printboard', 'null', ['']);
   const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string']);
@@ -174,7 +173,6 @@ Module.onRuntimeInitialized = function () {
       openingbook = [dataPtr, binaryData.length];
 
       locate_pieces();
-      //add_to_positions();
       set_can_move_positions();
       drawBoard();
   })();

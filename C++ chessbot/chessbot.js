@@ -3926,11 +3926,6 @@ var _get_board_element = Module["_get_board_element"] = function() {
 };
 
 /** @type {function(...*):?} */
-var _add_to_positions = Module["_add_to_positions"] = function() {
-  return (_add_to_positions = Module["_add_to_positions"] = Module["asm"]["add_to_positions"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
 var _gameend = Module["_gameend"] = function() {
   return (_gameend = Module["_gameend"] = Module["asm"]["gameend"]).apply(null, arguments);
 };
