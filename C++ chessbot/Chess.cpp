@@ -6,8 +6,6 @@
 #include <string>
 #include <sstream>
 
-std::vector<std::vector<std::vector<int>>> positions0;
-
 extern "C" {
     int board0[8][8] = {{30,10,20,50,40,21,11,31},{1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
             {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
@@ -235,17 +233,6 @@ extern "C" {
 
     int get_board_element(int y, int x){
         return board0[y][x];
-    }
-
-    void add_to_positions(){
-        std::vector<std::vector<int>> currentposition;
-        for(int y = 0; y < 8; y++){
-            std::vector<int> currentposition_x;
-            currentposition_x.insert(currentposition_x.begin(), 
-                board0[y], board0[y]+8);
-            currentposition.push_back(currentposition_x);
-        }
-        positions0.push_back(currentposition);
     }
 
     //intsign tells the sign of an integer
@@ -659,7 +646,7 @@ extern "C" {
         return true;
     }
 
-    void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true){
+    void movepieceto(int n, int y0, int x0, int y1, int x1){
         int promoteto;
         if(board0[y1][x1] != 0){
             piece_positions[abs(board0[y1][x1])-1][int(n>0)][0] = -1;
@@ -702,9 +689,6 @@ extern "C" {
             enpassant = -1;
         }
         board0[y0][x0] = 0;
-        if(addposition){
-            //add_to_positions();
-        }
     }
 
     bool stalemate(int n){
@@ -1045,7 +1029,7 @@ extern "C" {
         return evaluation;
     }
 
-    std::vector<std::vector<int>> reorder(int moves){
+    std::vector<std::vector<int>> reorder(int moves, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
         //save current state
         int temp_enpassant = enpassant;
         int temp_board[8][8];
@@ -1077,22 +1061,24 @@ extern "C" {
                     for(int x1 = 0; x1 < 8; x1++){
                         if(canmove(n, y0, x0, y1, x1)){
                             double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                            movepieceto(n, y0, x0, y1, x1, true);
-                            //if(repetition(moves+1) || stalemate(50) || stalemate(-50)){
-                            //    movescore.push_back(-fulleval());
-                            //}else if(partialrepetition(moves+1)){
-                            //    if(bot == 0){
-                            //        movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1) 
-                            //        + evaluation_minus, -fulleval()));
-                            //    }else{
-                            //        movescore.push_back(std::max(evaluate_move(n, y0, x0, y1, x1) 
-                            //        + evaluation_minus, -fulleval()));
-                            //    }    
-                            //}else{
+                            movepieceto(n, y0, x0, y1, x1);
+                            if(repetition(moves+1, board, positions)
+                            // || stalemate(50) || stalemate(-50)
+                            ){
+                                movescore.push_back(-fulleval());
+                            }else if(partialrepetition(moves+1, board, positions)){
+                                if(bot == 0){
+                                    movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1) 
+                                    + evaluation_minus, -fulleval()));
+                                }else{
+                                    movescore.push_back(std::max(evaluate_move(n, y0, x0, y1, x1) 
+                                    + evaluation_minus, -fulleval()));
+                                }    
+                            }else{
                                 movescore.push_back(
                                     evaluate_move(n, y0, x0, y1, x1) 
                                     + evaluation_minus);
-                            //}
+                            }
                             starting_order.insert(starting_order.end(),
                                 {n, y0, x0, y1, x1});
 
@@ -1110,7 +1096,6 @@ extern "C" {
                                 &temp_pieces[0][0]+12, &pieces[0][0]);
                             std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
                                 &piece_positions[0][0][0]);
-                            //positions0.pop_back();
                         }
                     }
                 }
@@ -1265,7 +1250,7 @@ extern "C" {
         }
     }
 
-    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves, bool testvariable){
+    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves){
         int piece_sign = (intsign(bot==0))*((nmoremoves%2 == 1)-(nmoremoves%2 == 0));
         //white == 0, black == 1
         int color = int(piece_sign!=1);
@@ -1315,7 +1300,7 @@ extern "C" {
                                 }
                                 double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                                 double current_movescore;
-                                movepieceto(n, y0, x0, y1, x1, false);
+                                movepieceto(n, y0, x0, y1, x1);
                                 if(nmoremoves%2 == 0 && abs(n) < 10 && ((color == 0 && y1 == 7) 
                                 || (color == 1 && y1 == 0))){
                                     update_can_move_positions(color, abs(board0[y1][x1]), y1, x1);
@@ -1327,17 +1312,11 @@ extern "C" {
                                     , piece_positions[31-1][color][0], piece_positions[31-1][color][1]);
                                 }
                                 if(nmoremoves == 1){
-                                    if(testvariable){
-                                        current_movescore = last_move_test(n, y0, x0, y1, x1, 
-                                            best_movescore-evaluation_minus) + evaluation_minus;
-                                    }
-                                    else{
-                                        current_movescore = last_move(n, y0, x0, y1, x1, 
-                                            best_movescore-evaluation_minus) + evaluation_minus;
-                                    }
+                                    current_movescore = last_move(n, y0, x0, y1, x1, 
+                                        best_movescore-evaluation_minus) + evaluation_minus;
                                 }else{
                                     current_movescore = nth_move(n, y0, x0, y1, x1, 
-                                        best_movescore-evaluation_minus, nmoremoves-1, testvariable) + evaluation_minus;
+                                        best_movescore-evaluation_minus, nmoremoves-1) + evaluation_minus;
                                 }
                                 double total_movescore = current_movescore 
                                     + previous_movescore;
@@ -1390,7 +1369,7 @@ extern "C" {
         }
     }
 
-    void firstmove(int moves, bool testvariable, bool all = true){
+    void firstmove(int moves, int board[8][8], std::vector<std::vector<std::vector<int>>> positions, bool all = true){
         //save current state
         int temp_enpassant = enpassant;
         int temp_board[8][8];
@@ -1414,7 +1393,7 @@ extern "C" {
         double best_movescore = -intsign(bot == 0)*1000000;
         std::vector<std::vector<int>> order;
         if(all){
-            order = reorder(moves);
+            order = reorder(moves, board, positions);
         }else{
             for(int i = 0; i < plusamount; i++){
                 order.push_back({bestmove[i][0],bestmove[i][1],bestmove[i][2],bestmove[i][3],bestmove[i][4]});
@@ -1427,27 +1406,33 @@ extern "C" {
             int y1 = order[i][3];
             int x1 = order[i][4];
             double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-            movepieceto(n, y0, x0, y1, x1, true);
-            //if(repetition(moves+1) || stalemate(50) || stalemate(-50)){
-            //    movescore.push_back(-fulleval());
-            //}else if(partialrepetition(moves+1)){
-            //    if(bot == 0){
-            //        movescore.push_back(std::min(nth_move(n, y0, x0, y1, x1, 
-            //        best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
-            //    }else{
-            //        movescore.push_back(std::max(nth_move(n, y0, x0, y1, x1, 
-            //        best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
-            //    } 
-            //}else{
+            movepieceto(n, y0, x0, y1, x1);
+            if(repetition(moves+1, board, positions)
+            // || stalemate(50) || stalemate(-50)
+            ){
+                movescore.push_back(-fulleval());
+            }
+            else if(partialrepetition(moves+1, board, positions)){
+                if(bot == 0){
+                    movescore.push_back(std::min(nth_move(n, y0, x0, y1, x1, 
+                    best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
+                    movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1) 
+                    + evaluation_minus, -fulleval()));
+                }else{
+                    movescore.push_back(std::max(nth_move(n, y0, x0, y1, x1, 
+                    best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
+                } 
+            }
+            else{
                 double current_movescore = 
                     nth_move(n, y0, x0, y1, x1, 
-                    best_movescore-evaluation_minus, ntimes, testvariable) + evaluation_minus;
+                    best_movescore-evaluation_minus, ntimes) + evaluation_minus;
                 movescore.push_back(current_movescore);
                 if((current_movescore > best_movescore && bot == 0) 
                     || (current_movescore < best_movescore && bot == 1)){
                     best_movescore = current_movescore;
                 }
-            //}
+            }
 
             //return to saved state
             enpassant = temp_enpassant;
@@ -1463,7 +1448,6 @@ extern "C" {
                 &temp_pieces[0][0]+12, &pieces[0][0]);
             std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
                 &piece_positions[0][0][0]);
-            //positions0.pop_back();
         }
         int bestindex;
         bestmove.resize(0);
@@ -1568,7 +1552,7 @@ extern "C" {
         }
         double score = fulleval();
         auto start = std::chrono::high_resolution_clock::now();
-        firstmove(moves, (moves == 9));
+        firstmove(moves, board, positions);
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
@@ -1577,7 +1561,7 @@ extern "C" {
                 break;
             }
             ntimes += 2;
-            firstmove(moves, (moves == 9));
+            firstmove(moves, board, positions);
             stop = std::chrono::high_resolution_clock::now();
             duration = std::chrono::duration_cast
                 <std::chrono::milliseconds>(stop - start);
@@ -1585,7 +1569,7 @@ extern "C" {
         std::cout << "depth = " << ntimes/2+1;
         if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000){
             ntimes += 2;
-            firstmove(moves, (moves == 9), false);
+            firstmove(moves, board, positions, false);
             std::cout << '+';
         }
         std::cout << '\n';
