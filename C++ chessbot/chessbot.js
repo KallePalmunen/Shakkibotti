@@ -3921,11 +3921,6 @@ var _printboard = Module["_printboard"] = function() {
 };
 
 /** @type {function(...*):?} */
-var _get_board_element = Module["_get_board_element"] = function() {
-  return (_get_board_element = Module["_get_board_element"] = Module["asm"]["get_board_element"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
 var _gameend = Module["_gameend"] = function() {
   return (_gameend = Module["_gameend"] = Module["asm"]["gameend"]).apply(null, arguments);
 };
