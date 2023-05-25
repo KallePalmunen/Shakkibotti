@@ -7,15 +7,12 @@
 #include <sstream>
 
 extern "C" {
-    int board0[8][8] = {{30,10,20,50,40,21,11,31},{1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},
-            {0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}};
     int enpassant = -1;
     //[n-1][color][coordinate], white == 0, black == 1, y == 0, x == 1
     int piece_positions[50][2][2];
     //white == 0, black == 1
     int bot = 1;
     int castled[2] = {0,0};
-    bool promotemenu = false;
     double evalscore = 0.0;
     std::string evaltext = "";
     //coordinates where it could be possible for a given piece to move to
@@ -137,8 +134,26 @@ extern "C" {
         return {int(move[1]-'0')-1, letter_to_file(move[0]), int(move[3]-'0')-1, letter_to_file(move[2])};
     }
 
-    std::vector<std::vector<int>> convert_board(const char* board_string, int startindex){
-        int i = startindex;
+    const char* vector_to_string(std::vector<int> vector){
+        std::ostringstream oss;
+        oss << "[";
+        for(int i = 0; i < vector.size(); i++){
+            oss << vector[i];
+            if (i < vector.size() - 1) {
+                oss << ",";
+            }
+        }
+        oss << "]";
+
+        std::string str = oss.str();
+        char* charPtr = new char[str.length() + 1];
+        std::strcpy(charPtr, str.c_str());
+
+        return charPtr;
+    }
+
+    std::vector<std::vector<int>> convert_board(const char* board_string){
+        int i = 2;
         std::vector<std::vector<int>> result;
         for(int y = 0; y < 8; y++){
             result.push_back({});
@@ -196,43 +211,56 @@ extern "C" {
         return result;
     }
 
-    void locate_pieces(){
+    void locate_pieces(const char* board_string){
+        std::vector<std::vector<int>> board = convert_board(board_string);
         for(int n = 1; n < 51; n++){
-            int *piece_index = std::find(&board0[0][0], &board0[0][0]+64, n);
-            if(piece_index != &board0[0][0]+64){
-                int ppos = std::distance(&board0[0][0], piece_index);
-                int y0 = ppos/8;
-                int x0 = ppos-y0*8;
-                piece_positions[n-1][0][0] = y0;
-                piece_positions[n-1][0][1] = x0;
-            }else{
+            bool found = false;
+            for(int y = 0; y < 8; y++) {
+                for(int x = 0; x < 8; x++) {
+                    if(board[y][x] == n) {
+                        piece_positions[n-1][0][0] = y;
+                        piece_positions[n-1][0][1] = x;
+                        found = true;
+                        break;
+                    }
+                }
+                if(found){
+                    break;
+                }
+            }
+            if(!found){
                 piece_positions[n-1][0][0] = -1;
                 piece_positions[n-1][0][1] = -1;
             }
-            piece_index = std::find(&board0[0][0], &board0[0][0]+64, -n);
-            if(piece_index != &board0[0][0]+64){
-                int ppos = std::distance(&board0[0][0], piece_index);
-                int y0 = ppos/8;
-                int x0 = ppos-y0*8;
-                piece_positions[n-1][1][0] = y0;
-                piece_positions[n-1][1][1] = x0;
-            }else{
+            found = false;
+            for(int y = 0; y < 8; y++) {
+                for(int x = 0; x < 8; x++) {
+                    if(board[y][x] == -n) {
+                        piece_positions[n-1][1][0] = y;
+                        piece_positions[n-1][1][1] = x;
+                        found = true;
+                        break;
+                    }
+                }
+                if(found){
+                    break;
+                }
+            }
+            if(!found){
                 piece_positions[n-1][1][0] = -1;
+                piece_positions[n-1][1][1] = -1;
             }
         }
     }
 
-    void printboard(){
+    void printboard(const char* board_string){
+        std::vector<std::vector<int>> board = convert_board(board_string);
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
-                std::cout << board0[i][j] << " ";
+                std::cout << board[i][j] << " ";
             }
             std::cout << "\n";
         };
-    }
-
-    int get_board_element(int y, int x){
-        return board0[y][x];
     }
 
     //intsign tells the sign of an integer
@@ -241,12 +269,12 @@ extern "C" {
         return (a > 0)-(a <= 0);
     }
 
-    bool pawnmove(int n, int y0, int x0, int y1, int x1){
+    bool pawnmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         int piece_sign = int(n>1)-int(n<1);
         if(n > 0){
             if((x1 == x0 && (y1-y0 == 1 || (y1-y0 == 2 && y0 == 1 
-                && board0[y1-1][x1] == 0)) && board0[y1][x1] == 0) || 
-                (y1-y0 == 1 && board0[y1][x1] < 0 && 
+                && board[y1-1][x1] == 0)) && board[y1][x1] == 0) || 
+                (y1-y0 == 1 && board[y1][x1] < 0 && 
                 (x1 - x0 == 1 || x1 - x0 == -1)) 
                 || (x1*8+y1 == enpassant && abs(x1-x0) == 1 && y1 - y0 == 1)){
                     return true;
@@ -254,8 +282,8 @@ extern "C" {
             return false;
         }if(n < 0){
             if ((x1 == x0 && (y0-y1 == 1 || (y0-y1 == 2 && y0 == 6 
-                && board0[y1+1][x1] == 0)) && board0[y1][x1] == 0) ||
-                (y0-y1 == 1 && board0[y1][x1] > 0 && 
+                && board[y1+1][x1] == 0)) && board[y1][x1] == 0) ||
+                (y0-y1 == 1 && board[y1][x1] > 0 && 
                 (x1 - x0 == 1 || x1 - x0 == -1))
                 || (x1*8+y1 == enpassant && abs(x1-x0) == 1 && y0 - y1 == 1)){
                     return true;
@@ -265,14 +293,14 @@ extern "C" {
         return false;
     }
 
-    bool knightmove(int n, int y0, int x0, int y1, int x1){
+    bool knightmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         if(((y1 - y0 == 2 || y1 - y0 == -2) && (x1 - x0 == 1 || x1 - x0 == -1))
             || ((y1- y0 == 1 || y1 - y0 == -1) &&
             (x1 - x0 == 2 || x1 - x0 == -2))){
-                if(n > 0 && (board0[y1][x1] == 0 || board0[y1][x1] < 0)){
+                if(n > 0 && (board[y1][x1] == 0 || board[y1][x1] < 0)){
                     return true;
                 }
-                if(n < 0 && (board0[y1][x1] == 0 || board0[y1][x1] > 0)){
+                if(n < 0 && (board[y1][x1] == 0 || board[y1][x1] > 0)){
                     return true;
                 }
                 return false;
@@ -282,11 +310,11 @@ extern "C" {
 
     //longmove checks if there is anything in the way when moving bishops, rooks and queens. It also checks whether there is a piece in the endsquare
 
-    bool longmove(int n, int y0, int x0, int y1, int x1){
+    bool longmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         int y = y0, x = x0, xplus = (x1 != x0)*intsign(x1-x0)
         , yplus = (y1 != y0)*intsign(y1-y0);
         if(n > 0){
-            if(board0[y1][x1] > 0){
+            if(board[y1][x1] > 0){
                 return false;
             }
             for(int i = 1; i < 8; i++){
@@ -295,14 +323,14 @@ extern "C" {
                 if(y == y1 && x == x1){
                     return true;
                 }
-                if(board0[y][x] != 0){
+                if(board[y][x] != 0){
                     return false;
                 }
             }
             return false;
         }
         if(n < 0){
-            if(board0[y1][x1] < 0){
+            if(board[y1][x1] < 0){
                 return false;
             }
             for(int i = 1; i < 8; i++){
@@ -311,7 +339,7 @@ extern "C" {
                 if(y == y1 && x == x1){
                     return true;
                 }
-                if(board0[y][x] != 0){
+                if(board[y][x] != 0){
                     return false;
                 }
             }
@@ -320,9 +348,9 @@ extern "C" {
         return false;
     }
 
-    bool bishopmove(int n, int y0, int x0, int y1, int x1){
+    bool bishopmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         if(abs(y1-y0) == abs(x1-x0)){
-            if(longmove(n, y0, x0, y1, x1)){
+            if(longmove(n, y0, x0, y1, x1, board)){
                 return true;
             }
             return false;
@@ -330,9 +358,9 @@ extern "C" {
         return false;
     }
 
-    bool rookmove(int n, int y0, int x0, int y1, int x1){
+    bool rookmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         if((y1 != y0 && x1 == x0) || (y1 == y0 && x1 != x0)){
-            if(longmove(n, y0, x0, y1, x1)){
+            if(longmove(n, y0, x0, y1, x1, board)){
                 return true;
             }
             return false;
@@ -340,54 +368,54 @@ extern "C" {
         return false;
     }
 
-    bool queenmove(int n, int y0, int x0, int y1, int x1){
-        if(bishopmove(n, y0, x0, y1, x1) || rookmove(n, y0, x0, y1, x1)){
+    bool queenmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+        if(bishopmove(n, y0, x0, y1, x1, board) || rookmove(n, y0, x0, y1, x1, board)){
             return true;
         }
         return false;
     }
 
-    bool kingmove(int n, int y0, int x0, int y1, int x1){
+    bool kingmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         if(abs(y1-y0) <= 1 && abs(x1-x0) <= 1 && 
         !(y1 == y0 && x1 == x0)){
-            if(n > 0 && board0[y1][x1] <= 0){
+            if(n > 0 && board[y1][x1] <= 0){
                 return true;
             }
-            if(n < 0 && board0[y1][x1] >= 0){
+            if(n < 0 && board[y1][x1] >= 0){
                 return true;
             }
         }
         return false;
     }
 
-    bool piecemove(int n, int y0, int x0, int y1, int x1){
+    bool piecemove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         if(abs(n) < 20 && abs(n) >= 10){
-            return knightmove(n, y0, x0, y1, x1);
+            return knightmove(n, y0, x0, y1, x1, board);
         }
         if(abs(n) < 30 && abs(n) >= 20){
-            return bishopmove(n, y0, x0, y1, x1);
+            return bishopmove(n, y0, x0, y1, x1, board);
         }
         if(abs(n) < 10){
-            return pawnmove(n, y0, x0, y1, x1);
+            return pawnmove(n, y0, x0, y1, x1, board);
         }
         if(abs(n) < 40 && abs(n) >= 30){
-            return rookmove(n, y0, x0, y1, x1);
+            return rookmove(n, y0, x0, y1, x1, board);
         }
         if(abs(n) < 50 && abs(n) >= 40){
-            return queenmove(n, y0, x0, y1, x1);
+            return queenmove(n, y0, x0, y1, x1, board);
         }
         if(abs(n) >= 50){
-            return kingmove(n, y0, x0, y1, x1);
+            return kingmove(n, y0, x0, y1, x1, board);
         }
         return false;
     }
 
-    bool botpiecemove(int n, int y0, int x0, int y1, int x1){
-        if(n * board0[y1][x1] > 0){
+    bool botpiecemove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+        if(n * board[y1][x1] > 0){
             return false;
         }
         if(abs(n) < 10){
-            return pawnmove(n, y0, x0, y1, x1);
+            return pawnmove(n, y0, x0, y1, x1, board);
         }
         return true;
     }
@@ -406,14 +434,23 @@ extern "C" {
         return false;
     }
 
-    bool check(int n, int kingy = -1, int kingx = -1){
-        if(kingy == -1){
-            int *index = std::find(&board0[0][0], &board0[0][0]+64, n);
-            if(index != &board0[0][0]+64){
-                int kingpos = std::distance(&board0[0][0], index);
-                kingy = kingpos/8;
-                kingx = kingpos-kingy*8;
-            }else{
+    bool check(int n, std::vector<std::vector<int>>& board, int kingy = -1, int kingx = -1){
+        if(kingy == -1) {
+            bool found = false;
+            for(int y = 0; y < 8; y++) {
+                for(int x = 0; x < 8; x++) {
+                    if(board[y][x] == n) {
+                        kingy = y;
+                        kingx = x;
+                        found = true;
+                        break;
+                    }
+                }
+                if(found){
+                    break;
+                }
+            }
+            if(!found){
                 return true;
             }
         }
@@ -423,7 +460,7 @@ extern "C" {
                 if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                     int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
                     int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
-                    if(piecemove(piecen, y0, x0, kingy, kingx)){
+                    if(piecemove(piecen, y0, x0, kingy, kingx, board)){
                         return true;
                     }
                 }
@@ -432,13 +469,13 @@ extern "C" {
         return false;
     }
 
-    bool botcheck(int n, int kingy, int kingx){
+    bool botcheck(int n, int kingy, int kingx, std::vector<std::vector<int>>& board){
         for(int i = 0; i < pinners.size(); i++){
             int piecen = pinners[i];
             if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                 int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
                 int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
-                if(piecemove(piecen, y0, x0, kingy, kingx)){
+                if(piecemove(piecen, y0, x0, kingy, kingx, board)){
                     return true;
                 }
             }
@@ -446,28 +483,28 @@ extern "C" {
         return false;
     }
 
-    bool castle(int n, int y0, int x0, int y1, int x1){
+    bool castle(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
         if(kingmoved[(n>0)] == 1 || rookmoved[(n>0)][x1>4] == 1){
             return false;
         }
-        if(y1 == y0 && (x1 == 1 || x1 == 5) && !check(n) &&
-        board0[y0][(x1 > 4)*7] == intsign(n)*(30 + (x1 > 4))){
+        if(y1 == y0 && (x1 == 1 || x1 == 5) && !check(n, board) &&
+        board[y0][(x1 > 4)*7] == intsign(n)*(30 + (x1 > 4))){
             for(int i = 1; i < 3 + (x1 > 4); i++){
                 int squarex = x0 + i*intsign(x1-x0);
-                if(board0[y0][squarex] != 0){
+                if(board[y0][squarex] != 0){
                     return false;
                 }
-                board0[y0][x0] = 0;
-                board0[y0][squarex] = n;
+                board[y0][x0] = 0;
+                board[y0][squarex] = n;
                 piece_positions[49][int(n<0)][1] = squarex;
-                if(i < 3 && check(n)){
-                    board0[y0][x0] = n;
-                    board0[y0][squarex] = 0;
+                if(i < 3 && check(n, board)){
+                    board[y0][x0] = n;
+                    board[y0][squarex] = 0;
                     piece_positions[49][int(n<0)][1] = x0;
                     return false;
                 }
-                board0[y0][x0] = n;
-                board0[y0][squarex] = 0;
+                board[y0][x0] = n;
+                board[y0][squarex] = 0;
                 piece_positions[49][int(n<0)][1] = x0;
             }
             return true;
@@ -475,10 +512,10 @@ extern "C" {
         return false;
     }
 
-    bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
-        board0[y0][x0] = 0;
-        int movetosquare = board0[y1][x1];
-        board0[y1][x1] = n;
+    bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx, std::vector<std::vector<int>>& board){
+        board[y0][x0] = 0;
+        int movetosquare = board[y1][x1];
+        board[y1][x1] = n;
         piece_positions[abs(n)-1][int(n<0)][0] = y1;
         piece_positions[abs(n)-1][int(n<0)][1] = x1;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
@@ -486,40 +523,40 @@ extern "C" {
         //by enpassanting the checking piece
         int enpassanted = -100;
         if(enpassant >= 0 && x1*8+y1 == enpassant){
-            enpassanted = board0[y1-intsign(y1 - y0)][x1];
-            board0[y1-intsign(y1 - y0)][x1] = 0;
+            enpassanted = board[y1-intsign(y1 - y0)][x1];
+            board[y1-intsign(y1 - y0)][x1] = 0;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
         }
-        if(!check(intsign(n)*50, kingy, kingx)){
-            board0[y0][x0] = n;
-            board0[y1][x1] = movetosquare;
+        if(!check(intsign(n)*50, board, kingy, kingx)){
+            board[y0][x0] = n;
+            board[y1][x1] = movetosquare;
             piece_positions[abs(n)-1][int(n<0)][0] = y0;
             piece_positions[abs(n)-1][int(n<0)][1] = x0;
             piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
             if(enpassanted != -100){
-                board0[y1-intsign(y1 - y0)][x1] = enpassanted;
+                board[y1-intsign(y1 - y0)][x1] = enpassanted;
                 piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
             }
             return false;
         }
-        board0[y0][x0] = n;
-        board0[y1][x1] = movetosquare;
+        board[y0][x0] = n;
+        board[y1][x1] = movetosquare;
         piece_positions[abs(n)-1][int(n<0)][0] = y0;
         piece_positions[abs(n)-1][int(n<0)][1] = x0;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
         if(enpassanted != -100){
-            board0[y1-intsign(y1 - y0)][x1] = enpassanted;
+            board[y1-intsign(y1 - y0)][x1] = enpassanted;
         }
         return true;
     }
 
-    bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
+    bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx, std::vector<std::vector<int>>& board){
         if(pinners.size() == 0){
             return false;
         }
-        board0[y0][x0] = 0;
-        int movetosquare = board0[y1][x1];
-        board0[y1][x1] = n;
+        board[y0][x0] = 0;
+        int movetosquare = board[y1][x1];
+        board[y1][x1] = n;
         piece_positions[abs(n)-1][int(n<0)][0] = y1;
         piece_positions[abs(n)-1][int(n<0)][1] = x1;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
@@ -527,80 +564,81 @@ extern "C" {
         //by enpassanting the checking piece
         int enpassanted = -100;
         if(enpassant >= 0 && x1*8+y1 == enpassant){
-            enpassanted = board0[y1-intsign(y1 - y0)][x1];
-            board0[y1-intsign(y1 - y0)][x1] = 0;
+            enpassanted = board[y1-intsign(y1 - y0)][x1];
+            board[y1-intsign(y1 - y0)][x1] = 0;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
         }
-        if(!botcheck(intsign(n)*50, kingy, kingx)){
-            board0[y0][x0] = n;
-            board0[y1][x1] = movetosquare;
+        if(!botcheck(intsign(n)*50, kingy, kingx, board)){
+            board[y0][x0] = n;
+            board[y1][x1] = movetosquare;
             piece_positions[abs(n)-1][int(n<0)][0] = y0;
             piece_positions[abs(n)-1][int(n<0)][1] = x0;
             piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
             if(enpassanted != -100){
-                board0[y1-intsign(y1 - y0)][x1] = enpassanted;
+                board[y1-intsign(y1 - y0)][x1] = enpassanted;
                 piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
             }
             return false;
         }
-        board0[y0][x0] = n;
-        board0[y1][x1] = movetosquare;
+        board[y0][x0] = n;
+        board[y1][x1] = movetosquare;
         piece_positions[abs(n)-1][int(n<0)][0] = y0;
         piece_positions[abs(n)-1][int(n<0)][1] = x0;
         piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
         if(enpassanted != -100){
-            board0[y1-intsign(y1 - y0)][x1] = enpassanted;
+            board[y1-intsign(y1 - y0)][x1] = enpassanted;
         }
         return true;
     }
 
-    bool ispinnable(int n, int y0, int x0, int kingy, int kingx){
+    bool ispinnable(int n, int y0, int x0, int kingy, int kingx, std::vector<std::vector<int>>& board){
         if(pinners.size() == 0){
             return false;
         }
-        board0[y0][x0] = 0;
-        if(!botcheck(intsign(n)*50, kingy, kingx)){
-            board0[y0][x0] = n;
+        board[y0][x0] = 0;
+        if(!botcheck(intsign(n)*50, kingy, kingx, board)){
+            board[y0][x0] = n;
             return false;
         }
-        board0[y0][x0] = n;
+        board[y0][x0] = n;
         return true;
     }
 
-    bool canmove(int n, int y0, int x0, int y1, int x1, int kingy = -1, int kingx = -1){
-        if(piecemove(n, y0, x0, y1, x1) 
-        || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
+    bool canmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board, int kingy = -1, int kingx = -1){
+        if(piecemove(n, y0, x0, y1, x1, board) 
+        || (abs(n) == 50 && castle(n, y0, x0, y1, x1, board))){
             if(abs(n) == 50){
                 kingy = y1;
                 kingx = x1;
             }
-            if(!pin(n, y0, x0, y1, x1, kingy, kingx)){
+            if(!pin(n, y0, x0, y1, x1, kingy, kingx, board)){
                 return true;
             }
         }
         return false;
     }
 
-    bool botcanmove(int n, int y0, int x0, int y1, int x1, bool pinnable, int kingy = -1, int kingx = -1){
+    bool botcanmove(int n, int y0, int x0, int y1, int x1, bool pinnable, std::vector<std::vector<int>>& board,
+    int kingy = -1, int kingx = -1){
         if(abs(n) < 50){
-            if(botpiecemove(n, y0, x0, y1, x1)){
+            if(botpiecemove(n, y0, x0, y1, x1, board)){
                 if(!pinnable){
                     return true;
                 }
-                return (!botpin(n, y0, x0, y1, x1, kingy, kingx));
+                return (!botpin(n, y0, x0, y1, x1, kingy, kingx, board));
             }
             return false;
         }
-        if(botpiecemove(n, y0, x0, y1, x1) || (abs(n) == 50 && castle(n, y0, x0, y1, x1))){
-            return (!pin(n, y0, x0, y1, x1, y1, x1));
+        if(botpiecemove(n, y0, x0, y1, x1, board) || (abs(n) == 50 && castle(n, y0, x0, y1, x1, board))){
+            return (!pin(n, y0, x0, y1, x1, y1, x1, board));
         }
         return false;
     }
 
-    bool movesomewhere(int n, int y0, int x0, int kingy = -1, int kingx = -1){
+    bool movesomewhere(int n, int y0, int x0, std::vector<std::vector<int>>& board, int kingy = -1, int kingx = -1){
         for(int y1 = 0; y1 < 8; y1++){
             for(int x1 = 0; x1 < 8; x1++){
-                if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
+                if(canmove(n, y0, x0, y1, x1, board, kingy, kingx)){
                     return true;
                 }
             }
@@ -608,8 +646,8 @@ extern "C" {
         return false;
     }
 
-    bool checkmate(int n, int kingy = -1, int kingx = -1){
-        if(!check(n, kingy, kingx)){
+    bool checkmate(int n, std::vector<std::vector<int>>& board, int kingy = -1, int kingx = -1){
+        if(!check(n, board, kingy, kingx)){
             return false;
         }
         for(int n1 = 0; n1 < 6; n1++){
@@ -618,7 +656,7 @@ extern "C" {
                 if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                     int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
                     int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
-                    if(movesomewhere(piecen, y0, x0, kingy, kingx)){
+                    if(movesomewhere(piecen, y0, x0, board, kingy, kingx)){
                         return false;
                     }
                 }
@@ -627,8 +665,8 @@ extern "C" {
         return true;
     }
 
-    bool botcheckmate(int n, int kingy = -1, int kingx = -1){
-        if(!botcheck(n, kingy, kingx)){
+    bool botcheckmate(int n, std::vector<std::vector<int>>& board, int kingy = -1, int kingx = -1){
+        if(!botcheck(n, kingy, kingx, board)){
             return false;
         }
         for(int n1 = 0; n1 < 6; n1++){
@@ -637,7 +675,7 @@ extern "C" {
                 if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                     int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
                     int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
-                    if(movesomewhere(piecen, y0, x0, kingy, kingx)){
+                    if(movesomewhere(piecen, y0, x0, board, kingy, kingx)){
                         return false;
                     }
                 }
@@ -646,18 +684,18 @@ extern "C" {
         return true;
     }
 
-    void movepieceto(int n, int y0, int x0, int y1, int x1){
+    std::vector<std::vector<int>> movepieceto(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>> board){
         int promoteto;
-        if(board0[y1][x1] != 0){
-            piece_positions[abs(board0[y1][x1])-1][int(n>0)][0] = -1;
+        if(board[y1][x1] != 0){
+            piece_positions[abs(board[y1][x1])-1][int(n>0)][0] = -1;
         }
         if(abs(n) == 50){
             if(abs(x1-x0) > 1){
                 //castle
                 int whichrook = intsign(n)*(30 + (x1 > 4));
                 int rookx = (x1 > 4)*7;
-                board0[y1][rookx] = 0;
-                board0[y1][x1 + intsign(4-x1)] = whichrook;
+                board[y1][rookx] = 0;
+                board[y1][x1 + intsign(4-x1)] = whichrook;
                 castled[(n < 0)] = 1;
                 piece_positions[abs(whichrook)-1][int(n<0)][0] = y1;
                 piece_positions[abs(whichrook)-1][int(n<0)][1] = x1 + intsign(4-x1);
@@ -669,30 +707,31 @@ extern "C" {
         }
         if(promote(n, y1)){
             promoteto = 4;
-            board0[y1][x1] = intsign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
+            board[y1][x1] = intsign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
             pieces[promoteto][(n < 0)]++;
-            piece_positions[abs(board0[y1][x1])-1][int(board0[y1][x1]<0)][0] = y1;
-            piece_positions[abs(board0[y1][x1])-1][int(board0[y1][x1]<0)][1] = x1;
+            piece_positions[abs(board[y1][x1])-1][int(board[y1][x1]<0)][0] = y1;
+            piece_positions[abs(board[y1][x1])-1][int(board[y1][x1]<0)][1] = x1;
             piece_positions[abs(n)-1][int(n<0)][0] = -1;
         }else{
-            board0[y1][x1] = n;
+            board[y1][x1] = n;
             piece_positions[abs(n)-1][int(n<0)][0] = y1;
             piece_positions[abs(n)-1][int(n<0)][1] = x1;
         }
         if(enpassant >= 0 && x1*8+y1 == enpassant){
-            piece_positions[abs(board0[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
-            board0[y1-intsign(y1 - y0)][x1] = 0;
+            piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
+            board[y1-intsign(y1 - y0)][x1] = 0;
         }
         if(abs(n) < 10 && abs(y1-y0) > 1){
             enpassant = x1*8+y0+intsign(y1 - y0);
         }else{
             enpassant = -1;
         }
-        board0[y0][x0] = 0;
+        board[y0][x0] = 0;
+        return board;
     }
 
-    bool stalemate(int n){
-        if(check(n)){
+    bool stalemate(int n, std::vector<std::vector<int>>& board){
+        if(check(n, board)){
             return false;
         }
         for(int n1 = 1; n1 < 51; n1++){
@@ -700,7 +739,7 @@ extern "C" {
             if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                 int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
                 int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
-                if(movesomewhere(piecen, y0, x0)){
+                if(movesomewhere(piecen, y0, x0, board)){
                     return false;
                 }
             }
@@ -708,10 +747,10 @@ extern "C" {
         return true;
     }
 
-    bool compareposition(int moment, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
+    bool compareposition(int moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
-                if(positions[moment][y][x] != board0[y][x]){
+                if(positions[moment][y][x] != board[y][x]){
                     return false;
                 }
             }
@@ -719,7 +758,7 @@ extern "C" {
         return true;
     }
 
-    bool repetition(int this_moment, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
+    bool repetition(int this_moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
         int repetitions = 0;
         for(int moment = this_moment%2; moment < this_moment; moment += 2){
             if(compareposition(moment, board, positions)){
@@ -734,25 +773,19 @@ extern "C" {
 
     int gameend(int turn, int moves, const char* board_string, const char* positions_string){
         //returns 2 if white won, 1 if black won, 0 if draw, -1 if game continues
-        std::vector<std::vector<int>> board_vector = convert_board(board_string, 2);
-        int board[8][8];
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                board[y][x] = board_vector[y][x];
-            }
-        }
+        std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
 
-        if(checkmate(-50)){
+        if(checkmate(-50, board)){
             std::cout << "White won" << '\n';
             return 2;
         }
-        if(checkmate(50)){
+        if(checkmate(50, board)){
             std::cout << "Black won" << '\n';
             return 1;
         }
         if(
-        //  (turn == 0 && stalemate(50)) || (turn == 1 && stalemate(-50)) || 
+        //  (turn == 0 && stalemate(50, board)) || (turn == 1 && stalemate(-50, board)) || 
             repetition(moves, board, positions)){
                 std::cout << "Draw" << '\n';
                 return 0;
@@ -927,13 +960,15 @@ extern "C" {
             return;
         }
     }
-    int movepiece(int y0, int x0, int movetoy, int movetox, int turn){
-        int piece = board0[y0][x0];
+
+    int movepiece(int y0, int x0, int movetoy, int movetox, int turn, const char* board_string){
+        std::vector<std::vector<int>> board = convert_board(board_string);
+        int piece = board[y0][x0];
         std::cout << piece << ',' << y0 << ',' << x0 << ',' << movetoy << ',' << movetox << '\n'; 
         if((piece > 0 && turn == 0) || (piece < 0 && turn == 1)){
             if(movetoy < 8 && movetox < 8 && movetox >= 0 && movetoy >= 0 && y0>=0 
-            && canmove(piece, y0, x0, movetoy, movetox)){
-                movepieceto(piece, y0, x0, movetoy, movetox);
+            && canmove(piece, y0, x0, movetoy, movetox, board)){
+                board = movepieceto(piece, y0, x0, movetoy, movetox, board);
             }else{
                 return 0;
             }
@@ -944,7 +979,7 @@ extern "C" {
         return 1;
     }
 
-    bool partialrepetition(int current_moment, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
+    bool partialrepetition(int current_moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
         for(int moment = current_moment%2; moment < current_moment; moment += 2){
             if(compareposition(moment, board, positions)){
                 return true;
@@ -962,23 +997,23 @@ extern "C" {
         }
     }
 
-    void get_pinners(int piece_sign, int kingy, int kingx){
+    void get_pinners(int piece_sign, int kingy, int kingx, std::vector<std::vector<int>>& board){
         pinners.clear();
         for(int n1 = 0; n1 < 6; n1++){
             for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
                 int n = piece_sign*(10*n1+n2+int(n1 == 0));
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
-                if(piecemove(n, y0, x0, kingy, kingx)){
+                if(piecemove(n, y0, x0, kingy, kingx, board)){
                     pinners.push_back(n);
                 }
             }
         }
     }
 
-    double evaluate_change(int y, int x, int changesign, int n = -100){
+    double evaluate_change(int y, int x, int changesign, std::vector<std::vector<int>>& board, int n = -100){
         if(n == -100){
-            n = board0[y][x];
+            n = board[y][x];
         }
         if(n == 0){
             return 0.0;
@@ -1006,34 +1041,32 @@ extern "C" {
         return 0.0;
     }
 
-    double evaluate_move(int n, int y0, int x0, int y1, int x1){
-        return evaluate_change(y1, x1, 1, n) + 
-            evaluate_change(y0, x0, -1, n) + (castled[int(n < 0)] == 1)*0.1;
+    double evaluate_move(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+        return evaluate_change(y1, x1, 1, board, n) + 
+            evaluate_change(y0, x0, -1, board, n) + (castled[int(n < 0)] == 1)*0.1;
     }
 
-    double fulleval(){
+    double fulleval(std::vector<std::vector<int>>& board){
         double evaluation = 0;
         for(int n = 1; n < 51; n++){
             if(piece_positions[n-1][0][0] != -1){
                 int y0 = piece_positions[n-1][0][0];
                 int x0 = piece_positions[n-1][0][1];
-                evaluation += evaluate_change(y0, x0, 1, n);
+                evaluation += evaluate_change(y0, x0, 1, board, n);
             }
             if(piece_positions[n-1][1][0] != -1){
                 int y0 = piece_positions[n-1][1][0];
                 int x0 = piece_positions[n-1][1][1];
-                evaluation += evaluate_change(y0, x0, 1, -n);
+                evaluation += evaluate_change(y0, x0, 1, board, -n);
             }
         }
         evaluation -= (castled[0]+castled[1]);
         return evaluation;
     }
 
-    std::vector<std::vector<int>> reorder(int moves, int board[8][8], std::vector<std::vector<std::vector<int>>> positions){
+    std::vector<std::vector<int>> reorder(int moves, std::vector<std::vector<int>> board, std::vector<std::vector<std::vector<int>>> positions){
         //save current state
         int temp_enpassant = enpassant;
-        int temp_board[8][8];
-        std::copy(&board0[0][0], &board0[0][0]+64, &temp_board[0][0]);
         int temp_kingmoved[2];
         std::copy(&kingmoved[0], &kingmoved[0]+2, 
             &temp_kingmoved[0]);
@@ -1049,6 +1082,7 @@ extern "C" {
         int temp_piece_positions[50][2][2];
         std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
             &temp_piece_positions[0][0][0]);
+        std::vector<std::vector<int>> new_board;
         std::vector<double> movescore;
         std::vector<std::vector<int>> starting_order;
         for(int n1 = 1; n1 < 51; n1++){
@@ -1059,24 +1093,24 @@ extern "C" {
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
                 for(int y1 = 0; y1 < 8; y1++){
                     for(int x1 = 0; x1 < 8; x1++){
-                        if(canmove(n, y0, x0, y1, x1)){
-                            double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                            movepieceto(n, y0, x0, y1, x1);
-                            if(repetition(moves+1, board, positions)
-                            // || stalemate(50) || stalemate(-50)
+                        if(canmove(n, y0, x0, y1, x1, board)){
+                            double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
+                            new_board = movepieceto(n, y0, x0, y1, x1, board);
+                            if(repetition(moves+1, new_board, positions)
+                            // || stalemate(50, new_board) || stalemate(-50, new_board)
                             ){
-                                movescore.push_back(-fulleval());
-                            }else if(partialrepetition(moves+1, board, positions)){
+                                movescore.push_back(-fulleval(board));
+                            }else if(partialrepetition(moves+1, new_board, positions)){
                                 if(bot == 0){
-                                    movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1) 
-                                    + evaluation_minus, -fulleval()));
+                                    movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1, board) 
+                                    + evaluation_minus, -fulleval(board)));
                                 }else{
-                                    movescore.push_back(std::max(evaluate_move(n, y0, x0, y1, x1) 
-                                    + evaluation_minus, -fulleval()));
+                                    movescore.push_back(std::max(evaluate_move(n, y0, x0, y1, x1, board) 
+                                    + evaluation_minus, -fulleval(board)));
                                 }    
                             }else{
                                 movescore.push_back(
-                                    evaluate_move(n, y0, x0, y1, x1) 
+                                    evaluate_move(n, y0, x0, y1, x1, board) 
                                     + evaluation_minus);
                             }
                             starting_order.insert(starting_order.end(),
@@ -1084,8 +1118,6 @@ extern "C" {
 
                             //return to saved state
                             enpassant = temp_enpassant;
-                            std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-                            &board0[0][0]);
                             std::copy(&temp_kingmoved[0], 
                                 &temp_kingmoved[0]+2, &kingmoved[0]);
                             std::copy(&temp_castled[0], &temp_castled[0]+2, 
@@ -1120,18 +1152,18 @@ extern "C" {
         return return_vector;
     }
 
-    double last_move(int n0, int y00, int x00, int y10, int x10, double best){
+    double last_move(int n0, int y00, int x00, int y10, int x10, double best, std::vector<std::vector<int>>& board){
         int piece_sign = int(bot == 1)-int(bot == 0);
         int kingy = piece_positions[49][int(n0>0)][0];
         int kingx = piece_positions[49][int(n0>0)][1];
         if(kingy == -1){
             return -piece_sign*500000/(ntimes+1.0);
         }
-        get_pinners(-piece_sign, kingy, kingx);
-        if(botcheckmate(piece_sign*50, kingy, kingx)){
+        get_pinners(-piece_sign, kingy, kingx, board);
+        if(botcheckmate(piece_sign*50, board, kingy, kingx)){
             return -piece_sign*500000/(ntimes+1.0);
         }
-        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
+        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10, board);
         double movescore[304];
         int movescore_size = 0;
         double best_movescore = -piece_sign*1000000;
@@ -1144,14 +1176,14 @@ extern "C" {
                 if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                     int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                     int x0 = piece_positions[abs(n)-1][int(n<0)][1];
-                    bool pinnable = ispinnable(n, y0, x0, kingy, kingx);
+                    bool pinnable = ispinnable(n, y0, x0, kingy, kingx, board);
                     for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
                         for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
                             int y1 = can_move_positions[abs(n)-1][i][j];
                             int x1 = can_move_positions[abs(n)-1][i][j+1];
-                            if(botcanmove(n, y0, x0, y1, x1, pinnable, kingy, kingx)){
-                                double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                                double current_movescore = evaluate_move(n, y0, x0, y1, x1)
+                            if(botcanmove(n, y0, x0, y1, x1, pinnable, board, kingy, kingx)){
+                                double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
+                                double current_movescore = evaluate_move(n, y0, x0, y1, x1, board)
                                     + evaluation_minus;
                                 double total_movescore = current_movescore 
                                     + previous_movescore;
@@ -1165,10 +1197,10 @@ extern "C" {
                                 }
                                 movescore[movescore_size] = total_movescore;
                                 movescore_size++;
-                                if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
+                                if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
                                     break;
                                 }
-                            }else if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
+                            }else if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
                                 break;
                             }
                         }
@@ -1185,72 +1217,7 @@ extern "C" {
         }
     }
 
-    double last_move_test(int n0, int y00, int x00, int y10, int x10, double best){
-        int piece_sign = int(bot == 1)-int(bot == 0);
-        int kingy = piece_positions[49][int(n0>0)][0];
-        int kingx = piece_positions[49][int(n0>0)][1];
-        if(kingy == -1){
-            return -piece_sign*500000/(ntimes+1.0);
-        }
-        get_pinners(-piece_sign, kingy, kingx);
-        if(botcheckmate(piece_sign*50, kingy, kingx)){
-            return -piece_sign*500000/(ntimes+1.0);
-        }
-        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
-        double movescore[304];
-        int movescore_size = 0;
-        double best_movescore = -piece_sign*1000000;
-        for(int n00 = 0; n00 < 6; n00++){
-            //Goes through the piece types in peculiar order
-            int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
-            + 5*(n00 == 5));
-            for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
-                int n = piece_sign*(10*n1+n2+int(n1 == 0));
-                if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
-                    int y0 = piece_positions[abs(n)-1][int(n<0)][0];
-                    int x0 = piece_positions[abs(n)-1][int(n<0)][1];
-                    bool pinnable = ispinnable(n, y0, x0, kingy, kingx);
-                    for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
-                        for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
-                            int y1 = can_move_positions[abs(n)-1][i][j];
-                            int x1 = can_move_positions[abs(n)-1][i][j+1];
-                            if(botcanmove(n, y0, x0, y1, x1, pinnable, kingy, kingx)){
-                                double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                                double current_movescore = evaluate_move(n, y0, x0, y1, x1)
-                                    + evaluation_minus;
-                                double total_movescore = current_movescore 
-                                    + previous_movescore;
-                                if((total_movescore <= best && bot == 0)
-                                    || (total_movescore >= best && bot == 1)){
-                                    return total_movescore;
-                                }
-                                if((total_movescore < best_movescore && bot == 0)
-                                    || (total_movescore > best_movescore && bot == 1)){
-                                    best_movescore = total_movescore;
-                                }
-                                movescore[movescore_size] = total_movescore;
-                                movescore_size++;
-                                if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
-                                    break;
-                                }
-                            }else if(abs(n) > 19 && abs(n) < 50 && board0[y1][x1] != 0){
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if(movescore_size == 0){
-            return 0.0;
-        }else if(bot == 0){
-            return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
-        }else{
-            return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
-        }
-    }
-
-    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves){
+    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves, std::vector<std::vector<int>> board){
         int piece_sign = (intsign(bot==0))*((nmoremoves%2 == 1)-(nmoremoves%2 == 0));
         //white == 0, black == 1
         int color = int(piece_sign!=1);
@@ -1259,12 +1226,10 @@ extern "C" {
         if(kingy == -1){
             return -piece_sign*500000/(ntimes+1.0);
         }
-        if(checkmate(piece_sign*50, kingy, kingx)){
+        if(checkmate(piece_sign*50, board, kingy, kingx)){
             return -piece_sign*500000/(ntimes-nmoremoves+1.0);
         }
         int temp_enpassant = enpassant;
-        int temp_board[8][8];
-        std::copy(&board0[0][0], &board0[0][0]+64, &temp_board[0][0]);
         int temp_kingmoved[2];
         std::copy(&kingmoved[0], &kingmoved[0]+2, 
             &temp_kingmoved[0]);
@@ -1280,10 +1245,11 @@ extern "C" {
         int temp_piece_positions[50][2][2];
         std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
             &temp_piece_positions[0][0][0]);
+        std::vector<std::vector<int>> new_board;
         double movescore[332];
         int movescore_size = 0;
         double best_movescore = -piece_sign*1000000;
-        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
+        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10, board);
         for(int n00 = 0; n00 < 6; n00++){
             int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
             + 5*(n00 == 5));
@@ -1294,16 +1260,16 @@ extern "C" {
                     int x0 = piece_positions[abs(n)-1][int(n<0)][1];
                     for(int y1 = 0; y1 < 8; y1++){
                         for(int x1 = 0; x1 < 8; x1++){
-                            if(canmove(n, y0, x0, y1, x1, kingy, kingx)){
+                            if(canmove(n, y0, x0, y1, x1, board, kingy, kingx)){
                                 if(nmoremoves%2 == 0){
                                     update_can_move_positions(color, abs(n), y1, x1);
                                 }
-                                double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
+                                double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                                 double current_movescore;
-                                movepieceto(n, y0, x0, y1, x1);
+                                new_board = movepieceto(n, y0, x0, y1, x1, board);
                                 if(nmoremoves%2 == 0 && abs(n) < 10 && ((color == 0 && y1 == 7) 
                                 || (color == 1 && y1 == 0))){
-                                    update_can_move_positions(color, abs(board0[y1][x1]), y1, x1);
+                                    update_can_move_positions(color, abs(board[y1][x1]), y1, x1);
                                 }
                                 if(abs(n) == 50 && abs(x1-x0) > 1 && nmoremoves%2 == 0){
                                     update_can_move_positions(color, 30
@@ -1313,10 +1279,10 @@ extern "C" {
                                 }
                                 if(nmoremoves == 1){
                                     current_movescore = last_move(n, y0, x0, y1, x1, 
-                                        best_movescore-evaluation_minus) + evaluation_minus;
+                                        best_movescore-evaluation_minus, new_board) + evaluation_minus;
                                 }else{
                                     current_movescore = nth_move(n, y0, x0, y1, x1, 
-                                        best_movescore-evaluation_minus, nmoremoves-1) + evaluation_minus;
+                                        best_movescore-evaluation_minus, nmoremoves-1, new_board) + evaluation_minus;
                                 }
                                 double total_movescore = current_movescore 
                                     + previous_movescore;
@@ -1342,8 +1308,6 @@ extern "C" {
                                 movescore_size++;
                                 //return to saved state
                                 enpassant = temp_enpassant;
-                                std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-                                &board0[0][0]);
                                 std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
                                 &piece_positions[0][0][0]);
                                 std::copy(&temp_kingmoved[0], 
@@ -1369,11 +1333,9 @@ extern "C" {
         }
     }
 
-    void firstmove(int moves, int board[8][8], std::vector<std::vector<std::vector<int>>> positions, bool all = true){
+    void firstmove(int moves, std::vector<std::vector<int>> board, std::vector<std::vector<std::vector<int>>> positions, bool all = true){
         //save current state
         int temp_enpassant = enpassant;
-        int temp_board[8][8];
-        std::copy(&board0[0][0], &board0[0][0]+64, &temp_board[0][0]);
         int temp_kingmoved[2];
         std::copy(&kingmoved[0], &kingmoved[0]+2, 
             &temp_kingmoved[0]);
@@ -1389,6 +1351,7 @@ extern "C" {
         int temp_piece_positions[50][2][2];
         std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
             &temp_piece_positions[0][0][0]);
+        std::vector<std::vector<int>> new_board;
         std::vector<double> movescore;
         double best_movescore = -intsign(bot == 0)*1000000;
         std::vector<std::vector<int>> order;
@@ -1405,28 +1368,28 @@ extern "C" {
             int x0 = order[i][2];
             int y1 = order[i][3];
             int x1 = order[i][4];
-            double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-            movepieceto(n, y0, x0, y1, x1);
-            if(repetition(moves+1, board, positions)
-            // || stalemate(50) || stalemate(-50)
+            double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
+            new_board = movepieceto(n, y0, x0, y1, x1, board);
+            if(repetition(moves+1, new_board, positions)
+            // || stalemate(50, new_board) || stalemate(-50, new_board)
             ){
-                movescore.push_back(-fulleval());
+                movescore.push_back(-fulleval(board));
             }
-            else if(partialrepetition(moves+1, board, positions)){
+            else if(partialrepetition(moves+1, new_board, positions)){
                 if(bot == 0){
                     movescore.push_back(std::min(nth_move(n, y0, x0, y1, x1, 
-                    best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
-                    movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1) 
-                    + evaluation_minus, -fulleval()));
+                    best_movescore-evaluation_minus, ntimes, new_board) + evaluation_minus, -fulleval(board)));
+                    movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1, board) 
+                    + evaluation_minus, -fulleval(board)));
                 }else{
                     movescore.push_back(std::max(nth_move(n, y0, x0, y1, x1, 
-                    best_movescore-evaluation_minus, ntimes) + evaluation_minus, -fulleval()));
+                    best_movescore-evaluation_minus, ntimes, new_board) + evaluation_minus, -fulleval(board)));
                 } 
             }
             else{
                 double current_movescore = 
                     nth_move(n, y0, x0, y1, x1, 
-                    best_movescore-evaluation_minus, ntimes) + evaluation_minus;
+                    best_movescore-evaluation_minus, ntimes, new_board) + evaluation_minus;
                 movescore.push_back(current_movescore);
                 if((current_movescore > best_movescore && bot == 0) 
                     || (current_movescore < best_movescore && bot == 1)){
@@ -1436,8 +1399,6 @@ extern "C" {
 
             //return to saved state
             enpassant = temp_enpassant;
-            std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-            &board0[0][0]);
             std::copy(&temp_kingmoved[0], 
                 &temp_kingmoved[0]+2, &kingmoved[0]);
             std::copy(&temp_castled[0], &temp_castled[0]+2, 
@@ -1511,10 +1472,10 @@ extern "C" {
         return myvector;
     }
 
-    bool compare_to_book(std::vector<std::vector<int>> book_board){
+    bool compare_to_book(std::vector<std::vector<int>> book_board, std::vector<std::vector<int>>& board){
         for(int j = 0; j < 8; j++){
             for(int k = 0; k < 8; k++){
-                if(book_board[j][k] != board0[j][k]){
+                if(book_board[j][k] != board[j][k]){
                     return false;
                 }
             }
@@ -1522,35 +1483,31 @@ extern "C" {
         return true;
     }
 
-    bool read_openingbook(int color, const char* openingbook_data, int size){
+    std::vector<int> read_openingbook(int color, const char* openingbook_data, int size, std::vector<std::vector<int>> board){
         std::vector<std::vector<std::vector<std::vector<int>>>> openingbook = open_openingbook(openingbook_data, size);
         for(int i = 0; i < openingbook.size(); i++){
-            if(compare_to_book(openingbook[i][0])){
+            if(compare_to_book(openingbook[i][0], board)){
                 std::vector<int> bookmove = openingbook[i][1][0];
-                movepieceto(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]);
+                board = movepieceto(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4], board);
                 std::cout << convert_to_png(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]) << '\n';
-                return true;
+                return {1, bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]};
             }
         }
-        return false;
+        return {0};
     }
 
-    int basicbot(const char* openingbook_data, int size, int moves, const char* board_string
+    const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string
     , const char* positions_string){
-        std::vector<std::vector<int>> board_vector = convert_board(board_string, 2);
-        int board[8][8];
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                board[y][x] = board_vector[y][x];
-            }
-        }
+        std::cout << "updated0" << '\n';
+        std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
 
-        if(read_openingbook(bot, openingbook_data, size)){
+        if(read_openingbook(bot, openingbook_data, size, board)[0]){
+            std::vector<int> book_result = read_openingbook(bot, openingbook_data, size, board);
             std::cout << "book" << '\n';
-            return 0;
+            return vector_to_string({book_result[1], book_result[2], book_result[3], book_result[4], book_result[5]});
         }
-        double score = fulleval();
+        double score = fulleval(board);
         auto start = std::chrono::high_resolution_clock::now();
         firstmove(moves, board, positions);
         auto stop = std::chrono::high_resolution_clock::now();
@@ -1582,13 +1539,13 @@ extern "C" {
         int x0 = bestmove[0][2];
         int y1 = bestmove[0][3];
         int x1 = bestmove[0][4];
-        movepieceto(n, y0, x0, y1, x1);
+        board = movepieceto(n, y0, x0, y1, x1, board);
         stop = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
         std::cout << duration.count()/1000.0 << '\n';
         std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
-        return 0;
+        return vector_to_string({n, y0, x0, y1, x1});
         //std::cout << timer << '\n';
     }
 }
