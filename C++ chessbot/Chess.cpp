@@ -1138,7 +1138,7 @@ extern "C" {
 
     double evaluate_move(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board, int& castled){
         return evaluate_change(y1, x1, 1, board, n) + 
-            evaluate_change(y0, x0, -1, board, n) + (castled % (2*(n > 0) + 3*(n < 0)) == 0)*0.1;
+            evaluate_change(y0, x0, -1, board, n) + (castled % 2 == 0)*0.1 - (castled % 3 == 0)*0.1;
     }
 
     double fulleval(std::vector<std::vector<int>>& board, int& castled){
@@ -1470,8 +1470,6 @@ extern "C" {
                 if(bot == 0){
                     movescore.push_back(std::min(nth_move(n, y0, x0, y1, x1, 
                     best_movescore-evaluation_minus, ntimes, new_board, can_move_positions, castled) + evaluation_minus, -fulleval(board, castled)));
-                    movescore.push_back(std::min(evaluate_move(n, y0, x0, y1, x1, board, castled) 
-                    + evaluation_minus, -fulleval(board, castled)));
                 }else{
                     movescore.push_back(std::max(nth_move(n, y0, x0, y1, x1, 
                     best_movescore-evaluation_minus, ntimes, new_board, can_move_positions, castled) + evaluation_minus, -fulleval(board, castled)));
