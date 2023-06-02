@@ -39,7 +39,7 @@ Module.onRuntimeInitialized = function () {
   // Interact with the C++ chess bot using ccall or cwrap
   const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number', 'string']);
   const locate_pieces = Module.cwrap('locate_pieces', 'null', ['string']);
-  const set_can_move_positions = Module.cwrap('set_can_move_positions', 'null', ['']);
+  const set_can_move_positions = Module.cwrap('set_can_move_positions', 'string', ['']);
   const printboard = Module.cwrap('printboard', 'null', ['string']);
   const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string']);
   let basicbot;
@@ -164,18 +164,19 @@ Module.onRuntimeInitialized = function () {
       turn = (turn == 0);
       moves++;
       await drawBoard();
-      set_can_move_positions();
+      can_move_positions = JSON.parse(set_can_move_positions());
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
       if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)) >= 0){
         console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)))
         turn = -1;
       }
-      let move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), JSON.stringify(positions));
+      let move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), JSON.stringify(positions)
+      , JSON.stringify(can_move_positions));
       console.log(move)
       turn = (turn == 0);
       moves++;
-      set_can_move_positions();
+      can_move_positions = JSON.parse(set_can_move_positions());
       update_position(convert_move(move));
       drawBoard();
       if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)) >= 0){
@@ -213,7 +214,7 @@ Module.onRuntimeInitialized = function () {
         binaryData = await loadBinaryData('bopeningbook.bin');
       }
 
-      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string']);
+      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string', 'string']);
 
       const dataPtr = Module._malloc(binaryData.length);
       Module.HEAPU8.set(binaryData, dataPtr);
@@ -221,7 +222,7 @@ Module.onRuntimeInitialized = function () {
       openingbook = [dataPtr, binaryData.length];
 
       locate_pieces(JSON.stringify(board));
-      set_can_move_positions();
+      can_move_positions = JSON.parse(set_can_move_positions());
       drawBoard();
   })();
 };
