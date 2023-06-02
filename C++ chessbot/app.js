@@ -8,6 +8,7 @@ Module.onRuntimeInitialized = function () {
   positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]],
   enpassant = -1, pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]];
+  let castled = 1; //%2 == 0 if white has castled, %3 == 0 if black has castled
 
   let boardimg = new Image();
   boardimg.src = "../Images/board.png";
@@ -135,6 +136,7 @@ Module.onRuntimeInitialized = function () {
         let rookx = (x1 > 4)*7;
         board[y1][rookx] = 0;
         board[y1][x1 + Math.sign(4-x1)] = whichrook;
+        castled *= (2*(n > 0) + 3*(n < 0));
       }
     }
     if((n > 0 && n < 10 && y1 == 7) || (n < 0 && n > -10 && y1 == 0)){
@@ -173,7 +175,7 @@ Module.onRuntimeInitialized = function () {
         turn = -1;
       }
       let move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), JSON.stringify(positions)
-      , JSON.stringify(can_move_positions));
+      , JSON.stringify(can_move_positions), castled);
       console.log(move)
       turn = (turn == 0);
       moves++;
@@ -215,7 +217,7 @@ Module.onRuntimeInitialized = function () {
         binaryData = await loadBinaryData('bopeningbook.bin');
       }
 
-      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string', 'string']);
+      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string', 'string', 'number']);
 
       const dataPtr = Module._malloc(binaryData.length);
       Module.HEAPU8.set(binaryData, dataPtr);
