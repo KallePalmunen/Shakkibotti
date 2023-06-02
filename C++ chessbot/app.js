@@ -7,7 +7,7 @@ Module.onRuntimeInitialized = function () {
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
   positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]],
-  enpassant = -1;
+  enpassant = -1, pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]];
 
   let boardimg = new Image();
   boardimg.src = "../Images/board.png";
@@ -137,9 +137,10 @@ Module.onRuntimeInitialized = function () {
         board[y1][x1 + Math.sign(4-x1)] = whichrook;
       }
     }
-    if((n > 0 && y1 == 7) || (n < 0 && y1 == 0)){
+    if((n > 0 && n < 10 && y1 == 7) || (n < 0 && n > -10 && y1 == 0)){
       promoteto = 4;
       board[y1][x1] = Math.sign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
+      pieces[promoteto][(n < 0)]++;
     }else{
       console.log(y1, x1);
       board[y1][x1] = n;
