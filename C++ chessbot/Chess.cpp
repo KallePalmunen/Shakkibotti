@@ -16,7 +16,7 @@ extern "C" {
     double evalscore = 0.0;
     std::string evaltext = "";
     //coordinates where it could be possible for a given piece to move to
-    std::vector<std::vector<std::vector<int>>> can_move_positions;
+    std::vector<std::vector<std::vector<int>>> can_move_positions0;
     std::vector<int> pinners;
     float timer = 0.0;
 
@@ -152,6 +152,99 @@ extern "C" {
         return charPtr;
     }
 
+    const char* vector_to_string_3d(std::vector<std::vector<std::vector<int>>> vector){
+        std::ostringstream oss;
+        oss << "[";
+        for(int i = 0; i < vector.size(); i++){
+            oss << "[";
+            for(int j = 0; j < vector[i].size(); j++){
+                oss << "[";
+                for(int k = 0; k < vector[i][j].size(); k++){
+                    oss << vector[i][j][k];
+                    if (k < vector[i][j].size() - 1){
+                        oss << ",";
+                    }
+                }
+                oss << "]";
+                if(j < vector[i].size() - 1){
+                    oss << ",";
+                }
+            }
+            oss << "]";
+            if(i < vector.size() - 1){
+                oss << ",";
+            }
+        }
+        oss << "]";
+
+        std::string str = oss.str();
+        char* charPtr = new char[str.length() + 1];
+        std::strcpy(charPtr, str.c_str());
+
+        return charPtr;
+    }
+
+    std::vector<std::vector<std::vector<int>>> string_to_vector_3d(const char* can_move_positions_str){
+        int i = 1;
+        int j = -1;
+        int k = -1;
+        std::vector<std::vector<std::vector<int>>> result;
+        while(i < strlen(can_move_positions_str)){
+            result.push_back({});
+            j++;
+            k = -1;
+
+            while(i < strlen(can_move_positions_str)){
+                result[j].push_back({});
+                k++;
+                while(true){
+                    if(can_move_positions_str[i] == ','){
+                        i++;
+                    }else{
+                        break;
+                    }
+                }
+                if(k == 0 && can_move_positions_str[i+1] != '['){
+                    i += 2;
+                    break;
+                }
+                while(i < strlen(can_move_positions_str)){
+                    std::string element = "";
+                    while(true){
+                        if(can_move_positions_str[i] == ',' || can_move_positions_str[i] == '['){
+                            i++;
+                        }else{
+                            break;
+                        }
+                    }
+                    while(true){
+                        if(can_move_positions_str[i] == ',' || can_move_positions_str[i] == ']'){
+                            i ++;
+                            break;
+                        }
+                        element += can_move_positions_str[i];
+                        i++;
+                    }
+                    if(element != ""){
+                        result[j][k].push_back(std::stoi(element));
+                    }
+                    if(can_move_positions_str[i-1] == ']'){
+                        break;
+                    }
+                }
+                if(can_move_positions_str[i] == ']'){
+                    i++;
+                    break;
+                }
+            }
+            if(can_move_positions_str[i] == ']'){
+                i++;
+                break;
+            }
+        }
+        return result;
+    }
+
     std::vector<std::vector<int>> convert_board(const char* board_string){
         int i = 2;
         std::vector<std::vector<int>> result;
@@ -180,7 +273,7 @@ extern "C" {
         return result;
     }
 
-    std::vector<std::vector<std::vector<int>>> convert_positions(const char* positions_string, int moves){
+    std::vector<std::vector<std::vector<int>>> sitions(const char* positions_string, int moves){
         int i = 0;
         std::vector<std::vector<std::vector<int>>> result;
         for(int move = 0; move <= moves; move++){
@@ -774,7 +867,7 @@ extern "C" {
     int gameend(int turn, int moves, const char* board_string, const char* positions_string){
         //returns 2 if white won, 1 if black won, 0 if draw, -1 if game continues
         std::vector<std::vector<int>> board = convert_board(board_string);
-        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
+        std::vector<std::vector<std::vector<int>>> positions = sitions(positions_string, moves);
 
         if(checkmate(-50, board)){
             std::cout << "White won" << '\n';
@@ -793,171 +886,171 @@ extern "C" {
         return -1;
     }
 
-    void update_can_move_positions(int color, int piece, int y0, int x0){
+    std::vector<std::vector<std::vector<int>>> update_can_move_positions(int color, int piece, int y0, int x0){
         if(piece > 0){
-            can_move_positions[piece-1].resize(0);
+            can_move_positions0[piece-1].resize(0);
         }
         if(y0 < 0 || x0 < 0){
-            return;
+            return can_move_positions0;
         }
         if(piece > 9 && piece < 20){
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             if(y0 > 0){
                 if(x0 < 6){
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0+2});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-1, x0+2});
                 }
                 if(x0 > 1){
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0-2});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-1, x0-2});
                 }
                 if(y0 > 1){
                     if(x0 < 7){
-                        can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-2, x0+1});
+                        can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-2, x0+1});
                     }
                     if(x0 > 0){
-                        can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-2, x0-1});
+                        can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-2, x0-1});
                     }
                 }
             }
             if(y0 < 7){
                 if(x0 < 6){
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0+2});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+1, x0+2});
                 }
                 if(x0 > 1){
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0-2});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+1, x0-2});
                 }
                 if(y0 < 6){
                     if(x0 < 7){
-                        can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+2, x0+1});
+                        can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+2, x0+1});
                     }
                     if(x0 > 0){
-                        can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+2, x0-1});
+                        can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+2, x0-1});
                     }
                 }
             }
-            return;
+            return can_move_positions0;
         }
         if(abs(piece) < 10){
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             if(color == 0){
-                can_move_positions[piece-1][0] = {y0+1, x0, y0+1, x0+1, y0+1, x0-1};
+                can_move_positions0[piece-1][0] = {y0+1, x0, y0+1, x0+1, y0+1, x0-1};
                 if(y0 == 1){
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+2, x0});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+2, x0});
                 }
-                return;
+                return can_move_positions0;
             }
             if(color == 1){
-                can_move_positions[piece-1][0] = {y0-1, x0, y0-1, x0+1, y0-1, x0-1};
+                can_move_positions0[piece-1][0] = {y0-1, x0, y0-1, x0+1, y0-1, x0-1};
                 if(y0 == 6){
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-2, x0});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-2, x0});
                 }
-                return;
+                return can_move_positions0;
             }
-            return;
+            return can_move_positions0;
         }
         if(piece > 19 && piece < 30){
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-i, x0-i});
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-i, x0-i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
-                can_move_positions[piece-1][1].insert(can_move_positions[piece-1][1].end(),{y0-i, x0+i});
+                can_move_positions0[piece-1][1].insert(can_move_positions0[piece-1][1].end(),{y0-i, x0+i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0+i < 8 && y0+i < 8; i++){
-                can_move_positions[piece-1][2].insert(can_move_positions[piece-1][2].end(),{y0+i, x0+i});
+                can_move_positions0[piece-1][2].insert(can_move_positions0[piece-1][2].end(),{y0+i, x0+i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
-                can_move_positions[piece-1][3].insert(can_move_positions[piece-1][3].end(),{y0+i, x0-i});
+                can_move_positions0[piece-1][3].insert(can_move_positions0[piece-1][3].end(),{y0+i, x0-i});
             }
-            return;
+            return can_move_positions0;
         }
         if(piece > 29 && piece < 40){
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0-i >= 0; i++){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0, x0-i});
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0, x0-i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0+i < 8; i++){
-                can_move_positions[piece-1][1].insert(can_move_positions[piece-1][1].end(),{y0, x0+i});
+                can_move_positions0[piece-1][1].insert(can_move_positions0[piece-1][1].end(),{y0, x0+i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; y0-i >= 0; i++){
-                can_move_positions[piece-1][2].insert(can_move_positions[piece-1][2].end(),{y0-i, x0});
+                can_move_positions0[piece-1][2].insert(can_move_positions0[piece-1][2].end(),{y0-i, x0});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; y0+i < 8; i++){
-                can_move_positions[piece-1][3].insert(can_move_positions[piece-1][3].end(),{y0+i, x0});
+                can_move_positions0[piece-1][3].insert(can_move_positions0[piece-1][3].end(),{y0+i, x0});
             }
-            return;
+            return can_move_positions0;
         }
         if(piece > 39 && piece < 50){
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-i, x0-i});
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-i, x0-i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0+i < 8 && y0-i >= 0; i++){
-                can_move_positions[piece-1][1].insert(can_move_positions[piece-1][1].end(),{y0-i, x0+i});
+                can_move_positions0[piece-1][1].insert(can_move_positions0[piece-1][1].end(),{y0-i, x0+i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0+i < 8 && y0+i < 8; i++){
-                can_move_positions[piece-1][2].insert(can_move_positions[piece-1][2].end(),{y0+i, x0+i});
+                can_move_positions0[piece-1][2].insert(can_move_positions0[piece-1][2].end(),{y0+i, x0+i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0-i >= 0 && y0+i < 8; i++){
-                can_move_positions[piece-1][3].insert(can_move_positions[piece-1][3].end(),{y0+i, x0-i});
+                can_move_positions0[piece-1][3].insert(can_move_positions0[piece-1][3].end(),{y0+i, x0-i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0-i >= 0; i++){
-                can_move_positions[piece-1][4].insert(can_move_positions[piece-1][4].end(),{y0, x0-i});
+                can_move_positions0[piece-1][4].insert(can_move_positions0[piece-1][4].end(),{y0, x0-i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; x0+i < 8; i++){
-                can_move_positions[piece-1][5].insert(can_move_positions[piece-1][5].end(),{y0, x0+i});
+                can_move_positions0[piece-1][5].insert(can_move_positions0[piece-1][5].end(),{y0, x0+i});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; y0-i >= 0; i++){
-                can_move_positions[piece-1][6].insert(can_move_positions[piece-1][6].end(),{y0-i, x0});
+                can_move_positions0[piece-1][6].insert(can_move_positions0[piece-1][6].end(),{y0-i, x0});
             }
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             for(int i = 1; y0+i < 8; i++){
-                can_move_positions[piece-1][7].insert(can_move_positions[piece-1][7].end(),{y0+i, x0});
+                can_move_positions0[piece-1][7].insert(can_move_positions0[piece-1][7].end(),{y0+i, x0});
             }
-            return;
+            return can_move_positions0;
         }
         if(piece == 50){
-            can_move_positions[piece-1].push_back({});
+            can_move_positions0[piece-1].push_back({});
             if(y0 > 0){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0});
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-1, x0});
                 if(x0 > 0){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0-1}); 
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-1, x0-1}); 
                 }
                 if(x0 < 7){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0+1}); 
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0-1, x0+1}); 
                 }
             }
             if(x0 > 0){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0, x0-1});
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0, x0-1});
                 if(x0 == 3){
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0, x0-2});
-                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0, x0+2});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0, x0-2});
+                    can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0, x0+2});
                 }
             }
             if(x0 < 7){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0, x0+1});
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0, x0+1});
             }
             if(y0 < 7){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0});
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+1, x0});
                 if(x0 > 0){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0-1}); 
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+1, x0-1}); 
                 }
                 if(x0 < 7){
-                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0+1}); 
+                can_move_positions0[piece-1][0].insert(can_move_positions0[piece-1][0].end(),{y0+1, x0+1}); 
                 }
             }
-            return;
+            return can_move_positions0;
         }
     }
 
@@ -988,13 +1081,16 @@ extern "C" {
         return false;
     }
 
-    void set_can_move_positions(){
-        can_move_positions.resize(0);
-        for(int n = 1; n < 51; n++){
-            can_move_positions.push_back({});
+    const char* set_can_move_positions(){
+        can_move_positions0.resize(0);
+        for(int n = 1; n < 50; n++){
+            can_move_positions0.push_back({});
             update_can_move_positions(int(bot == 0), n, piece_positions[n-1][int(bot ==0)][0]
             , piece_positions[n-1][int(bot == 0)][1]);
         }
+        can_move_positions0.push_back({});
+        return vector_to_string_3d(update_can_move_positions(int(bot == 0), 50, piece_positions[50-1][int(bot ==0)][0]
+        , piece_positions[50-1][int(bot == 0)][1]));
     }
 
     void get_pinners(int piece_sign, int kingy, int kingx, std::vector<std::vector<int>>& board){
@@ -1177,10 +1273,10 @@ extern "C" {
                     int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                     int x0 = piece_positions[abs(n)-1][int(n<0)][1];
                     bool pinnable = ispinnable(n, y0, x0, kingy, kingx, board);
-                    for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
-                        for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
-                            int y1 = can_move_positions[abs(n)-1][i][j];
-                            int x1 = can_move_positions[abs(n)-1][i][j+1];
+                    for(int i = 0; i < can_move_positions0[abs(n)-1].size(); i++){
+                        for(int j = 0; j < can_move_positions0[abs(n)-1][i].size(); j+=2){
+                            int y1 = can_move_positions0[abs(n)-1][i][j];
+                            int x1 = can_move_positions0[abs(n)-1][i][j+1];
                             if(botcanmove(n, y0, x0, y1, x1, pinnable, board, kingy, kingx)){
                                 double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                                 double current_movescore = evaluate_move(n, y0, x0, y1, x1, board)
@@ -1497,10 +1593,11 @@ extern "C" {
     }
 
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string
-    , const char* positions_string){
-        std::cout << "updated0" << '\n';
+    , const char* positions_string, const char* can_move_positions_str){
+        std::cout << "updated" << '\n';
         std::vector<std::vector<int>> board = convert_board(board_string);
-        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
+        std::vector<std::vector<std::vector<int>>> positions = sitions(positions_string, moves);
+        std::vector<std::vector<std::vector<int>>> can_move_positions = string_to_vector_3d(can_move_positions_str);
 
         if(read_openingbook(bot, openingbook_data, size, board)[0]){
             std::vector<int> book_result = read_openingbook(bot, openingbook_data, size, board);
