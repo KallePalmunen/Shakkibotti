@@ -807,7 +807,7 @@ extern "C" {
             piece_positions[abs(n)-1][int(n<0)][0] = y1;
             piece_positions[abs(n)-1][int(n<0)][1] = x1;
         }
-        if(enpassant >= 0 && x1*8+y1 == enpassant){
+        if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
             piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
             board[y1-intsign(y1 - y0)][x1] = 0;
         }
@@ -1589,7 +1589,7 @@ extern "C" {
 
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string
     , const char* positions_string, const char* can_move_positions_str, int castled){
-        std::cout << "updated1" << '\n';
+        std::cout << "updated0" << '\n';
         std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = sitions(positions_string, moves);
         std::vector<std::vector<std::vector<int>>> can_move_positions = string_to_vector_3d(can_move_positions_str);
