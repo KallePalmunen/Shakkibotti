@@ -147,7 +147,7 @@ Module.onRuntimeInitialized = function () {
       console.log(y1, x1);
       board[y1][x1] = n;
     }
-    if(enpassant >= 0 && x1*8+y1 == enpassant){
+    if(enpassant >= 0 && x1*8+y1 == enpassant && Math.abs(n) < 10){
       board[y1-Math.sign(y1 - y0)][x1] = 0;
     }
     if(Math.abs(n) < 10 && Math.abs(y1-y0) > 1){
