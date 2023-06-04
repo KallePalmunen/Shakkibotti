@@ -7,7 +7,9 @@ Module.onRuntimeInitialized = function () {
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
   positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]],
-  enpassant = -1, pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]], piece_positions = [];
+  enpassant = -1, piece_positions = [];
+  //pawns, knights, bishops, rooks, queens and kings (W,B)
+  let pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]];
   let castled = 1; //%2 == 0 if white has castled, %3 == 0 if black has castled
 
   let boardimg = new Image();
@@ -38,11 +40,11 @@ Module.onRuntimeInitialized = function () {
   bkingimg.src = "../Images/blackking2.png";
 
   // Interact with the C++ chess bot using ccall or cwrap
-  const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number', 'string', 'number', 'string']);
+  const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number', 'string', 'number', 'string', 'string']);
   const locate_pieces = Module.cwrap('locate_pieces', 'string', ['string']);
   const set_can_move_positions = Module.cwrap('set_can_move_positions', 'string', ['string']);
   const printboard = Module.cwrap('printboard', 'null', ['string']);
-  const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string', 'string']);
+  const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string', 'string', 'string']);
   let basicbot;
 
   let openingbook;
@@ -171,7 +173,7 @@ Module.onRuntimeInitialized = function () {
   }
   
   async function make_move(y0, x0, y1, x1){
-    if(!movepiece(y0, x0, y1, x1, turn, JSON.stringify(board), castled, JSON.stringify(piece_positions))){
+    if(!movepiece(y0, x0, y1, x1, turn, JSON.stringify(board), castled, JSON.stringify(piece_positions), JSON.stringify(pieces))){
       console.log("Illegal move");
     }else{
       update_position([board[y0][x0], y0, x0, y1, x1]);
@@ -181,20 +183,26 @@ Module.onRuntimeInitialized = function () {
       can_move_positions = JSON.parse(set_can_move_positions(JSON.stringify(piece_positions)));
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
-      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions)))
+      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)) >= 0){
+        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)))
         turn = -1;
       }
-      let move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), JSON.stringify(positions)
-      , JSON.stringify(can_move_positions), castled, JSON.stringify(piece_positions));
-      console.log(move)
+      let move;
+      try{
+        move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), JSON.stringify(positions)
+        , JSON.stringify(can_move_positions), castled, JSON.stringify(piece_positions), JSON.stringify(pieces));
+        console.log(move);
+      }catch(error){
+        console.log("Error occurred in basicbot:", error);
+        return;
+      }
       turn = (turn == 0);
       moves++;
       can_move_positions = JSON.parse(set_can_move_positions(JSON.stringify(piece_positions)));
       update_position(convert_move(move));
       drawBoard();
-      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions)))
+      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)) >= 0){
+        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)))
         turn = -1;
       }
     }
@@ -228,7 +236,7 @@ Module.onRuntimeInitialized = function () {
         binaryData = await loadBinaryData('bopeningbook.bin');
       }
 
-      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string', 'string', 'number', 'string']);
+      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string', 'string', 'number', 'string', 'string']);
 
       const dataPtr = Module._malloc(binaryData.length);
       Module.HEAPU8.set(binaryData, dataPtr);
