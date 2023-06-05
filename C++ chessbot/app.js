@@ -11,6 +11,7 @@ Module.onRuntimeInitialized = function () {
   //pawns, knights, bishops, rooks, queens and kings (W,B)
   let pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]];
   let castled = 1; //%2 == 0 if white has castled, %3 == 0 if black has castled
+  let kingmoved = 1; //%2 == 0 if white king has moved, %3 == 0 if black king has moved
 
   let boardimg = new Image();
   boardimg.src = "../Images/board.png";
@@ -44,7 +45,7 @@ Module.onRuntimeInitialized = function () {
   const locate_pieces = Module.cwrap('locate_pieces', 'string', ['string']);
   const set_can_move_positions = Module.cwrap('set_can_move_positions', 'string', ['string']);
   const printboard = Module.cwrap('printboard', 'null', ['string']);
-  const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string', 'string', 'string']);
+  const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string', 'string', 'string', 'number']);
   let basicbot;
 
   let openingbook;
@@ -145,6 +146,7 @@ Module.onRuntimeInitialized = function () {
         piece_positions[Math.abs(whichrook)-1][Number(n<0)][0] = y1;
         piece_positions[Math.abs(whichrook)-1][Number(n<0)][1] = x1 + Math.sign(4-x1);
       }
+      kingmoved *= ((n>0)*2 + (n<0)*3);
     }
     if((n > 0 && n < 10 && y1 == 7) || (n < 0 && n > -10 && y1 == 0)){
       promoteto = 4;
@@ -183,14 +185,16 @@ Module.onRuntimeInitialized = function () {
       can_move_positions = JSON.parse(set_can_move_positions(JSON.stringify(piece_positions)));
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
-      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)))
+      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)
+      , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved) >= 0){
+        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)
+        , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved))
         turn = -1;
       }
       let move;
       try{
         move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), JSON.stringify(positions)
-        , JSON.stringify(can_move_positions), castled, JSON.stringify(piece_positions), JSON.stringify(pieces));
+        , JSON.stringify(can_move_positions), castled, JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved);
         console.log(move);
       }catch(error){
         console.log("Error occurred in basicbot:", error);
@@ -201,8 +205,10 @@ Module.onRuntimeInitialized = function () {
       can_move_positions = JSON.parse(set_can_move_positions(JSON.stringify(piece_positions)));
       update_position(convert_move(move));
       drawBoard();
-      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions), JSON.stringify(piece_positions), JSON.stringify(pieces)))
+      if(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)
+      , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved) >= 0){
+        console.log(gameend(turn, moves, JSON.stringify(board), JSON.stringify(positions)
+        , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved))
         turn = -1;
       }
     }
@@ -236,7 +242,8 @@ Module.onRuntimeInitialized = function () {
         binaryData = await loadBinaryData('bopeningbook.bin');
       }
 
-      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string', 'string', 'number', 'string', 'string']);
+      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string', 'string'
+      , 'number', 'string', 'string', 'number']);
 
       const dataPtr = Module._malloc(binaryData.length);
       Module.HEAPU8.set(binaryData, dataPtr);
