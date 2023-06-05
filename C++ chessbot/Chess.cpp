@@ -13,7 +13,6 @@ extern "C" {
     int bot = 1;
     double evalscore = 0.0;
     std::string evaltext = "";
-    std::vector<int> pinners;
     float timer = 0.0;
 
     //black, white
@@ -606,7 +605,7 @@ extern "C" {
     }
 
     bool botcheck(int n, int kingy, int kingx, std::vector<std::vector<int>>& board
-    , std::vector<std::vector<std::vector<int>>>& piece_positions){
+    , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<int>& pinners){
         for(int i = 0; i < pinners.size(); i++){
             int piecen = pinners[i];
             if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
@@ -697,7 +696,7 @@ extern "C" {
     }
 
     bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx, std::vector<std::vector<int>>& board
-    , std::vector<std::vector<std::vector<int>>>& piece_positions){
+    , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<int>& pinners){
         if(pinners.size() == 0){
             return false;
         }
@@ -717,7 +716,7 @@ extern "C" {
             board[y1-intsign(y1 - y0)][x1] = 0;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
         }
-        if(!botcheck(intsign(n)*50, kingy, kingx, board, piece_positions)){
+        if(!botcheck(intsign(n)*50, kingy, kingx, board, piece_positions, pinners)){
             board[y0][x0] = n;
             board[y1][x1] = movetosquare;
             piece_positions[abs(n)-1][int(n<0)][0] = y0;
@@ -746,12 +745,12 @@ extern "C" {
     }
 
     bool ispinnable(int n, int y0, int x0, int kingy, int kingx, std::vector<std::vector<int>>& board
-    , std::vector<std::vector<std::vector<int>>>& piece_positions){
+    , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<int>& pinners){
         if(pinners.size() == 0){
             return false;
         }
         board[y0][x0] = 0;
-        if(!botcheck(intsign(n)*50, kingy, kingx, board, piece_positions)){
+        if(!botcheck(intsign(n)*50, kingy, kingx, board, piece_positions, pinners)){
             board[y0][x0] = n;
             return false;
         }
@@ -777,13 +776,13 @@ extern "C" {
 
     bool botcanmove(int n, int y0, int x0, int y1, int x1, bool pinnable, std::vector<std::vector<int>>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions
-    , std::vector<std::vector<int>>& pieces, int kingy = -1, int kingx = -1){
+    , std::vector<std::vector<int>>& pieces, std::vector<int>& pinners, int kingy = -1, int kingx = -1){
         if(abs(n) < 50){
             if(botpiecemove(n, y0, x0, y1, x1, board)){
                 if(!pinnable){
                     return true;
                 }
-                return (!botpin(n, y0, x0, y1, x1, kingy, kingx, board, piece_positions));
+                return (!botpin(n, y0, x0, y1, x1, kingy, kingx, board, piece_positions, pinners));
             }
             return false;
         }
@@ -829,8 +828,9 @@ extern "C" {
     }
 
     bool botcheckmate(int n, std::vector<std::vector<int>>& board
-    , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces, int kingy = -1, int kingx = -1){
-        if(!botcheck(n, kingy, kingx, board, piece_positions)){
+    , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces
+    , std::vector<int>& pinners, int kingy = -1, int kingx = -1){
+        if(!botcheck(n, kingy, kingx, board, piece_positions, pinners)){
             return false;
         }
         for(int n1 = 0; n1 < 6; n1++){
@@ -1177,9 +1177,9 @@ extern "C" {
         , piece_positions[50-1][int(bot == 0)][1], can_move_positions));
     }
 
-    void get_pinners(int piece_sign, int kingy, int kingx, std::vector<std::vector<int>>& board
+    std::vector<int> get_pinners(int piece_sign, int kingy, int kingx, std::vector<std::vector<int>>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces){
-        pinners.clear();
+        std::vector<int> pinners;
         for(int n1 = 0; n1 < 6; n1++){
             for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
                 int n = piece_sign*(10*n1+n2+int(n1 == 0));
@@ -1190,6 +1190,7 @@ extern "C" {
                 }
             }
         }
+        return pinners;
     }
 
     double evaluate_change(int y, int x, int changesign, std::vector<std::vector<int>>& board, int n = -100){
@@ -1335,8 +1336,8 @@ extern "C" {
         if(kingy == -1){
             return -piece_sign*500000/(ntimes+1.0);
         }
-        get_pinners(-piece_sign, kingy, kingx, board, piece_positions, pieces);
-        if(botcheckmate(piece_sign*50, board, piece_positions, pieces, kingy, kingx)){
+        std::vector<int> pinners = get_pinners(-piece_sign, kingy, kingx, board, piece_positions, pieces);
+        if(botcheckmate(piece_sign*50, board, piece_positions, pieces, pinners, kingy, kingx)){
             return -piece_sign*500000/(ntimes+1.0);
         }
         double previous_movescore = evaluate_move(n0, y00, x00, y10, x10, board, castled);
@@ -1352,12 +1353,12 @@ extern "C" {
                 if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                     int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                     int x0 = piece_positions[abs(n)-1][int(n<0)][1];
-                    bool pinnable = ispinnable(n, y0, x0, kingy, kingx, board, piece_positions);
+                    bool pinnable = ispinnable(n, y0, x0, kingy, kingx, board, piece_positions, pinners);
                     for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
                         for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
                             int y1 = can_move_positions[abs(n)-1][i][j];
                             int x1 = can_move_positions[abs(n)-1][i][j+1];
-                            if(botcanmove(n, y0, x0, y1, x1, pinnable, board, piece_positions, pieces, kingy, kingx)){
+                            if(botcanmove(n, y0, x0, y1, x1, pinnable, board, piece_positions, pieces, pinners, kingy, kingx)){
                                 double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                                 double current_movescore = evaluate_move(n, y0, x0, y1, x1, board, castled)
                                     + evaluation_minus;
@@ -1664,7 +1665,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string
     , const char* positions_string, const char* can_move_positions_str, int castled, const char* piece_positions_str
     , const char* pieces_str){
-        std::cout << "updated0" << '\n';
+        std::cout << "updated" << '\n';
         std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
         std::vector<std::vector<std::vector<int>>> can_move_positions = string_to_vector_3d(can_move_positions_str);
