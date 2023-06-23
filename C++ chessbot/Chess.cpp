@@ -652,7 +652,7 @@ extern "C" {
         //checks if you can prevent the mate in next turn 
         //by enpassanting the checking piece
         int enpassanted = -100;
-        if(enpassant >= 0 && x1*8+y1 == enpassant){
+        if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
             enpassanted = board[y1-intsign(y1 - y0)][x1];
             board[y1-intsign(y1 - y0)][x1] = 0;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
@@ -701,7 +701,7 @@ extern "C" {
         //checks if you can prevent the mate in next turn 
         //by enpassanting the checking piece
         int enpassanted = -100;
-        if(enpassant >= 0 && x1*8+y1 == enpassant){
+        if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
             enpassanted = board[y1-intsign(y1 - y0)][x1];
             board[y1-intsign(y1 - y0)][x1] = 0;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
@@ -1127,6 +1127,7 @@ extern "C" {
             }
             return can_move_positions;
         }
+        return can_move_positions;
     }
 
     int movepiece(int y0, int x0, int movetoy, int movetox, int turn, const char* board_string, int& castled
