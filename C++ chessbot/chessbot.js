@@ -3911,11 +3911,6 @@ var ___wasm_call_ctors = function() {
 };
 
 /** @type {function(...*):?} */
-var _locate_pieces = Module["_locate_pieces"] = function() {
-  return (_locate_pieces = Module["_locate_pieces"] = Module["asm"]["locate_pieces"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
 var _printboard = Module["_printboard"] = function() {
   return (_printboard = Module["_printboard"] = Module["asm"]["printboard"]).apply(null, arguments);
 };

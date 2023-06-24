@@ -325,55 +325,6 @@ extern "C" {
         return result;
     }
 
-    const char* locate_pieces(const char* board_string){
-        std::vector<std::vector<int>> board = convert_board(board_string);
-        std::vector<std::vector<std::vector<int>>> piece_positions;
-        for(int n = 1; n < 51; n++){
-            bool found = false;
-            piece_positions.push_back({});
-            for(int y = 0; y < 8; y++) {
-                for(int x = 0; x < 8; x++) {
-                    if(board[y][x] == n) {
-                        piece_positions[n-1].push_back({});
-                        piece_positions[n-1][0].push_back(y);
-                        piece_positions[n-1][0].push_back(x);
-                        found = true;
-                        break;
-                    }
-                }
-                if(found){
-                    break;
-                }
-            }
-            if(!found){
-                piece_positions[n-1].push_back({});
-                piece_positions[n-1][0].push_back(-1);
-                piece_positions[n-1][0].push_back(-1);
-            }
-            found = false;
-            for(int y = 0; y < 8; y++) {
-                for(int x = 0; x < 8; x++) {
-                    if(board[y][x] == -n) {
-                        piece_positions[n-1].push_back({});
-                        piece_positions[n-1][1].push_back(y);
-                        piece_positions[n-1][1].push_back(x);
-                        found = true;
-                        break;
-                    }
-                }
-                if(found){
-                    break;
-                }
-            }
-            if(!found){
-                piece_positions[n-1].push_back({});
-                piece_positions[n-1][1].push_back(-1);
-                piece_positions[n-1][1].push_back(-1);
-            }
-        }
-        return vector_to_string_3d(piece_positions);
-    }
-
     void printboard(const char* board_string){
         std::vector<std::vector<int>> board = convert_board(board_string);
         for(int i = 0; i < 8; i++){
