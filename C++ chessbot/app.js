@@ -45,7 +45,6 @@ Module.onRuntimeInitialized = function () {
   // Interact with the C++ chess bot using ccall or cwrap
   const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number'
   , 'string', 'number', 'string', 'string', 'number', 'number', 'string']);
-  const locate_pieces = Module.cwrap('locate_pieces', 'string', ['string']);
   const set_can_move_positions = Module.cwrap('set_can_move_positions', 'string', ['string']);
   const printboard = Module.cwrap('printboard', 'null', ['string']);
   const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string', 'string', 'string', 'number', 'number', 'string']);
@@ -83,6 +82,52 @@ Module.onRuntimeInitialized = function () {
       result.push(parseInt(element));
     }
     return result;
+  }
+
+  function locate_pieces(){
+    for(let n = 1; n < 51; n++){
+        let found = false;
+        piece_positions.push([]);
+        for(let y = 0; y < 8; y++) {
+            for(let x = 0; x < 8; x++) {
+                if(board[y][x] == n) {
+                    piece_positions[n-1].push([]);
+                    piece_positions[n-1][0].push(y);
+                    piece_positions[n-1][0].push(x);
+                    found = true;
+                    break;
+                }
+            }
+            if(found){
+                break;
+            }
+        }
+        if(!found){
+            piece_positions[n-1].push([]);
+            piece_positions[n-1][0].push(-1);
+            piece_positions[n-1][0].push(-1);
+        }
+        found = false;
+        for(let y = 0; y < 8; y++) {
+            for(let x = 0; x < 8; x++) {
+                if(board[y][x] == -n) {
+                    piece_positions[n-1].push([]);
+                    piece_positions[n-1][1].push(y);
+                    piece_positions[n-1][1].push(x);
+                    found = true;
+                    break;
+                }
+            }
+            if(found){
+                break;
+            }
+        }
+        if(!found){
+            piece_positions[n-1].push([]);
+            piece_positions[n-1][1].push(-1);
+            piece_positions[n-1][1].push(-1);
+        }
+    }
   }
 
   function drawBoard(){
@@ -156,14 +201,13 @@ Module.onRuntimeInitialized = function () {
     }
     if((n > 0 && n < 10 && y1 == 7) || (n < 0 && n > -10 && y1 == 0)){
       promoteto = 4;
-      board[y1][x1] = Math.sign(n)*(promoteto*10+pieces[promoteto][(n < 0)]);
+      board[y1][x1] = Math.sign(n)*(promoteto*10+pieces[promoteto][Number(n < 0)]);
       pieces[promoteto][(n < 0)]++;
       piece_positions[Math.abs(board[y1][x1])-1][Number(board[y1][x1]<0)][0] = y1;
       piece_positions[Math.abs(board[y1][x1])-1][Number(board[y1][x1]<0)][1] = x1;
       piece_positions[Math.abs(n)-1][Number(n<0)][0] = -1;
     }else{
       board[y1][x1] = n;
-      console.log(piece_positions[Math.abs(n)-1][Number(n<0)][0]);
       piece_positions[Math.abs(n)-1][Number(n<0)][0] = y1;
       piece_positions[Math.abs(n)-1][Number(n<0)][1] = x1;
     }
@@ -206,6 +250,7 @@ Module.onRuntimeInitialized = function () {
         console.log(move);
       }catch(error){
         console.log("Error occurred in basicbot:", error);
+        alert("Error occured")
         return;
       }
       turn = (turn == 0);
@@ -258,7 +303,7 @@ Module.onRuntimeInitialized = function () {
 
       openingbook = [dataPtr, binaryData.length];
 
-      piece_positions = JSON.parse(locate_pieces(JSON.stringify(board)));
+      locate_pieces();
       can_move_positions = JSON.parse(set_can_move_positions(JSON.stringify(piece_positions)));
       drawBoard();
   })();
