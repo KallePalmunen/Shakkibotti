@@ -834,7 +834,7 @@ extern "C" {
 
     bool repetition(int this_moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
         int repetitions = 0;
-        for(int moment = this_moment%2; moment < this_moment; moment += 2){
+        for(int moment = 0; moment < this_moment; moment ++){
             if(compareposition(moment, board, positions)){
                 repetitions++;
                 if(repetitions >= 2){
@@ -845,15 +845,11 @@ extern "C" {
         return false;
     }
 
-    int gameend(int turn, int moves, const char* board_string
-    //, const char* positions_string
+    int gameend(int turn, int moves, const char* board_string, const char* positions_string
     , const char* piece_positions_str, const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
         //returns 2 if white won, 1 if black won, 0 if draw, -1 if game continues
         std::vector<std::vector<int>> board = convert_board(board_string);
-        //std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
-        std::vector<std::vector<std::vector<int>>> positions = {{{30,10,20,50,40,21,11,31},{1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}
-        ,{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}}};
-        moves = 0;
+        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
         std::vector<std::vector<std::vector<int>>> piece_positions = string_to_vector_3d(piece_positions_str);
         std::vector<std::vector<int>> pieces = string_to_vector_2d(pieces_str);
         std::vector<std::vector<int>> rookmoved = string_to_vector_2d(rookmoved_str);
@@ -866,8 +862,8 @@ extern "C" {
             std::cout << "Black won" << '\n';
             return 1;
         }
-        if(
-        //  (turn == 0 && stalemate(50, board)) || (turn == 1 && stalemate(-50, board)) || 
+        if((turn == 0 && stalemate(50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)) 
+        || (turn == 1 && stalemate(-50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)) || 
             repetition(moves, board, positions)){
                 std::cout << "Draw" << '\n';
                 return 0;
@@ -1068,7 +1064,7 @@ extern "C" {
     }
 
     bool partialrepetition(int current_moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
-        for(int moment = current_moment%2; moment < current_moment; moment += 2){
+        for(int moment = 0; moment < current_moment; moment++){
             if(compareposition(moment, board, positions)){
                 return true;
             }
@@ -1183,7 +1179,8 @@ extern "C" {
                             double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             movepieceto(n, y0, x0, y1, x1, board, castled, piece_positions, pieces, kingmoved, enpassant, rookmoved);
                             if(repetition(moves+1, board, positions)
-                            // || stalemate(50, new_board) || stalemate(-50, new_board)
+                            || stalemate(50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved) 
+                            || stalemate(-50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)
                             ){
                                 movescore.push_back(-fulleval(board, castled, piece_positions));
                             }else if(partialrepetition(moves+1, board, positions)){
@@ -1447,8 +1444,8 @@ extern "C" {
             int x1 = order[i][4];
             double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
             movepieceto(n, y0, x0, y1, x1, board, castled, piece_positions, pieces, kingmoved, enpassant, rookmoved);
-            if(repetition(moves+1, board, positions)
-            // || stalemate(50, new_board) || stalemate(-50, new_board)
+            if(repetition(moves+1, board, positions) || stalemate(50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved) 
+            || stalemate(-50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)
             ){
                 movescore.push_back(-fulleval(board, castled, piece_positions));
             }
@@ -1569,17 +1566,13 @@ extern "C" {
         return {0};
     }
 
-    const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string
-    //, const char* positions_string
+    const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
         std::cout << "updated0" << '\n';
         //define vectors
         std::vector<std::vector<int>> board = convert_board(board_string);
-        //std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
-        std::vector<std::vector<std::vector<int>>> positions = {{{30,10,20,50,40,21,11,31},{1,2,3,4,5,6,7,8},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}
-        ,{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{-1,-2,-3,-4,-5,-6,-7,-8},{-30,-10,-20,-50,-40,-21,-11,-31}}};
-        moves = 0;
+        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
         std::vector<std::vector<std::vector<int>>> piece_positions = string_to_vector_3d(piece_positions_str);
         std::vector<std::vector<int>> pieces = string_to_vector_2d(pieces_str);
         std::vector<std::vector<int>> rookmoved = string_to_vector_2d(rookmoved_str);

@@ -45,8 +45,7 @@ Module.onRuntimeInitialized = function () {
   // Interact with the C++ chess bot using ccall or cwrap
   const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number'
   , 'string', 'number', 'string', 'string', 'number', 'number', 'string']);
-  const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string'
-  //, 'string'
+  const gameend = Module.cwrap('gameend', 'number', ['number', 'number', 'string', 'string'
   , 'string', 'string', 'number', 'number', 'string']);
   let basicbot;
 
@@ -223,6 +222,21 @@ Module.onRuntimeInitialized = function () {
     board[y0][x0] = 0;
     positions.push(JSON.parse(JSON.stringify(board)));
   }
+
+  function get_repeated_positions(){
+    let repeated_positions = [];
+    for(let i = moves%2; i < positions.length; i += 2){
+      for(let j = moves%2; j < i; j += 2){
+        if(JSON.stringify(positions[i]) == JSON.stringify(positions[j])){
+          if(i%2 == 0){
+            repeated_positions.push(JSON.stringify(positions[i]));
+          }
+          break;
+        }
+      }
+    }
+    return repeated_positions;
+  }
   
   async function make_move(y0, x0, y1, x1){
     if(!movepiece(y0, x0, y1, x1, turn, JSON.stringify(board), castled
@@ -235,18 +249,18 @@ Module.onRuntimeInitialized = function () {
       await drawBoard();
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
-      if(gameend(turn, moves, JSON.stringify(board)
-      //, JSON.stringify(positions)
+      let repeated_positions = get_repeated_positions();
+      moves = repeated_positions.length - 1;
+      if(gameend(turn, moves, JSON.stringify(board), repeated_positions
       , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board)
-        //, JSON.stringify(positions)
+        console.log(gameend(turn, moves, JSON.stringify(board), repeated_positions
         , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)))
         turn = -1;
+        return;
       }
       let move;
       try{
-        move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board)
-        //, JSON.stringify(positions)
+        move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), repeated_positions
         , castled, JSON.stringify(piece_positions), JSON.stringify(pieces)
         , kingmoved, enpassant, JSON.stringify(rookmoved));
         console.log(move);
@@ -259,11 +273,11 @@ Module.onRuntimeInitialized = function () {
       moves++;
       update_position(convert_move(move));
       drawBoard();
-      if(gameend(turn, moves, JSON.stringify(board)
-      //, JSON.stringify(positions)
+      repeated_positions = get_repeated_positions();
+      moves = repeated_positions.length - 1;
+      if(gameend(turn, moves, JSON.stringify(board), repeated_positions
       , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board)
-        //, JSON.stringify(positions)
+        console.log(gameend(turn, moves, JSON.stringify(board), repeated_positions
         , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)))
         turn = -1;
       }
@@ -298,8 +312,7 @@ Module.onRuntimeInitialized = function () {
         binaryData = await loadBinaryData('bopeningbook.bin');
       }
 
-      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string'
-      //, 'string'
+      basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string'
       , 'number', 'string', 'string', 'number', 'number', 'string']);
 
       const dataPtr = Module._malloc(binaryData.length);
