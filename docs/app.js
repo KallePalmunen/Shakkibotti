@@ -250,17 +250,16 @@ Module.onRuntimeInitialized = function () {
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
       let repeated_positions = get_repeated_positions();
-      moves = repeated_positions.length - 1;
-      if(gameend(turn, moves, JSON.stringify(board), repeated_positions
+      if(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
       , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board), repeated_positions
+        console.log(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
         , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)))
         turn = -1;
         return;
       }
       let move;
       try{
-        move = basicbot(openingbook[0], openingbook[1], moves, JSON.stringify(board), repeated_positions
+        move = basicbot(openingbook[0], openingbook[1], repeated_positions.length - 1, JSON.stringify(board), repeated_positions
         , castled, JSON.stringify(piece_positions), JSON.stringify(pieces)
         , kingmoved, enpassant, JSON.stringify(rookmoved));
         console.log(move);
@@ -274,10 +273,9 @@ Module.onRuntimeInitialized = function () {
       update_position(convert_move(move));
       drawBoard();
       repeated_positions = get_repeated_positions();
-      moves = repeated_positions.length - 1;
-      if(gameend(turn, moves, JSON.stringify(board), repeated_positions
+      if(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
       , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)) >= 0){
-        console.log(gameend(turn, moves, JSON.stringify(board), repeated_positions
+        console.log(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
         , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)))
         turn = -1;
       }
