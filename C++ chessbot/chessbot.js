@@ -3911,11 +3911,6 @@ var ___wasm_call_ctors = function() {
 };
 
 /** @type {function(...*):?} */
-var _printboard = Module["_printboard"] = function() {
-  return (_printboard = Module["_printboard"] = Module["asm"]["printboard"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
 var _gameend = Module["_gameend"] = function() {
   return (_gameend = Module["_gameend"] = Module["asm"]["gameend"]).apply(null, arguments);
 };
@@ -3923,11 +3918,6 @@ var _gameend = Module["_gameend"] = function() {
 /** @type {function(...*):?} */
 var _movepiece = Module["_movepiece"] = function() {
   return (_movepiece = Module["_movepiece"] = Module["asm"]["movepiece"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
-var _set_can_move_positions = Module["_set_can_move_positions"] = function() {
-  return (_set_can_move_positions = Module["_set_can_move_positions"] = Module["asm"]["set_can_move_positions"]).apply(null, arguments);
 };
 
 /** @type {function(...*):?} */
