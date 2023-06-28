@@ -287,39 +287,44 @@ Module.onRuntimeInitialized = function () {
         turn = -1;
         return;
       }
-      let move;
-      try{
-        move = basicbot(openingbook[0], openingbook[1], repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
-        , castled, JSON.stringify(piece_positions), JSON.stringify(pieces)
-        , kingmoved, enpassant, JSON.stringify(rookmoved));
-        console.log(move);
-      }catch(error){
-        console.log("Error occurred in basicbot:", error);
-        alert("Error occured")
-        return;
+      bot_move();
+    }
+  }
+
+  async function bot_move(){
+    let move;
+    let repeated_positions = get_repeated_positions();
+    try{
+      move = basicbot(openingbook[0], openingbook[1], repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
+      , castled, JSON.stringify(piece_positions), JSON.stringify(pieces)
+      , kingmoved, enpassant, JSON.stringify(rookmoved), botcolor);
+      console.log(move);
+    }catch(error){
+      console.log("Error occurred in basicbot:", error);
+      alert("Error occured")
+      return;
+    }
+    turn = (turn == 0);
+    moves++;
+    update_position(convert_move(move));
+    await drawBoard();
+    // wait for next animation frame
+    await new Promise(resolve => setTimeout(resolve, 0));
+    repeated_positions = get_repeated_positions();
+    let winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
+    , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
+    if(winner >= 0){
+      if(winner == 2){
+        alert("White won");
       }
-      turn = (turn == 0);
-      moves++;
-      update_position(convert_move(move));
-      await drawBoard();
-      // wait for next animation frame
-      await new Promise(resolve => setTimeout(resolve, 0));
-      repeated_positions = get_repeated_positions();
-      winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
-      , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
-      if(winner >= 0){
-        if(winner == 2){
-          alert("White won");
-        }
-        if(winner == 1){
-          alert("Black won");
-        }
-        if(winner == 0){
-          alert("Draw");
-        }
-        turn = -1;
-        return;
+      if(winner == 1){
+        alert("Black won");
       }
+      if(winner == 0){
+        alert("Draw");
+      }
+      turn = -1;
+      return;
     }
   }
 
@@ -356,7 +361,7 @@ Module.onRuntimeInitialized = function () {
       }
 
       basicbot = Module.cwrap('basicbot', 'string', ['number', 'number', 'number', 'string', 'string'
-      , 'number', 'string', 'string', 'number', 'number', 'string']);
+      , 'number', 'string', 'string', 'number', 'number', 'string', 'number']);
 
       const dataPtr = Module._malloc(binaryData.length);
       Module.HEAPU8.set(binaryData, dataPtr);
@@ -364,6 +369,11 @@ Module.onRuntimeInitialized = function () {
       openingbook = [dataPtr, binaryData.length];
 
       locate_pieces();
-      drawBoard();
+      await drawBoard();
+      // wait for next animation frame
+      await new Promise(resolve => setTimeout(resolve, 0));
+      if(botcolor == 0){
+        bot_move();
+      }
   })();
 };
