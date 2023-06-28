@@ -1460,9 +1460,11 @@ extern "C" {
             if(repetition(moves+1, board, positions) || stalemate(50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved) 
             || stalemate(-50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)
             ){
+                std::cout << "repetition" << '\n';
                 movescore.push_back(-fulleval(board, castled, piece_positions));
             }
             else if(partialrepetition(moves+1, board, positions)){
+                std::cout << "partialrepetition" << '\n';
                 if(bot == 0){
                     movescore.push_back(std::min(nth_move(n, y0, x0, y1, x1, best_movescore-evaluation_minus
                     , ntimes, board, can_move_positions, castled, piece_positions, pieces, kingmoved, enpassant, rookmoved, bot, ntimes) 
@@ -1582,17 +1584,14 @@ extern "C" {
 
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
-    , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
-        std::cout << "updated0" << '\n';
+    , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
+        std::cout << "updated" << '\n';
         //define vectors
         std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
         std::vector<std::vector<std::vector<int>>> piece_positions = string_to_vector_3d(piece_positions_str);
         std::vector<std::vector<int>> pieces = string_to_vector_2d(pieces_str);
         std::vector<std::vector<int>> rookmoved = string_to_vector_2d(rookmoved_str);
-        
-        //white == 0, black == 1
-        int bot = 1;
         
         int ntimesmin = 4;
         //ntimes == (amount of half moves that basicbot searches forward) - 2
