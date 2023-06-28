@@ -157,40 +157,40 @@ Module.onRuntimeInitialized = function () {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if(board[y][x] > 0 && board[y][x] < 10){
-            ctx.drawImage(wpawnimg, x*75, y*75);
+            ctx.drawImage(wpawnimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] > 9 && board[y][x] < 20){
-            ctx.drawImage(wknightimg, x*75, y*75);
+            ctx.drawImage(wknightimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] > 19 && board[y][x] < 30){
-            ctx.drawImage(wbishopimg, x*75, y*75);
+            ctx.drawImage(wbishopimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] > 29 && board[y][x] < 40){
-            ctx.drawImage(wrookimg, x*75, y*75);
+            ctx.drawImage(wrookimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] > 39 && board[y][x] < 50){
-            ctx.drawImage(wqueenimg, x*75, y*75);
+            ctx.drawImage(wqueenimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] == 50){
-            ctx.drawImage(wkingimg, x*75, y*75);
+            ctx.drawImage(wkingimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] < 0 && board[y][x] > -10){
-            ctx.drawImage(bpawnimg, x*75, y*75);
+            ctx.drawImage(bpawnimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] < -9 && board[y][x] > -20){
-            ctx.drawImage(bknightimg, x*75, y*75);
+            ctx.drawImage(bknightimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] < -19 && board[y][x] > -30){
-            ctx.drawImage(bbishopimg, x*75, y*75);
+            ctx.drawImage(bbishopimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] < -29 && board[y][x] > -40){
-            ctx.drawImage(brookimg, x*75, y*75);
+            ctx.drawImage(brookimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] < -39 && board[y][x] > -50){
-            ctx.drawImage(bqueenimg, x*75, y*75);
+            ctx.drawImage(bqueenimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
           if(board[y][x] == -50){
-            ctx.drawImage(bkingimg, x*75, y*75);
+            ctx.drawImage(bkingimg, (botcolor*(7-x)+Number(botcolor == 0)*x)*75, (botcolor*(7-y)+Number(botcolor == 0)*y)*75);
           }
         }
       }
@@ -327,7 +327,9 @@ Module.onRuntimeInitialized = function () {
     let rect = canvas.getBoundingClientRect();
     if(click == 0){
       x0 = Math.floor((e.clientX - rect.left)/75);
+      x0 = (botcolor*(7-x0)+Number(botcolor == 0)*x0);
       y0 = Math.floor((e.clientY - rect.top)/75);
+      y0 = (botcolor*(7-y0)+Number(botcolor == 0)*y0);
       if((board[y0][x0] > 0 && botcolor == 1) || (board[y0][x0] < 0 && botcolor == 0)){
         click = 1;
       }
@@ -335,7 +337,9 @@ Module.onRuntimeInitialized = function () {
     }
     if(click == 1){
       x1 = Math.floor((e.clientX - rect.left)/75);
+      x1 = (botcolor*(7-x1)+Number(botcolor == 0)*x1);
       y1 = Math.floor((e.clientY - rect.top)/75);
+      y1 = (botcolor*(7-y1)+Number(botcolor == 0)*y1);
       make_move(y0, x0, y1, x1);
       click = 0;
     }
