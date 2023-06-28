@@ -1436,6 +1436,14 @@ extern "C" {
                 order.push_back({bestmove[i][0],bestmove[i][1],bestmove[i][2],bestmove[i][3],bestmove[i][4]});
             }
         }
+        if(order.size() == 1){
+            bestmove.resize(0);
+            bestmove.push_back({});
+            for(int i = 0; i < 5; i++){
+                bestmove[0].push_back(order[0][i]);
+            }
+            return;
+        }
         for(int i = 0; i < order.size(); i++){
             int n = order[i][0];
             int y0 = order[i][1];
@@ -1569,7 +1577,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
-        std::cout << "updated0" << '\n';
+        std::cout << "updated" << '\n';
         //define vectors
         std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
@@ -1602,7 +1610,7 @@ extern "C" {
         auto duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
         while(duration.count()/1000.0 < 0.2){
-            if(abs(bestmove[0][5]) > 10000){
+            if(abs(bestmove[0][5]) > 10000 || bestmove.size() <= 1){
                 break;
             }
             ntimes += 2;
@@ -1613,7 +1621,7 @@ extern "C" {
                 <std::chrono::milliseconds>(stop - start);
         }
         std::cout << "depth = " << ntimes/2+1;
-        if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000){
+        if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000 && bestmove.size() > 1){
             ntimes += 2;
             firstmove(moves, board, positions, can_move_positions, castled, piece_positions
             , pieces, bestmove, kingmoved, enpassant, rookmoved, bot, ntimes, plusamount, false);
