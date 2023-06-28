@@ -251,7 +251,7 @@ Module.onRuntimeInitialized = function () {
       for(let j = moves%2; j < i; j += 2){
         if(JSON.stringify(positions[i]) == JSON.stringify(positions[j])){
           if(i%2 == 0){
-            repeated_positions.push(JSON.stringify(positions[i]));
+            repeated_positions.push(JSON.parse(JSON.stringify(positions[i])));
           }
           break;
         }
@@ -272,7 +272,7 @@ Module.onRuntimeInitialized = function () {
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
       let repeated_positions = get_repeated_positions();
-      let winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
+      let winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
       , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
       if(winner >= 0){
         if(winner == 2){
@@ -289,7 +289,7 @@ Module.onRuntimeInitialized = function () {
       }
       let move;
       try{
-        move = basicbot(openingbook[0], openingbook[1], repeated_positions.length - 1, JSON.stringify(board), repeated_positions
+        move = basicbot(openingbook[0], openingbook[1], repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
         , castled, JSON.stringify(piece_positions), JSON.stringify(pieces)
         , kingmoved, enpassant, JSON.stringify(rookmoved));
         console.log(move);
@@ -305,7 +305,7 @@ Module.onRuntimeInitialized = function () {
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
       repeated_positions = get_repeated_positions();
-      winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
+      winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
       , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
       if(winner >= 0){
         if(winner == 2){

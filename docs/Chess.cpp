@@ -1167,6 +1167,7 @@ extern "C" {
         std::vector<std::vector<int>> temp_board = board;
         std::vector<double> movescore;
         std::vector<std::vector<int>> starting_order;
+        std::vector<std::vector<std::vector<int>>> temp_positions = positions;
         for(int n1 = 1; n1 < 51; n1++){
             int n = n1; 
             if(bot == 1){n=-n1;}
@@ -1178,6 +1179,7 @@ extern "C" {
                         if(canmove(n, y0, x0, y1, x1, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)){
                             double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             movepieceto(n, y0, x0, y1, x1, board, castled, piece_positions, pieces, kingmoved, enpassant, rookmoved);
+                            positions.push_back(board);
                             if(repetition(moves+1, board, positions)
                             || stalemate(50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved) 
                             || stalemate(-50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)
@@ -1207,6 +1209,7 @@ extern "C" {
                             pieces = temp_pieces;
                             piece_positions = temp_piece_positions;
                             board = temp_board;
+                            positions = temp_positions;
                         }
                     }
                 }
@@ -1426,6 +1429,7 @@ extern "C" {
         std::vector<std::vector<int>> temp_pieces = pieces;
         std::vector<std::vector<std::vector<int>>> temp_piece_positions = piece_positions;
         std::vector<std::vector<int>> temp_board = board;
+        std::vector<std::vector<std::vector<int>>> temp_positions = positions;
         std::vector<double> movescore;
         double best_movescore = -intsign(bot == 0)*1000000;
         std::vector<std::vector<int>> order;
@@ -1452,6 +1456,7 @@ extern "C" {
             int x1 = order[i][4];
             double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
             movepieceto(n, y0, x0, y1, x1, board, castled, piece_positions, pieces, kingmoved, enpassant, rookmoved);
+            positions.push_back(board);
             if(repetition(moves+1, board, positions) || stalemate(50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved) 
             || stalemate(-50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)
             ){
@@ -1488,6 +1493,7 @@ extern "C" {
             pieces = temp_pieces;
             piece_positions = temp_piece_positions;
             board = temp_board;
+            positions = temp_positions;
         }
         int bestindex;
         bestmove.resize(0);
@@ -1577,7 +1583,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
-        std::cout << "updated" << '\n';
+        std::cout << "updated0" << '\n';
         //define vectors
         std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
