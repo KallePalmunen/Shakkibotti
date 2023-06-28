@@ -201,7 +201,7 @@ Module.onRuntimeInitialized = function () {
     if((n > 0 && n < 10 && y1 == 7) || (n < 0 && n > -10 && y1 == 0)){
       promoteto = 4;
       board[y1][x1] = Math.sign(n)*(promoteto*10+pieces[promoteto][Number(n < 0)]);
-      pieces[promoteto][(n < 0)]++;
+      pieces[promoteto][Number(n < 0)]++;
       piece_positions[Math.abs(board[y1][x1])-1][Number(board[y1][x1]<0)][0] = y1;
       piece_positions[Math.abs(board[y1][x1])-1][Number(board[y1][x1]<0)][1] = x1;
       piece_positions[Math.abs(n)-1][Number(n<0)][0] = -1;
@@ -250,10 +250,18 @@ Module.onRuntimeInitialized = function () {
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
       let repeated_positions = get_repeated_positions();
-      if(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
-      , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)) >= 0){
-        console.log(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
-        , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)))
+      let winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
+      , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
+      if(winner >= 0){
+        if(winner == 2){
+          alert("White won");
+        }
+        if(winner == 1){
+          alert("Black won");
+        }
+        if(winner == 0){
+          alert("Draw");
+        }
         turn = -1;
         return;
       }
@@ -271,13 +279,24 @@ Module.onRuntimeInitialized = function () {
       turn = (turn == 0);
       moves++;
       update_position(convert_move(move));
-      drawBoard();
+      await drawBoard();
+      // wait for next animation frame
+      await new Promise(resolve => setTimeout(resolve, 0));
       repeated_positions = get_repeated_positions();
-      if(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
-      , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)) >= 0){
-        console.log(gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
-        , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved)))
+      winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), repeated_positions
+      , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
+      if(winner >= 0){
+        if(winner == 2){
+          alert("White won");
+        }
+        if(winner == 1){
+          alert("Black won");
+        }
+        if(winner == 0){
+          alert("Draw");
+        }
         turn = -1;
+        return;
       }
     }
   }
