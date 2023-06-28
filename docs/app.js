@@ -14,33 +14,55 @@ Module.onRuntimeInitialized = function () {
   let kingmoved = 1; //%2 == 0 if white king has moved, %3 == 0 if black king has moved
   //black left, right - white left, right
   let rookmoved = [[0,0],[0,0]];
+  let imagecount = 13;
+  let loaded_images = 0;
 
   let boardimg = new Image();
   boardimg.src = "./Images/board.png";
+  boardimg.onload = images_loaded;
   let wpawnimg = new Image();
   wpawnimg.src = "./Images/whitepawn2.png";
+  wpawnimg.onload = images_loaded;
   let wknightimg = new Image();
   wknightimg.src = "./Images/whiteknight2.png";
+  wknightimg.onload = images_loaded;
   let wbishopimg = new Image();
   wbishopimg.src = "./Images/whitebishop2.png";
+  wbishopimg.onload = images_loaded;
   let wrookimg = new Image();
   wrookimg.src = "./Images/whiterook2.png";
+  wrookimg.onload = images_loaded;
   let wqueenimg = new Image();
   wqueenimg.src = "./Images/whitequeen2.png";
+  wqueenimg.onload = images_loaded;
   let wkingimg = new Image();
   wkingimg.src = "./Images/whiteking2.png";
+  wkingimg.onload = images_loaded;
   let bpawnimg = new Image();
   bpawnimg.src = "./Images/blackpawn2.png";
+  bpawnimg.onload = images_loaded;
   let bknightimg = new Image();
   bknightimg.src = "./Images/blackknight2.png";
+  bknightimg.onload = images_loaded;
   let bbishopimg = new Image();
   bbishopimg.src = "./Images/blackbishop2.png";
+  bbishopimg.onload = images_loaded;
   let brookimg = new Image();
   brookimg.src = "./Images/blackrook2.png";
+  brookimg.onload = images_loaded;
   let bqueenimg = new Image();
   bqueenimg.src = "./Images/blackqueen2.png";
+  bqueenimg.onload = images_loaded;
   let bkingimg = new Image();
   bkingimg.src = "./Images/blackking2.png";
+  bkingimg.onload = images_loaded;
+
+  function images_loaded(){
+    loaded_images++;
+    if(loaded_images == imagecount){
+      drawBoard();
+    }
+  }
 
   // Interact with the C++ chess bot using ccall or cwrap
   const movepiece = Module.cwrap('movepiece', 'number', ['number', 'number', 'number', 'number', 'number'
