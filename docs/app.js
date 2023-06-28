@@ -211,8 +211,8 @@ Module.onRuntimeInitialized = function () {
       piece_positions[Math.abs(n)-1][Number(n<0)][1] = x1;
     }
     if(enpassant >= 0 && x1*8+y1 == enpassant && Math.abs(n) < 10){
-      board[y1-Math.sign(y1 - y0)][x1] = 0;
       piece_positions[Math.abs(board[y1-Math.sign(y1 - y0)][x1])-1][Number(n>0)][0] = -1;
+      board[y1-Math.sign(y1 - y0)][x1] = 0;
     }
     if(Math.abs(n) < 10 && Math.abs(y1-y0) > 1){
       enpassant = x1*8+y0+Math.sign(y1 - y0);
