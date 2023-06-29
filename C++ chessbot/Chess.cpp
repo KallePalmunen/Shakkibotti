@@ -27,10 +27,10 @@ int main(){
             movepiece();
         }
         set_can_move_positions();
+        gameend();
         if(turn == -1){
             return 0;
         }
-        gameend();
     }
     return 0;
 }
