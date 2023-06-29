@@ -88,7 +88,7 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
 
 double evaluate_move(int n, int y0, int x0, int y1, int x1){
     return evaluate_change(y1, x1, 1, n) + 
-        evaluate_change(y0, x0, -1, n) + (castled[int(n < 0)] == 1)*0.1;
+        evaluate_change(y0, x0, -1, n) + (castled[0] == 1)*0.1 - (castled[1] == 1)*0.1;
 }
 
 double fulleval(){
@@ -105,7 +105,7 @@ double fulleval(){
             evaluation += evaluate_change(y0, x0, 1, -n);
         }
     }
-    evaluation -= (castled[0]+castled[1]);
+    evaluation += 0.1*(castled[0]-castled[1]);
     return evaluation;
 }
 
@@ -418,6 +418,14 @@ void firstmove(bool all = true){
             order.push_back({bestmove[i][0],bestmove[i][1],bestmove[i][2],bestmove[i][3],bestmove[i][4]});
         }
     }
+    if(order.size() == 1){
+        bestmove.resize(0);
+        bestmove.push_back({});
+        for(int i = 0; i < 5; i++){
+            bestmove[0].push_back(order[0][i]);
+        }
+        return;
+    }
     for(int i = 0; i < order.size(); i++){
         int n = order[i][0];
         int y0 = order[i][1];
@@ -571,7 +579,7 @@ int basicbot(){
     auto duration = std::chrono::duration_cast
         <std::chrono::milliseconds>(stop - start);
     while(duration.count()/1000.0 < 0.2){
-        if(abs(bestmove[0][5]) > 10000){
+        if(abs(bestmove[0][5]) > 10000 || bestmove.size() <= 1){
             break;
         }
         ntimes += 2;
@@ -581,7 +589,7 @@ int basicbot(){
             <std::chrono::milliseconds>(stop - start);
     }
     std::cout << "depth = " << ntimes/2+1;
-    if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000){
+    if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000 && bestmove.size() > 1){
         ntimes += 2;
         firstmove(false);
         std::cout << '+';

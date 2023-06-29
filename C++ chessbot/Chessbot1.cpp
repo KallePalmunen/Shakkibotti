@@ -8,7 +8,7 @@ int enpassant = -1;
 //[n-1][color][coordinate], white == 0, black == 1, y == 0, x == 1
 int piece_positions[50][2][2];
 //white == 0, black == 1
-int bot = 1;
+int bot = 0;
 int castled[2] = {0,0};
 bool promotemenu = false;
 double evalscore = 0.0;
@@ -317,11 +317,13 @@ bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     board[y1][x1] = n;
     piece_positions[abs(n)-1][int(n<0)][0] = y1;
     piece_positions[abs(n)-1][int(n<0)][1] = x1;
-    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
+    if(abs(movetosquare) > 0){
+        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
+    }
     //checks if you can prevent the mate in next turn 
     //by enpassanting the checking piece
     int enpassanted = -100;
-    if(enpassant >= 0 && x1*8+y1 == enpassant){
+    if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
         enpassanted = board[y1-intsign(y1 - y0)][x1];
         board[y1-intsign(y1 - y0)][x1] = 0;
         piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
@@ -331,7 +333,9 @@ bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
         board[y1][x1] = movetosquare;
         piece_positions[abs(n)-1][int(n<0)][0] = y0;
         piece_positions[abs(n)-1][int(n<0)][1] = x0;
-        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+        if(abs(movetosquare) > 0){
+            piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+        }
         if(enpassanted != -100){
             board[y1-intsign(y1 - y0)][x1] = enpassanted;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
@@ -342,9 +346,12 @@ bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     board[y1][x1] = movetosquare;
     piece_positions[abs(n)-1][int(n<0)][0] = y0;
     piece_positions[abs(n)-1][int(n<0)][1] = x0;
-    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+    if(abs(movetosquare) > 0){
+        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+    }
     if(enpassanted != -100){
         board[y1-intsign(y1 - y0)][x1] = enpassanted;
+        piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
     }
     return true;
 }
@@ -358,11 +365,13 @@ bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     board[y1][x1] = n;
     piece_positions[abs(n)-1][int(n<0)][0] = y1;
     piece_positions[abs(n)-1][int(n<0)][1] = x1;
-    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
+    if(abs(movetosquare) > 0){
+        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = -1;
+    }
     //checks if you can prevent the mate in next turn 
     //by enpassanting the checking piece
     int enpassanted = -100;
-    if(enpassant >= 0 && x1*8+y1 == enpassant){
+    if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
         enpassanted = board[y1-intsign(y1 - y0)][x1];
         board[y1-intsign(y1 - y0)][x1] = 0;
         piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
@@ -372,7 +381,9 @@ bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
         board[y1][x1] = movetosquare;
         piece_positions[abs(n)-1][int(n<0)][0] = y0;
         piece_positions[abs(n)-1][int(n<0)][1] = x0;
-        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+        if(abs(movetosquare) > 0){
+            piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+        }
         if(enpassanted != -100){
             board[y1-intsign(y1 - y0)][x1] = enpassanted;
             piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
@@ -383,9 +394,12 @@ bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx){
     board[y1][x1] = movetosquare;
     piece_positions[abs(n)-1][int(n<0)][0] = y0;
     piece_positions[abs(n)-1][int(n<0)][1] = x0;
-    piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+    if(abs(movetosquare) > 0){
+        piece_positions[abs(movetosquare)-1][int(movetosquare<0)][0] = y1;
+    }
     if(enpassanted != -100){
         board[y1-intsign(y1 - y0)][x1] = enpassanted;
+        piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = y1-intsign(y1 - y0);
     }
     return true;
 }
@@ -451,11 +465,13 @@ bool checkmate(int n, int kingy = -1, int kingx = -1){
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
             int piecen = intsign(n)*(n1*10+n2);
-            if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
-                int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
-                int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
-                if(movesomewhere(piecen, y0, x0, kingy, kingx)){
-                    return false;
+            if(piecen != 0){
+                if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
+                    int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
+                    int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
+                    if(movesomewhere(piecen, y0, x0, kingy, kingx)){
+                        return false;
+                    }
                 }
             }
         }
@@ -470,11 +486,13 @@ bool botcheckmate(int n, int kingy = -1, int kingx = -1){
     for(int n1 = 0; n1 < 6; n1++){
         for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
             int piecen = intsign(n)*(n1*10+n2);
-            if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
-                int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
-                int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
-                if(movesomewhere(piecen, y0, x0, kingy, kingx)){
-                    return false;
+            if(piecen != 0){
+                if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
+                    int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
+                    int x0 = piece_positions[abs(piecen)-1][int(piecen<0)][1];
+                    if(movesomewhere(piecen, y0, x0, kingy, kingx)){
+                        return false;
+                    }
                 }
             }
         }
@@ -515,7 +533,7 @@ void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true)
         piece_positions[abs(n)-1][int(n<0)][0] = y1;
         piece_positions[abs(n)-1][int(n<0)][1] = x1;
     }
-    if(enpassant >= 0 && x1*8+y1 == enpassant){
+    if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
         piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
         board[y1-intsign(y1 - y0)][x1] = 0;
     }
