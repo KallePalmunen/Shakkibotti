@@ -1,4 +1,7 @@
 
+std::random_device rd;
+std::default_random_engine rng(rd());
+
 struct node{
     double visited;
     double wins;
@@ -32,8 +35,6 @@ std::vector<std::vector<int>> find_moves(int piece_sign){
             }
         }
     }
-    auto rd = std::random_device {}; 
-    auto rng = std::default_random_engine { rd() };
     std::shuffle(std::begin(found_moves), std::end(found_moves), rng);
     return found_moves;
 }
