@@ -133,7 +133,7 @@ std::vector<std::vector<int>> reorder(){
     std::vector<double> movescore;
     std::vector<std::vector<int>> starting_order;
     for(int n1 = 1; n1 < 51; n1++){
-        int n = n1; 
+        int n = n1;
         if(bot == 1){n=-n1;}
         if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
             int y0 = piece_positions[abs(n)-1][int(n<0)][0];
@@ -558,7 +558,7 @@ bool read_openingbook(int color){
         if(compare_to_book(openingbook[i][0])){
             std::vector<int> bookmove = openingbook[i][1][0];
             movepieceto(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]);
-            std::cout <<  convert_to_png(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]) << '\n';
+            std::cout << convert_to_png(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]) << '\n';
             return true;
         }
     }
@@ -569,7 +569,6 @@ int basicbot(){
     if(read_openingbook(bot)){
         turn = int(bot == 0);
         std::cout << "book" << '\n';
-        printboard();
         return 0;
     }
     double score = fulleval();
@@ -606,7 +605,6 @@ int basicbot(){
     int x1 = bestmove[0][4];
     movepieceto(n, y0, x0, y1, x1);
     turn = int(bot == 0);
-    printboard();
     stop = std::chrono::high_resolution_clock::now();
     duration = std::chrono::duration_cast
         <std::chrono::milliseconds>(stop - start);
