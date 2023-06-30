@@ -63,7 +63,8 @@
         "xstddef": "cpp",
         "xtr1common": "cpp",
         "xtree": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "random": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }
