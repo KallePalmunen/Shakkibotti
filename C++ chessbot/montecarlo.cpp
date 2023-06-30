@@ -10,6 +10,10 @@ double UCT(double wins, double visited, double parent_visited){
     return wins/visited + sqrt(2.0)*sqrt(log(parent_visited)/visited);
 }
 
+double normalize(double score){
+    return 1 / (1 + exp(-10*score));
+}
+
 std::vector<std::vector<int>> find_moves(int piece_sign){
     std::vector<std::vector<int>> found_moves;
     for(int n1 = 0; n1 < 6; n1++){
@@ -41,11 +45,12 @@ node *newNode(int piece_sign){
     return temp;
 }
 
-node *monte_carlo_nth_move(int piece_sign, node *root, int depth, int maxdepth){
+node *monte_carlo_nth_move(int piece_sign, node *root, int depth, int maxdepth, double startscore){
     if((root->moves).size() == 0){
         (root->moves) = find_moves(piece_sign);
     }
     if((root->moves).size() == 0){
+        (root->visited) += 1.0;
         return root;
     }
     if((root->visited) < (root->moves).size()){
@@ -58,21 +63,19 @@ node *monte_carlo_nth_move(int piece_sign, node *root, int depth, int maxdepth){
         int y1 = root->moves[i][3];
         int x1 = root->moves[i][4];
         movepieceto(n, y0, x0, y1, x1, true);
-        if(repetition(moves) || stalemate(50) || stalemate(-50)){
-            (root->child[i]->visited) += 1.0;
-        }else if(checkmate(-piece_sign*50)){
+        if(checkmate(-piece_sign*50)){
             double start_wins = (root->child[i]->wins);
             (root->child[i]->wins) += (int(bot == 0)-int(bot == 1))*piece_sign*1.0;
             (root->child[i]->visited) += 1.0;
             (root->wins) += (root->child[i]->wins) - start_wins;
         }else if(depth == maxdepth){
-            double result = std::min((int(bot == 0)-int(bot == 1))*fulleval()/10.0, 1.0);
+            double result = (int(bot == 0)-int(bot == 1))*normalize(fulleval()-startscore);
             (root->child[i]->wins) += result;
             (root->child[i]->visited) += 1.0;
             (root->wins) += result;
         }else{
             double start_wins = (root->child[i]->wins);
-            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth);
+            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth, startscore);
             (root->wins) += (root->child[i]->wins) - start_wins;
         }
     }else{
@@ -93,28 +96,26 @@ node *monte_carlo_nth_move(int piece_sign, node *root, int depth, int maxdepth){
         int y1 = root->moves[i][3];
         int x1 = root->moves[i][4];
         movepieceto(n, y0, x0, y1, x1, true);
-        if(repetition(moves) || stalemate(50) || stalemate(-50)){
-            (root->child[i]->visited) += 1.0;
-        }else if(checkmate(-piece_sign*50)){
+        if(checkmate(-piece_sign*50)){
             double start_wins = (root->child[i]->wins);
             (root->child[i]->wins) += (int(bot == 0)-int(bot == 1))*piece_sign*1.0;
             (root->child[i]->visited) += 1.0;
             (root->wins) += (root->child[i]->wins) - start_wins;
         }else if(depth == maxdepth){
-            double result = std::min((int(bot == 0)-int(bot == 1))*fulleval()/10.0, 10.0);
+            double result = (int(bot == 0)-int(bot == 1))*normalize(fulleval()-startscore);
             (root->child[i]->wins) += result;
             (root->child[i]->visited) += 1.0;
             (root->wins) += result;
         }else{
             double start_wins = (root->child[i]->wins);
-            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth);
+            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth, startscore);
             (root->wins) += (root->child[i]->wins) - start_wins;
         }
     }
     return root;
 }
 
-double monte_carlo_firstmove(int maxdepth, double maxtime){
+double monte_carlo_firstmove(int maxdepth, double maxtime, double startscore){
     //save current state
     int temp_moves = moves;
     int temp_enpassant = enpassant;
@@ -150,13 +151,13 @@ double monte_carlo_firstmove(int maxdepth, double maxtime){
         int y1 = root->moves[i][3];
         int x1 = root->moves[i][4];
         movepieceto(n, y0, x0, y1, x1, true);
-        if(repetition(moves) || stalemate(50) || stalemate(-50)){
+        if(repetition(moves)){
             (root->child[i]->visited) += 1.0;
         }else if(checkmate(-piece_sign*50)){
             (root->child[i]->wins) += 1.0;
             (root->child[i]->visited) += 1.0;
         }else{
-            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth);
+            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth, startscore);
         }
 
         //return to saved state
@@ -196,12 +197,12 @@ double monte_carlo_firstmove(int maxdepth, double maxtime){
         int y1 = root->moves[i][3];
         int x1 = root->moves[i][4];
         movepieceto(n, y0, x0, y1, x1, true);
-        if(repetition(moves) || stalemate(50) || stalemate(-50)){
+        if(repetition(moves)){
             (root->child[i]->visited) += 1.0;
         }else if(checkmate(-piece_sign*50)){
             (root->child[i]->wins) += 1;
         }else{
-            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth);
+            root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth, startscore);
         }
 
         //return to saved state
@@ -247,9 +248,10 @@ int monte_carlo_move(){
         std::cout << "book" << '\n';
         return 0;
     }
-    int maxdepth = 20;
-    double maxtime = 1.0;
-    double score = monte_carlo_firstmove(maxdepth, maxtime);
+    int maxdepth = 10;
+    double maxtime = 2.0;
+    double startscore = fulleval();
+    double score = 10.0*monte_carlo_firstmove(maxdepth, maxtime, startscore);
     if(ntimes > ntimesmin){
         ntimes = ntimesmin;
     }
