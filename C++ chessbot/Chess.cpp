@@ -14,7 +14,7 @@
 
 int main(){
     //0 == basicbot, 1 == monte_carlo
-    int bot_version = 1;
+    int bot_version = 0;
     locate_pieces();
     add_to_positions();
     set_can_move_positions();
