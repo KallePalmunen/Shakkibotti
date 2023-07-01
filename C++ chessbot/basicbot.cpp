@@ -5,24 +5,53 @@ int ntimesmin = 4;
 int ntimes = ntimesmin;
 //amount of moves calculated one full move deeper
 int plusamount = 2;
-double pawn_position_eval[8][8] = {{80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0},{0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
-,{0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1},{0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05},{0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0}
-,{0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05},{0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05},{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0}};
-double knight_position_eval[8][8] = {{-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5},{-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4}
-,{-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3},{-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3},{-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3}
-,{-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3},{-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4},{-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5}};
-double bishop_position_eval[8][8] = {{-0.2,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.2},{-0.1,0.0,0.0,0.0,0.0,0.0,0.0,-0.1}
-,{-0.1,0.0,0.05,0.1,0.1,0.05,0.0,-0.1},{-0.1,0.05,0.05,0.1,0.1,0.05,0.05,-0.1},{-0.1,0.0,0.1,0.1,0.1,0.1,0.0,-0.1}
-,{-0.1,0.1,0.01,0.1,0.1,0.1,0.1,-0.1},{-0.1,0.05,0.0,0.0,0.0,0.0,0.05,-0.1},{-0.2,-0.1,-0.1,-0.1,-0.1,-0.1,-0.1,-0.2}};
-double rook_position_eval[8][8] = {{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},{0.05,0.1,0.1,0.1,0.1,0.1,0.1,0.05}
-,{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05}
-,{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05},{0.0,0.0,0.0,0.5,0.5,0.0,0.0,0.0}};
-double queen_position_eval[8][8] = {{-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2},{-0.1,0.0,0.0,0.0,0.0,0.0,0.0,-0.1}
-,{-0.1,0.0,0.05,0.05,0.05,0.05,0.0,-0.1},{-0.05,0.0,0.05,0.05,0.05,0.05,0.0,-0.05},{0.0,0.0,0.05,0.05,0.05,0.05,0.0,-0.05}
-,{-0.1,0.05,0.05,0.05,0.05,0.05,0.0,-0.1},{-0.1,0.0,0.05,0.0,0.0,0.0,0.0,-0.1},{-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2}};
-double king_position_eval[8][8] = {{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3}
-,{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3},{-0.2,-0.3,-0.3,-0.4,-0.4,-0.3,-0.3,-0.2}
-,{-0.1,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.1},{0.2,0.2,0.0,0.0,0.0,0.0,0.2,0.2},{0.2,0.3,0.1,0.0,0.0,0.1,0.3,0.2}};
+double pawn_position_eval[8][8] = {{8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0},
+  {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05},
+  {0.01, 0.01, 0.02, 0.03, 0.03, 0.02, 0.01, 0.01},
+  {0.005, 0.005, 0.01, 0.025, 0.025, 0.01, 0.005, 0.005},
+  {0.0, 0.0, 0.0, 0.02, 0.02, 0.0, 0.0, 0.0},
+  {0.005, -0.005, -0.01, 0.0, 0.0, -0.01, -0.005, 0.005},
+  {0.005, 0.01, 0.01, -0.02, -0.02, 0.01, 0.01, 0.005},
+  {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
+double knight_position_eval[8][8] = {{-0.05, -0.04, -0.03, -0.03, -0.03, -0.03, -0.04, -0.05},
+  {-0.04, -0.02, 0.0, 0.0, 0.0, 0.0, -0.02, -0.04},
+  {-0.03, 0.0, 0.01, 0.015, 0.015, 0.01, 0.0, -0.03},
+  {-0.03, 0.005, 0.015, 0.02, 0.02, 0.015, 0.005, -0.03},
+  {-0.03, 0.005, 0.015, 0.02, 0.02, 0.015, 0.005, -0.03},
+  {-0.03, 0.0, 0.01, 0.015, 0.015, 0.01, 0.0, -0.03},
+  {-0.04, -0.02, 0.0, 0.0, 0.0, 0.0, -0.02, -0.04},
+  {-0.05, -0.04, -0.03, -0.03, -0.03, -0.03, -0.04, -0.05}};
+double bishop_position_eval[8][8] = {{-0.02, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.02},
+  {-0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.01},
+  {-0.01, 0.0, 0.005, 0.01, 0.01, 0.005, 0.0, -0.01},
+  {-0.01, 0.005, 0.005, 0.01, 0.01, 0.005, 0.005, -0.01},
+  {-0.01, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0, -0.01},
+  {-0.01, 0.01, 0.001, 0.01, 0.01, 0.01, 0.01, -0.01},
+  {-0.01, 0.005, 0.0, 0.0, 0.0, 0.0, 0.005, -0.01},{-0.02, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.02}};
+double rook_position_eval[8][8] = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+  {0.005, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.005},
+  {-0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.005},
+  {-0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.005},
+  {-0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.005},
+  {-0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.005},
+  {-0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.005},
+  {0.0, 0.0, 0.0, 0.05, 0.05, 0.0, 0.0, 0.0}};
+double queen_position_eval[8][8] = {{-0.02, -0.01, -0.01, -0.005, -0.005, -0.01, -0.01, -0.02},
+  {-0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.01},
+  {-0.01, 0.0, 0.005, 0.005, 0.005, 0.005, 0.0, -0.01},
+  {-0.005, 0.0, 0.005, 0.005, 0.005, 0.005, 0.0, -0.005},
+  {0.0, 0.0, 0.005, 0.005, 0.005, 0.005, 0.0, -0.005},
+  {-0.01, 0.005, 0.005, 0.005, 0.005, 0.005, 0.0, -0.01},
+  {-0.01, 0.0, 0.005, 0.0, 0.0, 0.0, 0.0, -0.01},
+  {-0.02, -0.01, -0.01, -0.005, -0.005, -0.01, -0.01, -0.02}};
+double king_position_eval[8][8] = {{-0.03, -0.04, -0.04, -0.05, -0.05, -0.04, -0.04, -0.03},
+  {-0.03, -0.04, -0.04, -0.05, -0.05, -0.04, -0.04, -0.03},
+  {-0.03, -0.04, -0.04, -0.05, -0.05, -0.04, -0.04, -0.03},
+  {-0.03, -0.04, -0.04, -0.05, -0.05, -0.04, -0.04, -0.03},
+  {-0.02, -0.03, -0.03, -0.04, -0.04, -0.03, -0.03, -0.02},
+  {-0.01, -0.02, -0.02, -0.02, -0.02, -0.02, -0.02, -0.01},
+  {0.02, 0.02, 0.0, 0.0, 0.0, 0.0, 0.02, 0.02},
+  {0.02, 0.03, 0.01, 0.0, 0.0, 0.01, 0.03, 0.02}};
 
 bool partialrepetition(int current_moment){
     for(int moment = current_moment%2; moment < current_moment; moment += 2){
@@ -63,25 +92,48 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
     if(n == 0){
         return 0.0;
     }
+    if(n > 0){
+        //pawns
+        if(n != 0 && n < 9){
+            return changesign*intsign(n)*(1+pawn_position_eval[7-y][7-x]);
+        }
+        //knights and bishops
+        if(n > 9 && n < 20){
+            return changesign*intsign(n)*(3+knight_position_eval[7-y][7-x]);
+        }
+        //bishops
+        if(n > 19 && n < 30){
+            return changesign*intsign(n)*(3+bishop_position_eval[7-y][7-x]);
+        }
+        //rooks
+        if(n > 29 && n < 40){
+            return changesign*intsign(n)*(5+rook_position_eval[7-y][7-x]);
+        }
+        //queens
+        if(n > 39 && n < 50){
+            return changesign*intsign(n)*(9+queen_position_eval[7-y][7-x]);
+        }
+        return 0.0;
+    }
     //pawns
-    if(n != 0 && abs(n) < 9){
-        return changesign*intsign(n)*(1+0.1*pawn_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    if(n != 0 && n > -9){
+        return changesign*intsign(n)*(1+pawn_position_eval[y][x]);
     }
     //knights and bishops
-    if(abs(n) > 9 && abs(n) < 20){
-        return changesign*intsign(n)*(3+0.1*knight_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    if(n < -9 && n > -20){
+        return changesign*intsign(n)*(3+knight_position_eval[y][x]);
     }
     //bishops
-    if(abs(n) > 19 && abs(n) < 30){
-        return changesign*intsign(n)*(3+0.1*bishop_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    if(n < -19 && n > -30){
+        return changesign*intsign(n)*(3+bishop_position_eval[y][x]);
     }
     //rooks
-    if(abs(n) > 29 && abs(n) < 40){
-        return changesign*intsign(n)*(5+0.1*rook_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    if(n < -29 && n > -40){
+        return changesign*intsign(n)*(5+rook_position_eval[y][x]);
     }
     //queens
-    if(abs(n) > 39 && abs(n) < 50){
-        return changesign*intsign(n)*(9+0.1*queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)]);
+    if(n < -39 && n > -50){
+        return changesign*intsign(n)*(9+queen_position_eval[y][x]);
     }
     return 0.0;
 }
@@ -213,26 +265,24 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
         return -piece_sign*500000/(ntimes+1.0);
     }
     double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
-    double movescore[304];
-    int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
     for(int n00 = 0; n00 < 6; n00++){
         //Goes through the piece types in peculiar order
         int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
         + 5*(n00 == 5));
         for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
-            int n = piece_sign*(10*n1+n2+int(n1 == 0));
-            if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
-                int y0 = piece_positions[abs(n)-1][int(n<0)][0];
-                int x0 = piece_positions[abs(n)-1][int(n<0)][1];
-                bool pinnable = ispinnable(n, y0, x0, kingy, kingx);
-                for(int i = 0; i < can_move_positions[abs(n)-1].size(); i++){
-                    for(int j = 0; j < can_move_positions[abs(n)-1][i].size(); j+=2){
-                        int y1 = can_move_positions[abs(n)-1][i][j];
-                        int x1 = can_move_positions[abs(n)-1][i][j+1];
-                        if(botcanmove(n, y0, x0, y1, x1, pinnable, kingy, kingx)){
-                            double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                            double current_movescore = evaluate_move(n, y0, x0, y1, x1)
+            int absN = (10*n1+n2+int(n1 == 0));
+            if(piece_positions[absN-1][int(piece_sign<0)][0] != -1){
+                int y0 = piece_positions[absN-1][int(piece_sign<0)][0];
+                int x0 = piece_positions[absN-1][int(piece_sign<0)][1];
+                bool pinnable = ispinnable(piece_sign*absN, y0, x0, kingy, kingx);
+                for(int i = 0; i < can_move_positions[absN-1].size(); i++){
+                    for(int j = 0; j < can_move_positions[absN-1][i].size(); j+=2){
+                        int y1 = can_move_positions[absN-1][i][j];
+                        int x1 = can_move_positions[absN-1][i][j+1];
+                        if(botcanmove(piece_sign*absN, y0, x0, y1, x1, pinnable, kingy, kingx)){
+                            double evaluation_minus = evaluate_change(y1, x1, -1)+(absN < 9 && x1*8+y1 == enpassant)*piece_sign*1.0;
+                            double current_movescore = evaluate_move(piece_sign*absN, y0, x0, y1, x1)
                                 + evaluation_minus;
                             double total_movescore = current_movescore 
                                 + previous_movescore;
@@ -244,12 +294,10 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
                                 || (total_movescore > best_movescore && bot == 1)){
                                 best_movescore = total_movescore;
                             }
-                            movescore[movescore_size] = total_movescore;
-                            movescore_size++;
-                            if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                            if(absN > 19 && absN < 50 && board[y1][x1] != 0){
                                 break;
                             }
-                        }else if(abs(n) > 19 && abs(n) < 50 && board[y1][x1] != 0){
+                        }else if(absN > 19 && absN < 50 && board[y1][x1] != 0){
                             break;
                         }
                     }
@@ -257,12 +305,10 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
             }
         }
     }
-    if(movescore_size == 0){
+    if(best_movescore == -piece_sign*1000000){
         return 0.0;
-    }else if(bot == 0){
-        return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
     }else{
-        return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
+        return best_movescore; 
     }
 }
 

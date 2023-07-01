@@ -250,7 +250,7 @@ int monte_carlo_move(){
         return 0;
     }
     int maxdepth = 10;
-    double maxtime = 2.0;
+    double maxtime = 5.0;
     double startscore = fulleval();
     double score = 10.0*monte_carlo_firstmove(maxdepth, maxtime, startscore);
     if(ntimes > ntimesmin){
