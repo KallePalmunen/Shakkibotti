@@ -122,12 +122,8 @@ double monte_carlo_firstmove(int maxdepth, double maxtime, double startscore){
     int temp_enpassant = enpassant;
     int temp_board[8][8];
     std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
-    int temp_kingmoved[2];
-    std::copy(&kingmoved[0], &kingmoved[0]+2, 
-        &temp_kingmoved[0]);
-    int temp_castled[2];
-    std::copy(&castled[0], &castled[0]+2, 
-        &temp_castled[0]);
+    int temp_kingmoved = kingmoved;
+    int temp_castled = castled;
     int temp_rookmoved[2][2];
     std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
         &temp_rookmoved[0][0]);
@@ -166,10 +162,8 @@ double monte_carlo_firstmove(int maxdepth, double maxtime, double startscore){
         enpassant = temp_enpassant;
         std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
         &board[0][0]);
-        std::copy(&temp_kingmoved[0], 
-            &temp_kingmoved[0]+2, &kingmoved[0]);
-        std::copy(&temp_castled[0], &temp_castled[0]+2, 
-            &castled[0]);
+        kingmoved = temp_kingmoved;
+        castled = temp_castled;
         std::copy(&temp_rookmoved[0][0], 
             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
         std::copy(&temp_pieces[0][0], 
@@ -211,10 +205,8 @@ double monte_carlo_firstmove(int maxdepth, double maxtime, double startscore){
         enpassant = temp_enpassant;
         std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
         &board[0][0]);
-        std::copy(&temp_kingmoved[0], 
-            &temp_kingmoved[0]+2, &kingmoved[0]);
-        std::copy(&temp_castled[0], &temp_castled[0]+2, 
-            &castled[0]);
+        kingmoved = temp_kingmoved;
+        castled = temp_castled;
         std::copy(&temp_rookmoved[0][0], 
             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
         std::copy(&temp_pieces[0][0], 

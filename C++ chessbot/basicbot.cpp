@@ -5,29 +5,15 @@ int ntimesmin = 4;
 int ntimes = ntimesmin;
 //amount of moves calculated one full move deeper
 int plusamount = 2;
-double pawn_position_eval[8][8] = {{8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0},
-  {0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05},
-  {0.01, 0.01, 0.02, 0.03, 0.03, 0.02, 0.01, 0.01},
-  {0.005, 0.005, 0.01, 0.025, 0.025, 0.01, 0.005, 0.005},
-  {0.0, 0.0, 0.0, 0.02, 0.02, 0.0, 0.0, 0.0},
-  {0.005, -0.005, -0.01, 0.0, 0.0, -0.01, -0.005, 0.005},
-  {0.005, 0.01, 0.01, -0.02, -0.02, 0.01, 0.01, 0.005},
-  {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
-double knight_position_eval[8][8] = {{-0.05, -0.04, -0.03, -0.03, -0.03, -0.03, -0.04, -0.05},
-  {-0.04, -0.02, 0.0, 0.0, 0.0, 0.0, -0.02, -0.04},
-  {-0.03, 0.0, 0.01, 0.015, 0.015, 0.01, 0.0, -0.03},
-  {-0.03, 0.005, 0.015, 0.02, 0.02, 0.015, 0.005, -0.03},
-  {-0.03, 0.005, 0.015, 0.02, 0.02, 0.015, 0.005, -0.03},
-  {-0.03, 0.0, 0.01, 0.015, 0.015, 0.01, 0.0, -0.03},
-  {-0.04, -0.02, 0.0, 0.0, 0.0, 0.0, -0.02, -0.04},
-  {-0.05, -0.04, -0.03, -0.03, -0.03, -0.03, -0.04, -0.05}};
-double bishop_position_eval[8][8] = {{-0.02, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.02},
-  {-0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.01},
-  {-0.01, 0.0, 0.005, 0.01, 0.01, 0.005, 0.0, -0.01},
-  {-0.01, 0.005, 0.005, 0.01, 0.01, 0.005, 0.005, -0.01},
-  {-0.01, 0.0, 0.01, 0.01, 0.01, 0.01, 0.0, -0.01},
-  {-0.01, 0.01, 0.001, 0.01, 0.01, 0.01, 0.01, -0.01},
-  {-0.01, 0.005, 0.0, 0.0, 0.0, 0.0, 0.005, -0.01},{-0.02, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.02}};
+double pawn_position_eval[8][8] = {{9.0,9.0,9.0,9.0,9.0,9.0,9.0,9.0},{1.05,1.05,1.05,1.05,1.05,1.05,1.05,1.05}
+,{1.01,1.01,1.02,1.03,1.03,1.02,1.01,1.01},{1.005,1.005,1.01,1.025,1.025,1.01,1.005,1.005},{1.0,1.0,1.0,1.02,1.02,1.0,1.0,1.0}
+,{1.005,0.995,0.99,1.0,1.0,0.99,0.995,1.005},{1.005,1.01,1.01,0.98,0.98,1.01,1.01,1.005},{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0}};
+double knight_position_eval[8][8] = {{2.95,2.96,2.97,2.97,2.97,2.97,2.96,2.95},{2.96,2.98,3.0,3.0,3.0,3.0,2.98,2.96}
+,{2.97,3.0,3.01,3.015,3.015,3.01,3.0,2.97},{2.97,3.005,3.015,3.02,3.02,3.015,3.005,2.97},{2.97,3.005,3.015,3.02,3.02,3.015,3.005,2.97}
+,{2.97,3.0,3.01,3.015,3.015,3.01,3.0,2.97},{2.96,2.98,3.0,3.0,3.0,3.0,2.98,2.96},{2.95,2.96,2.97,2.97,2.97,2.97,2.96,2.95}};
+double bishop_position_eval[8][8] = {{2.98,2.99,2.99,2.99,2.99,2.99,2.99,2.98},{2.99,3.0,3.0,3.0,3.0,3.0,3.0,2.99}
+,{2.99,3.0,3.005,3.01,3.01,3.005,3.0,2.99},{2.99,3.005,3.005,3.01,3.01,3.005,3.005,2.99},{2.99,3.0,3.01,3.01,3.01,3.01,3.0,2.99}
+,{2.99,3.01,3.001,3.01,3.01,3.01,3.01,2.99},{2.99,3.005,3.0,3.0,3.0,3.0,3.005,2.99},{2.98,2.99,2.99,2.99,2.99,2.99,2.99,2.98}};
 double rook_position_eval[8][8] = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
   {0.005, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.005},
   {-0.005, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.005},
@@ -95,15 +81,15 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
     if(n > 0){
         //pawns
         if(n != 0 && n < 9){
-            return changesign*intsign(n)*(1+pawn_position_eval[7-y][7-x]);
+            return changesign*intsign(n)*pawn_position_eval[7-y][7-x];
         }
         //knights and bishops
         if(n > 9 && n < 20){
-            return changesign*intsign(n)*(3+knight_position_eval[7-y][7-x]);
+            return changesign*intsign(n)*knight_position_eval[7-y][7-x];
         }
         //bishops
         if(n > 19 && n < 30){
-            return changesign*intsign(n)*(3+bishop_position_eval[7-y][7-x]);
+            return changesign*intsign(n)*bishop_position_eval[7-y][7-x];
         }
         //rooks
         if(n > 29 && n < 40){
@@ -117,15 +103,15 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
     }
     //pawns
     if(n != 0 && n > -9){
-        return changesign*intsign(n)*(1+pawn_position_eval[y][x]);
+        return changesign*intsign(n)*pawn_position_eval[y][x];
     }
     //knights and bishops
     if(n < -9 && n > -20){
-        return changesign*intsign(n)*(3+knight_position_eval[y][x]);
+        return changesign*intsign(n)*knight_position_eval[y][x];
     }
     //bishops
     if(n < -19 && n > -30){
-        return changesign*intsign(n)*(3+bishop_position_eval[y][x]);
+        return changesign*intsign(n)*bishop_position_eval[y][x];
     }
     //rooks
     if(n < -29 && n > -40){
@@ -140,7 +126,7 @@ double evaluate_change(int y, int x, int changesign, int n = -100){
 
 double evaluate_move(int n, int y0, int x0, int y1, int x1){
     return evaluate_change(y1, x1, 1, n) + 
-        evaluate_change(y0, x0, -1, n) + (castled[0] == 1)*0.1 - (castled[1] == 1)*0.1;
+        evaluate_change(y0, x0, -1, n) + (castled % 2 == 0)*0.1 - (castled % 3 == 0)*0.1;
 }
 
 double fulleval(){
@@ -157,7 +143,7 @@ double fulleval(){
             evaluation += evaluate_change(y0, x0, 1, -n);
         }
     }
-    evaluation += 0.1*(castled[0]-castled[1]);
+    evaluation += 0.1*((castled%2 == 0)-(castled%3 == 0));
     return evaluation;
 }
 
@@ -167,12 +153,8 @@ std::vector<std::vector<int>> reorder(){
     int temp_enpassant = enpassant;
     int temp_board[8][8];
     std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
-    int temp_kingmoved[2];
-    std::copy(&kingmoved[0], &kingmoved[0]+2, 
-        &temp_kingmoved[0]);
-    int temp_castled[2];
-    std::copy(&castled[0], &castled[0]+2, 
-        &temp_castled[0]);
+    int temp_kingmoved = kingmoved;
+    int temp_castled = castled;
     int temp_rookmoved[2][2];
     std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
         &temp_rookmoved[0][0]);
@@ -218,10 +200,8 @@ std::vector<std::vector<int>> reorder(){
                         enpassant = temp_enpassant;
                         std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
                         &board[0][0]);
-                        std::copy(&temp_kingmoved[0], 
-                            &temp_kingmoved[0]+2, &kingmoved[0]);
-                        std::copy(&temp_castled[0], &temp_castled[0]+2, 
-                            &castled[0]);
+                        kingmoved = temp_kingmoved;
+                        castled = temp_castled;
                         std::copy(&temp_rookmoved[0][0], 
                             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
                         std::copy(&temp_pieces[0][0], 
@@ -254,6 +234,7 @@ std::vector<std::vector<int>> reorder(){
 }
 
 double last_move(int n0, int y00, int x00, int y10, int x10, double best){
+    //auto start = std::chrono::high_resolution_clock::now();
     int piece_sign = int(bot == 1)-int(bot == 0);
     int kingy = piece_positions[49][int(n0>0)][0];
     int kingx = piece_positions[49][int(n0>0)][1];
@@ -266,18 +247,24 @@ double last_move(int n0, int y00, int x00, int y10, int x10, double best){
     }
     double previous_movescore = evaluate_move(n0, y00, x00, y10, x10);
     double best_movescore = -piece_sign*1000000;
+    int color = int(piece_sign<0);
+    //auto stop = std::chrono::high_resolution_clock::now();
+    //auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+    //timer += duration.count()/1000000000.0;
     for(int n00 = 0; n00 < 6; n00++){
         //Goes through the piece types in peculiar order
         int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
         + 5*(n00 == 5));
-        for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
+        for(int n2 = 0; n2 < pieces[n1][color]; n2++){
             int absN = (10*n1+n2+int(n1 == 0));
-            if(piece_positions[absN-1][int(piece_sign<0)][0] != -1){
-                int y0 = piece_positions[absN-1][int(piece_sign<0)][0];
-                int x0 = piece_positions[absN-1][int(piece_sign<0)][1];
+            if(piece_positions[absN-1][color][0] != -1){
+                int y0 = piece_positions[absN-1][color][0];
+                int x0 = piece_positions[absN-1][color][1];
                 bool pinnable = ispinnable(piece_sign*absN, y0, x0, kingy, kingx);
-                for(int i = 0; i < can_move_positions[absN-1].size(); i++){
-                    for(int j = 0; j < can_move_positions[absN-1][i].size(); j+=2){
+                int size_i = can_move_positions[absN-1].size();
+                for(int i = 0; i < size_i; i++){
+                    int size_j = can_move_positions[absN-1][i].size();
+                    for(int j = 0; j < size_j; j+=2){
                         int y1 = can_move_positions[absN-1][i][j];
                         int x1 = can_move_positions[absN-1][i][j+1];
                         if(botcanmove(piece_sign*absN, y0, x0, y1, x1, pinnable, kingy, kingx)){
@@ -324,25 +311,12 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
     if(checkmate(piece_sign*50, kingy, kingx)){
         return -piece_sign*500000/(ntimes-nmoremoves+1.0);
     }
-    int temp_moves = moves;
     int temp_enpassant = enpassant;
-    int temp_board[8][8];
-    std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
-    int temp_kingmoved[2];
-    std::copy(&kingmoved[0], &kingmoved[0]+2, 
-        &temp_kingmoved[0]);
-    int temp_castled[2];
-    std::copy(&castled[0], &castled[0]+2, 
-        &temp_castled[0]);
+    int temp_kingmoved = kingmoved;
+    int temp_castled = castled;
     int temp_rookmoved[2][2];
     std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
         &temp_rookmoved[0][0]);
-    int temp_pieces[6][2];
-    std::copy(&pieces[0][0], &pieces[0][0]+12, 
-        &temp_pieces[0][0]);
-    int temp_piece_positions[50][2][2];
-    std::copy(&piece_positions[0][0][0], &piece_positions[0][0][0]+200, 
-        &temp_piece_positions[0][0][0]);
     double movescore[332];
     int movescore_size = 0;
     double best_movescore = -piece_sign*1000000;
@@ -363,7 +337,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             }
                             double evaluation_minus = evaluate_change(y1, x1, -1)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
                             double current_movescore;
-                            movepieceto(n, y0, x0, y1, x1, false);
+                            int movetosquare = movepieceto(n, y0, x0, y1, x1, false);
                             if(nmoremoves%2 == 0 && abs(n) < 10 && ((color == 0 && y1 == 7) 
                             || (color == 1 && y1 == 0))){
                                 update_can_move_positions(color, abs(board[y1][x1]), y1, x1);
@@ -393,6 +367,7 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                                 update_can_move_positions(color, 31
                                 , piece_positions[31-1][color][0], piece_positions[31-1][color][1]);
                             }
+                            undo_move(n, y0, x0, y1, x1, movetosquare, temp_enpassant);
                             if((total_movescore <= best && (piece_sign!=1))
                                 || (total_movescore >= best && (piece_sign==1))){
                                 return total_movescore;
@@ -404,20 +379,11 @@ double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmo
                             movescore[movescore_size] = total_movescore;
                             movescore_size++;
                             //return to saved state
-                            moves = temp_moves;
                             enpassant = temp_enpassant;
-                            std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
-                            &board[0][0]);
-                            std::copy(&temp_piece_positions[0][0][0], &temp_piece_positions[0][0][0]+200, 
-                            &piece_positions[0][0][0]);
-                            std::copy(&temp_kingmoved[0], 
-                                &temp_kingmoved[0]+2, &kingmoved[0]);
-                            std::copy(&temp_castled[0], &temp_castled[0]+2, 
-                                &castled[0]);
+                            kingmoved = temp_kingmoved;
+                            castled = temp_castled;
                             std::copy(&temp_rookmoved[0][0], 
                                 &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
-                            std::copy(&temp_pieces[0][0], 
-                                &temp_pieces[0][0]+12, &pieces[0][0]);
                         }
                     }
                 }
@@ -439,12 +405,8 @@ void firstmove(bool all = true){
     int temp_enpassant = enpassant;
     int temp_board[8][8];
     std::copy(&board[0][0], &board[0][0]+64, &temp_board[0][0]);
-    int temp_kingmoved[2];
-    std::copy(&kingmoved[0], &kingmoved[0]+2, 
-        &temp_kingmoved[0]);
-    int temp_castled[2];
-    std::copy(&castled[0], &castled[0]+2, 
-        &temp_castled[0]);
+    int temp_kingmoved = kingmoved;
+    int temp_castled = castled;
     int temp_rookmoved[2][2];
     std::copy(&rookmoved[0][0], &rookmoved[0][0]+4, 
         &temp_rookmoved[0][0]);
@@ -506,10 +468,8 @@ void firstmove(bool all = true){
         enpassant = temp_enpassant;
         std::copy(&temp_board[0][0], &temp_board[0][0]+64, 
         &board[0][0]);
-        std::copy(&temp_kingmoved[0], 
-            &temp_kingmoved[0]+2, &kingmoved[0]);
-        std::copy(&temp_castled[0], &temp_castled[0]+2, 
-            &castled[0]);
+        kingmoved = temp_kingmoved;
+        castled = temp_castled;
         std::copy(&temp_rookmoved[0][0], 
             &temp_rookmoved[0][0]+4, &rookmoved[0][0]);
         std::copy(&temp_pieces[0][0], 
@@ -656,6 +616,6 @@ int basicbot(){
         <std::chrono::milliseconds>(stop - start);
     std::cout << duration.count()/1000.0 << '\n';
     std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
-    //std::cout << timer << '\n';
+    std::cout << timer << '\n';
     return 0;
 }

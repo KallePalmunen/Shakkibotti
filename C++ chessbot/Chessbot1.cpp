@@ -9,19 +9,20 @@ int enpassant = -1;
 int piece_positions[50][2][2];
 //white == 0, black == 1
 int bot = 0;
-int castled[2] = {0,0};
 bool promotemenu = false;
 double evalscore = 0.0;
 std::string evaltext = "";
 //coordinates where it could be possible for a given piece to move to
 std::vector<std::vector<std::vector<int>>> can_move_positions;
 std::vector<int> pinners;
-float timer = 0.0;
+double timer = 0.0;
 
 //pawns, knights, bishops, rooks, queens and kings (W,B)
 int pieces[6][2] = {{8,8},{2,2},{2,2},{2,2},{1,1},{1,1}};
-//black, white
-int kingmoved[2] = {0,0};
+//%2 == 0 if white king has moved, %3 == 0 if black king has moved
+int kingmoved = 1;
+//%2 == 0 if white has castled, %3 == 0 if black has castled
+int castled = 1;
 //black left, right - white left, right
 int rookmoved[2][2] = {{0,0},{0,0}};
 
@@ -283,7 +284,7 @@ bool botcheck(int n, int kingy, int kingx){
 }
 
 bool castle(int n, int y0, int x0, int y1, int x1){
-    if(kingmoved[(n>0)] == 1 || rookmoved[(n>0)][x1>4] == 1){
+    if(kingmoved%((n>0)*2+(n<0)*3) == 0 || rookmoved[(n>0)][x1>4] == 1){
         return false;
     }
     if(y1 == y0 && (x1 == 1 || x1 == 5) && !check(n) &&
@@ -500,9 +501,11 @@ bool botcheckmate(int n, int kingy = -1, int kingx = -1){
     return true;
 }
 
-void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true){
+int movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true){
     int promoteto;
+    int movetosquare = 0;
     if(board[y1][x1] != 0){
+        movetosquare = board[y1][x1];
         piece_positions[abs(board[y1][x1])-1][int(n>0)][0] = -1;
     }
     if(abs(n) == 50){
@@ -512,11 +515,11 @@ void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true)
             int rookx = (x1 > 4)*7;
             board[y1][rookx] = 0;
             board[y1][x1 + intsign(4-x1)] = whichrook;
-            castled[(n < 0)] = 1;
+            castled *= (2*(n > 0) + 3*(n < 0));
             piece_positions[abs(whichrook)-1][int(n<0)][0] = y1;
             piece_positions[abs(whichrook)-1][int(n<0)][1] = x1 + intsign(4-x1);
         }
-        kingmoved[(n>0)] = 1;
+        kingmoved *= ((n>0)*2 + (n<0)*3);
     }
     if(abs(n) == 30 || abs(n) == 31){
         rookmoved[(n>0)][abs(n)-30] = 1;
@@ -534,6 +537,7 @@ void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true)
         piece_positions[abs(n)-1][int(n<0)][1] = x1;
     }
     if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
+        movetosquare = board[y1-intsign(y1 - y0)][x1];
         piece_positions[abs(board[y1-intsign(y1 - y0)][x1])-1][int(n>0)][0] = -1;
         board[y1-intsign(y1 - y0)][x1] = 0;
     }
@@ -547,6 +551,43 @@ void movepieceto(int n, int y0, int x0, int y1, int x1, bool addposition = true)
     if(addposition){
         add_to_positions();
     }
+    return movetosquare;
+}
+
+void undo_move(int n, int y0, int x0, int y1, int x1, int movetosquare, int temp_enpassant){
+    int promoteto;
+    if(abs(n) == 50){
+        if(abs(x1-x0) > 1){
+            //castle
+            int whichrook = intsign(n)*(30 + (x1 > 4));
+            int rookx = (x1 > 4)*7;
+            board[y0][rookx] = whichrook;
+            board[y0][x1 + intsign(4-x1)] = 0;
+            piece_positions[abs(whichrook)-1][int(n<0)][0] = y0;
+            piece_positions[abs(whichrook)-1][int(n<0)][1] = rookx;
+        }
+    }
+    if(promote(n, y1)){
+        promoteto = 4;
+        pieces[promoteto][(n < 0)]--;
+        piece_positions[abs(board[y1][x1])-1][int(board[y1][x1]<0)][0] = -1;
+    }
+    if(temp_enpassant >= 0 && x1*8+y1 == temp_enpassant && abs(n) < 10){
+        piece_positions[abs(movetosquare)-1][int(n>0)][0] = y1-intsign(y1 - y0);
+        piece_positions[abs(movetosquare)-1][int(n>0)][1] = x1;
+        board[y1-intsign(y1 - y0)][x1] = movetosquare;
+        board[y1][x1] = 0;
+    }else if(movetosquare != 0){
+        piece_positions[abs(movetosquare)-1][int(n>0)][0] = y1;
+        piece_positions[abs(movetosquare)-1][int(n>0)][1] = x1;
+        board[y1][x1] = movetosquare;
+    }else{
+        board[y1][x1] = 0;
+    }
+    board[y0][x0] = n;
+    piece_positions[abs(n)-1][int(n<0)][0] = y0;
+    piece_positions[abs(n)-1][int(n<0)][1] = x0;
+    moves--;
 }
 
 bool stalemate(int n){
@@ -607,8 +648,11 @@ void gameend(){
 }
 
 void update_can_move_positions(int color, int piece, int y0, int x0){
+    can_move_positions[piece-1].resize(0);
+    if(y0 == -1 || x0 == -1){
+        return;
+    }
     if(piece > 9 && piece < 20){
-        can_move_positions[piece-1].resize(0);
         can_move_positions[piece-1].push_back({});
         if(y0 > 0){
             if(x0 < 6){
@@ -644,18 +688,29 @@ void update_can_move_positions(int color, int piece, int y0, int x0){
         }
         return;
     }
-    if(abs(piece) < 10){
-        can_move_positions[piece-1].resize(0);
+    if(piece < 10){
         can_move_positions[piece-1].push_back({});
         if(color == 0){
-            can_move_positions[piece-1][0] = {y0+1, x0, y0+1, x0+1, y0+1, x0-1};
+            can_move_positions[piece-1][0] = {y0+1, x0};
+            if(x0 < 7){
+                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0+1});
+            }
+            if(x0 > 0){
+                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0-1});
+            }
             if(y0 == 1){
                 can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+2, x0});
             }
             return;
         }
         if(color == 1){
-            can_move_positions[piece-1][0] = {y0-1, x0, y0-1, x0+1, y0-1, x0-1};
+            can_move_positions[piece-1][0] = {y0-1, x0};
+            if(x0 < 7){
+                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0+1});
+            }
+            if(x0 > 0){
+                can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0-1});
+            }
             if(y0 == 6){
                 can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-2, x0});
             }
@@ -664,7 +719,6 @@ void update_can_move_positions(int color, int piece, int y0, int x0){
         return;
     }
     if(piece > 19 && piece < 30){
-        can_move_positions[piece-1].resize(0);
         can_move_positions[piece-1].push_back({});
         for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
             can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-i, x0-i});
@@ -684,7 +738,6 @@ void update_can_move_positions(int color, int piece, int y0, int x0){
         return;
     }
     if(piece > 29 && piece < 40){
-        can_move_positions[piece-1].resize(0);
         can_move_positions[piece-1].push_back({});
         for(int i = 1; x0-i >= 0; i++){
             can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0, x0-i});
@@ -704,7 +757,6 @@ void update_can_move_positions(int color, int piece, int y0, int x0){
         return;
     }
     if(piece > 39 && piece < 50){
-        can_move_positions[piece-1].resize(0);
         can_move_positions[piece-1].push_back({});
         for(int i = 1; x0-i >= 0 && y0-i >= 0; i++){
             can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-i, x0-i});
@@ -740,7 +792,6 @@ void update_can_move_positions(int color, int piece, int y0, int x0){
         return;
     }
     if(piece == 50){
-        can_move_positions[piece-1].resize(0);
         can_move_positions[piece-1].push_back({});
         if(y0 > 0){
             can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0});
