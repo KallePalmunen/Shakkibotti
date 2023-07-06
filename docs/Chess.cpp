@@ -918,14 +918,26 @@ extern "C" {
         if(abs(piece) < 10){
             can_move_positions[piece-1].push_back({});
             if(color == 0){
-                can_move_positions[piece-1][0] = {y0+1, x0, y0+1, x0+1, y0+1, x0-1};
+                can_move_positions[piece-1][0] = {y0+1, x0};
+                if(x0 < 7){
+                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0+1});
+                }
+                if(x0 > 0){
+                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+1, x0-1});
+                }
                 if(y0 == 1){
                     can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0+2, x0});
                 }
                 return can_move_positions;
             }
             if(color == 1){
-                can_move_positions[piece-1][0] = {y0-1, x0, y0-1, x0+1, y0-1, x0-1};
+                can_move_positions[piece-1][0] = {y0-1, x0};
+                if(x0 < 7){
+                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0+1});
+                }
+                if(x0 > 0){
+                    can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-1, x0-1});
+                }
                 if(y0 == 6){
                     can_move_positions[piece-1][0].insert(can_move_positions[piece-1][0].end(),{y0-2, x0});
                 }
@@ -1585,7 +1597,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
-        std::cout << "updated" << '\n';
+        std::cout << "updated0" << '\n';
         //define vectors
         std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
