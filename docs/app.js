@@ -2,7 +2,7 @@
 Module.onRuntimeInitialized = function () {
   let ctx = document.getElementById("canvas").getContext("2d");
 
-  let move = "", botcolor = 1, turn = 0, click = 0, x0, y0, x1, y1, moves = 0, 
+  let move = "", botcolor = 0, turn = 0, click = 0, x0, y0, x1, y1, moves = 0, 
   board = [[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
   positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
