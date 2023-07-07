@@ -425,7 +425,22 @@ function startGame(botcolor){
     }
   }
 
+  function mouse_up(e){
+    let rect = canvas.getBoundingClientRect();
+    if(click == 1){
+      x1 = Math.floor((e.clientX - rect.left)/75);
+      x1 = (botcolor*(7-x1)+Number(botcolor == 0)*x1);
+      y1 = Math.floor((e.clientY - rect.top)/75);
+      y1 = (botcolor*(7-y1)+Number(botcolor == 0)*y1);
+      if(x1 != x0 || y1 != y0){
+        click = 0;
+        make_move(y0, x0, y1, x1);
+      }
+    }
+  }
+
   document.addEventListener('mousedown', select_pieces);
+  document.addEventListener('mouseup', mouse_up);
 
   (async () => {
       let binaryData;
