@@ -160,10 +160,12 @@ Module.onRuntimeInitialized = function () {
   function drawBoard(){
     return new Promise(resolve => {
       ctx.drawImage(boardimg, 0, 0);
-      ctx.drawImage(selectedimg, lastmovex0*75, lastmovey0*75);
-      ctx.drawImage(selectedimg, lastmovex1*75, lastmovey1*75);
+      ctx.drawImage(selectedimg, (botcolor*(7-lastmovex0)+Number(botcolor == 0)*lastmovex0)*75
+      , (botcolor*(7-lastmovey0)+Number(botcolor == 0)*lastmovey0)*75);
+      ctx.drawImage(selectedimg, (botcolor*(7-lastmovex1)+Number(botcolor == 0)*lastmovex1)*75
+      , (botcolor*(7-lastmovey1)+Number(botcolor == 0)*lastmovey1)*75);
       if(click == 1){
-        ctx.drawImage(selectedimg, x0*75, y0*75);
+        ctx.drawImage(selectedimg, (botcolor*(7-x0)+Number(botcolor == 0)*x0)*75, (botcolor*(7-y0)+Number(botcolor == 0)*y0)*75);
       }
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
