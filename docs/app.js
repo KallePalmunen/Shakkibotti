@@ -1,8 +1,59 @@
 // Load the WASM module
 Module.onRuntimeInitialized = function () {
   let ctx = document.getElementById("canvas").getContext("2d");
+  //number of images to be loaded now
+  let imagecount = 3;
+  let loaded_images = 0;
 
-  let move = "", botcolor = 0, turn = 0, click = 0, x0, y0, x1, y1, moves = 0, 
+  let wkingimg = new Image();
+  wkingimg.src = "./Images/whiteking3.png";
+  wkingimg.onload = images_loaded;
+  let bkingimg = new Image();
+  bkingimg.src = "./Images/blackking3.png";
+  bkingimg.onload = images_loaded;
+  let kingimg = new Image();
+  kingimg.src = "./Images/king.png";
+  kingimg.onload = images_loaded;
+
+  function images_loaded(){
+    loaded_images++;
+    if(loaded_images == imagecount){
+      ctx.font = "64px Arial, sans-serif";
+      ctx.fillStyle = "black";
+      ctx.fillText("Select color", 75, 200);
+      ctx.font = "32px Arial, sans-serif";
+      ctx.drawImage(wkingimg, 0, 300);
+      ctx.fillText("White", 0, 400);
+      ctx.drawImage(bkingimg, 200, 300);
+      ctx.fillText("Black", 200, 400);
+      ctx.drawImage(kingimg, 400, 300);
+      ctx.fillText("Random", 375, 400);
+    }
+  }
+  
+  function select_color(e){
+    let rect = canvas.getBoundingClientRect();
+    let clickx = Math.floor((e.clientX - rect.left));
+    if(clickx < 125){
+      document.removeEventListener("mousedown", select_color);
+      startGame(1);
+    }
+    if(clickx >= 125 && clickx < 325){
+      document.removeEventListener("mousedown", select_color);
+      startGame(0);
+    }
+    if(clickx >= 325){
+      document.removeEventListener("mousedown", select_color);
+      startGame(Math.floor(Math.random() * 2));
+    }
+  }
+
+  document.addEventListener('mousedown', select_color);
+}
+function startGame(botcolor){
+  let ctx = document.getElementById("canvas").getContext("2d");
+
+  let move = "", turn = 0, click = 0, x0, y0, x1, y1, moves = 0, 
   board = [[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
   positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
@@ -36,10 +87,10 @@ Module.onRuntimeInitialized = function () {
   wrookimg.src = "./Images/whiterook2.png";
   wrookimg.onload = images_loaded;
   let wqueenimg = new Image();
-  wqueenimg.src = "./Images/whitequeen2.png";
+  wqueenimg.src = "./Images/whitequeen3.png";
   wqueenimg.onload = images_loaded;
   let wkingimg = new Image();
-  wkingimg.src = "./Images/whiteking2.png";
+  wkingimg.src = "./Images/whiteking3.png";
   wkingimg.onload = images_loaded;
   let bpawnimg = new Image();
   bpawnimg.src = "./Images/blackpawn2.png";
@@ -54,10 +105,10 @@ Module.onRuntimeInitialized = function () {
   brookimg.src = "./Images/blackrook2.png";
   brookimg.onload = images_loaded;
   let bqueenimg = new Image();
-  bqueenimg.src = "./Images/blackqueen2.png";
+  bqueenimg.src = "./Images/blackqueen3.png";
   bqueenimg.onload = images_loaded;
   let bkingimg = new Image();
-  bkingimg.src = "./Images/blackking2.png";
+  bkingimg.src = "./Images/blackking3.png";
   bkingimg.onload = images_loaded;
   let selectedimg = new Image();
   selectedimg.src = "./Images/selected.png";
