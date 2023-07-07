@@ -10,11 +10,14 @@ Module.onRuntimeInitialized = function () {
   enpassant = -1, piece_positions = [];
   //pawns, knights, bishops, rooks, queens and kings (W,B)
   let pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]];
+  //coordinates of the latest move
+  let lastmovex0 = -1, lastmovey0 = -1, lastmovex1 = -1, lastmovey1 = -1;
   let castled = 1; //%2 == 0 if white has castled, %3 == 0 if black has castled
   let kingmoved = 1; //%2 == 0 if white king has moved, %3 == 0 if black king has moved
   //black left, right - white left, right
   let rookmoved = [[0,0],[0,0]];
-  let imagecount = 13;
+  //total number of images
+  let imagecount = 14;
   let loaded_images = 0;
 
   let boardimg = new Image();
@@ -56,6 +59,9 @@ Module.onRuntimeInitialized = function () {
   let bkingimg = new Image();
   bkingimg.src = "./Images/blackking2.png";
   bkingimg.onload = images_loaded;
+  let selectedimg = new Image();
+  selectedimg.src = "./Images/selected.png";
+  selectedimg.onload = images_loaded;
 
   function images_loaded(){
     loaded_images++;
@@ -154,6 +160,11 @@ Module.onRuntimeInitialized = function () {
   function drawBoard(){
     return new Promise(resolve => {
       ctx.drawImage(boardimg, 0, 0);
+      ctx.drawImage(selectedimg, lastmovex0*75, lastmovey0*75);
+      ctx.drawImage(selectedimg, lastmovex1*75, lastmovey1*75);
+      if(click == 1){
+        ctx.drawImage(selectedimg, x0*75, y0*75);
+      }
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if(board[y][x] > 0 && board[y][x] < 10){
@@ -264,7 +275,12 @@ Module.onRuntimeInitialized = function () {
     if(!movepiece(y0, x0, y1, x1, turn, JSON.stringify(board), castled
     , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))){
       console.log("Illegal move");
+      drawBoard();
     }else{
+      lastmovex0 = x0;
+      lastmovey0 = y0;
+      lastmovex1 = x1;
+      lastmovey1 = y1;
       update_position([board[y0][x0], y0, x0, y1, x1]);
       turn = (turn == 0);
       moves++;
@@ -306,7 +322,12 @@ Module.onRuntimeInitialized = function () {
     }
     turn = (turn == 0);
     moves++;
-    update_position(convert_move(move));
+    move = convert_move(move);
+    lastmovey0 = move[1];
+    lastmovex0 = move[2];
+    lastmovey1 = move[3];
+    lastmovex1 = move[4];
+    update_position(move);
     await drawBoard();
     // wait for next animation frame
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -337,6 +358,7 @@ Module.onRuntimeInitialized = function () {
       y0 = (botcolor*(7-y0)+Number(botcolor == 0)*y0);
       if((board[y0][x0] > 0 && botcolor == 1) || (board[y0][x0] < 0 && botcolor == 0)){
         click = 1;
+        drawBoard();
       }
       return;
     }
@@ -345,8 +367,8 @@ Module.onRuntimeInitialized = function () {
       x1 = (botcolor*(7-x1)+Number(botcolor == 0)*x1);
       y1 = Math.floor((e.clientY - rect.top)/75);
       y1 = (botcolor*(7-y1)+Number(botcolor == 0)*y1);
-      make_move(y0, x0, y1, x1);
       click = 0;
+      make_move(y0, x0, y1, x1);
     }
   }
 
