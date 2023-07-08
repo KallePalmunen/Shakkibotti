@@ -53,12 +53,18 @@ Module.onRuntimeInitialized = function () {
 function startGame(botcolor){
   let ctx = document.getElementById("canvas").getContext("2d");
 
-  let move = "", turn = 0, click = 0, x0, y0, x1, y1, moves = 0, 
+  let move = "", turn = 0, click = 0, x0, y0, x1, y1, moves = 0,
   board = [[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
   positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]],
   enpassant = -1, piece_positions = [];
+  //false if bot is calculating a move
+  let botready = true
+  //moment that is displayed
+  let current_moment = 0;
+  //value of turn before navigating game
+  let previous_turn = 0;
   //pawns, knights, bishops, rooks, queens and kings (W,B)
   let pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]];
   //coordinates of the latest move
@@ -361,6 +367,7 @@ function startGame(botcolor){
   }
 
   async function bot_move(){
+    botready = false;
     let move;
     let repeated_positions = get_repeated_positions();
     try{
@@ -371,6 +378,7 @@ function startGame(botcolor){
     }catch(error){
       console.log("Error occurred in basicbot:", error);
       alert("Error occured")
+      botready = true;
       return;
     }
     turn = (turn == 0);
@@ -385,6 +393,7 @@ function startGame(botcolor){
     // wait for next animation frame
     await new Promise(resolve => setTimeout(resolve, 0));
     repeated_positions = get_repeated_positions();
+    current_moment = moves;
     let winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
     , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
     if(winner >= 0){
@@ -398,8 +407,10 @@ function startGame(botcolor){
         alert("Draw");
       }
       turn = -1;
+      botready = true;
       return;
     }
+    botready = true;
   }
 
   function select_pieces(e){
@@ -415,19 +426,21 @@ function startGame(botcolor){
       }
       return;
     }
-    if(click == 1){
+    if(click == 1 && turn != 2){
       x1 = Math.floor((e.clientX - rect.left)/75);
       x1 = (botcolor*(7-x1)+Number(botcolor == 0)*x1);
       y1 = Math.floor((e.clientY - rect.top)/75);
       y1 = (botcolor*(7-y1)+Number(botcolor == 0)*y1);
       click = 0;
       make_move(y0, x0, y1, x1);
+    }else if(turn == 2){
+      click = 0;
     }
   }
 
   function mouse_up(e){
     let rect = canvas.getBoundingClientRect();
-    if(click == 1){
+    if(click == 1 && turn != 2){
       x1 = Math.floor((e.clientX - rect.left)/75);
       x1 = (botcolor*(7-x1)+Number(botcolor == 0)*x1);
       y1 = Math.floor((e.clientY - rect.top)/75);
@@ -436,11 +449,41 @@ function startGame(botcolor){
         click = 0;
         make_move(y0, x0, y1, x1);
       }
+    }else if(turn == 2){
+      click = 0;
     }
+  }
+
+  function navigate_moves(event){
+    if(!botready){
+      return;
+    }
+    let key = event.keyCode;
+    if(key == 37){
+      if(current_moment > 0){
+        current_moment--;
+        board = positions[current_moment];
+      }
+    }
+    if(key == 39){
+      if(current_moment < moves){
+        current_moment++;
+        board = positions[current_moment];
+      }
+    }
+    if(current_moment != moves && turn != 2){
+      previous_turn = turn;
+      turn = 2;
+    }
+    else if(turn == 2 && current_moment == moves){
+      turn = previous_turn;
+    }
+    drawBoard();
   }
 
   document.addEventListener('mousedown', select_pieces);
   document.addEventListener('mouseup', mouse_up);
+  document.addEventListener('keydown', navigate_moves);
 
   (async () => {
       let binaryData;
