@@ -564,9 +564,12 @@ extern "C" {
         //by enpassanting the checking piece
         int enpassanted = -100;
         if(enpassant >= 0 && x1*8+y1 == enpassant && abs(n) < 10){
-            enpassanted = board[y1-intsign(y1 - y0)][x1];
-            board[y1-intsign(y1 - y0)][x1] = 0;
-            piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
+            int enpassant_square = board[y1-intsign(y1 - y0)][x1];
+            if(abs(enpassant_square) > 0){
+                enpassanted = enpassant_square;
+                board[y1-intsign(y1 - y0)][x1] = 0;
+                piece_positions[abs(enpassanted)-1][int(enpassanted<0)][0] = -1;
+            }
         }
         if(!check(intsign(n)*50, board, piece_positions, pieces, enpassant, kingy, kingx)){
             board[y0][x0] = n;
@@ -1445,6 +1448,7 @@ extern "C" {
         std::vector<double> movescore;
         double best_movescore = -intsign(bot == 0)*1000000;
         std::vector<std::vector<int>> order;
+        int opponent_piece_sign = int(bot == 1)-int(bot == 0);
         if(all){
             order = reorder(moves, board, positions, castled, piece_positions, pieces, kingmoved, enpassant, rookmoved, bot);
         }else{
@@ -1469,9 +1473,8 @@ extern "C" {
             double evaluation_minus = evaluate_change(y1, x1, -1, board)+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
             movepieceto(n, y0, x0, y1, x1, board, castled, piece_positions, pieces, kingmoved, enpassant, rookmoved);
             positions.push_back(board);
-            if(repetition(moves+1, board, positions) || stalemate(50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved) 
-            || stalemate(-50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)
-            ){
+            if(repetition(moves+1, board, positions) 
+            || stalemate(opponent_piece_sign*50, board, piece_positions, pieces, kingmoved, enpassant, rookmoved)){
                 std::cout << "repetition" << '\n';
                 movescore.push_back(-fulleval(board, castled, piece_positions));
             }
@@ -1597,7 +1600,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
-        std::cout << "updated0" << '\n';
+        std::cout << "updated" << '\n';
         //define vectors
         std::vector<std::vector<int>> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
