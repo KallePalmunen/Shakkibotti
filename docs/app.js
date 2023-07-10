@@ -485,6 +485,16 @@ function startGame(botcolor){
   document.addEventListener('mouseup', mouse_up);
   document.addEventListener('keydown', navigate_moves);
 
+  //prevent double click zoom on mobile
+  var lastTouchEnd = 0;
+  document.addEventListener('touchend', function (event) {
+    var now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+
   (async () => {
       let binaryData;
       if(botcolor == 0){
