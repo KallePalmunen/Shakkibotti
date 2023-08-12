@@ -14,7 +14,7 @@ double UCT(double wins, double visited, double parent_visited){
 }
 
 double normalize(double score){
-    return 1 / (1 + exp(-10*score));
+    return 1 / (1 + exp(-0.5*score));
 }
 
 std::vector<std::vector<int>> find_moves(int piece_sign){
@@ -150,6 +150,7 @@ double monte_carlo_firstmove(int maxdepth, double maxtime, double startscore){
         movepieceto(n, y0, x0, y1, x1, true);
         if(repetition(moves)){
             (root->child[i]->visited) += 1.0;
+            (root->child[i]->wins) += 0.5;
         }else if(checkmate(-piece_sign*50)){
             (root->child[i]->wins) += 1.0;
             (root->child[i]->visited) += 1.0;
@@ -194,6 +195,7 @@ double monte_carlo_firstmove(int maxdepth, double maxtime, double startscore){
         movepieceto(n, y0, x0, y1, x1, true);
         if(repetition(moves)){
             (root->child[i]->visited) += 1.0;
+            (root->child[i]->wins) += 0.5;
         }else if(checkmate(-piece_sign*50)){
             (root->child[i]->wins) += 1;
         }else{
