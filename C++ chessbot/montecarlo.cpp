@@ -65,19 +65,17 @@ node *monte_carlo_nth_move(int piece_sign, node *root, int depth, int maxdepth, 
         int x1 = root->moves[i][4];
         movepieceto(n, y0, x0, y1, x1, true);
         if(checkmate(-piece_sign*50)){
-            double start_wins = (root->child[i]->wins);
-            (root->child[i]->wins) += (int(bot == 0)-int(bot == 1))*piece_sign*1.0;
+            (root->child[i]->wins) += 1.0;
             (root->child[i]->visited) += 1.0;
-            (root->wins) += (root->child[i]->wins) - start_wins;
         }else if(depth == maxdepth){
-            double result = (int(bot == 0)-int(bot == 1))*normalize(fulleval()-startscore);
+            double result = int(piece_sign == -1)+(int(piece_sign == 1)-int(piece_sign == -1))*normalize(fulleval()-startscore);
             (root->child[i]->wins) += result;
             (root->child[i]->visited) += 1.0;
-            (root->wins) += result;
+            (root->wins) += 1-result;
         }else{
             double start_wins = (root->child[i]->wins);
             root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth, startscore);
-            (root->wins) += (root->child[i]->wins) - start_wins;
+            (root->wins) += 1 - ((root->child[i]->wins) - start_wins);
         }
     }else{
         double max_UCT = -100;
@@ -98,19 +96,17 @@ node *monte_carlo_nth_move(int piece_sign, node *root, int depth, int maxdepth, 
         int x1 = root->moves[i][4];
         movepieceto(n, y0, x0, y1, x1, true);
         if(checkmate(-piece_sign*50)){
-            double start_wins = (root->child[i]->wins);
-            (root->child[i]->wins) += (int(bot == 0)-int(bot == 1))*piece_sign*1.0;
+            (root->child[i]->wins) += 1.0;
             (root->child[i]->visited) += 1.0;
-            (root->wins) += (root->child[i]->wins) - start_wins;
         }else if(depth == maxdepth){
-            double result = (int(bot == 0)-int(bot == 1))*normalize(fulleval()-startscore);
+            double result = int(piece_sign == -1)+(int(piece_sign == 1)-int(piece_sign == -1))*normalize(fulleval()-startscore);
             (root->child[i]->wins) += result;
             (root->child[i]->visited) += 1.0;
-            (root->wins) += result;
+            (root->wins) += 1-result;
         }else{
             double start_wins = (root->child[i]->wins);
             root->child[i] = monte_carlo_nth_move(-piece_sign, root->child[i], depth+1, maxdepth, startscore);
-            (root->wins) += (root->child[i]->wins) - start_wins;
+            (root->wins) += 1 - ((root->child[i]->wins) - start_wins);
         }
     }
     return root;
