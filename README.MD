@@ -25,5 +25,5 @@ https://kallepalmunen.github.io/Shakkibotti/
 
 ### C++ console application
 
-- on "Console application branch", compile and run Ches.cpp
+- on "Console application" branch, compile and run Ches.cpp
 - enter your moves in the format "starting square""destination square" for example "e2e4"
