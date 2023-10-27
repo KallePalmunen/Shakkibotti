@@ -53,7 +53,7 @@ Module.onRuntimeInitialized = function () {
 function startGame(botcolor){
   let ctx = document.getElementById("canvas").getContext("2d");
 
-  let move = "", turn = 0, click = 0, x0, y0, x1, y1, moves = 0,
+  let move = "", turn = 0, click = 0, x0, y0, x1, y1, moves = 0, arrows = [],
   board = [[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
   positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
@@ -143,6 +143,18 @@ function startGame(botcolor){
     return data;
   }
 
+  class arrow{
+    constructor(startx, starty){
+      this.color = "yellow";
+      this.visible = false;
+      this.coordinates = [[startx,starty],[0,0]];
+    }
+    finish(endx, endy){
+      this.coordinates[1][0] = endx;
+      this.coordinates[1][1] = endy;
+    }
+  }
+
   function convert_move(move_string){
     let i = 1;
     let result = [];
@@ -214,6 +226,33 @@ function startGame(botcolor){
     }
   }
 
+  function drawarrows(){
+    for(let i = 0; i < arrows.length; i++){
+      if(arrows[i].visible){
+        ctx.strokeStyle = arrows[i].color;
+
+        ctx.beginPath();
+        ctx.moveTo(75*arrows[i].coordinates[0][0]+37,75*arrows[i].coordinates[0][1]+37);
+        ctx.lineTo(75*arrows[i].coordinates[1][0]+37,75*arrows[i].coordinates[1][1]+37);
+        ctx.stroke();
+        //arrowheads
+        let angle1 = Math.atan((arrows[i].coordinates[1][1]-arrows[i].coordinates[0][1])/(arrows[i].coordinates[0][0]-arrows[i].coordinates[1][0]-0.001))
+        +Math.PI/4+(arrows[i].coordinates[1][0]-arrows[i].coordinates[0][0] < 0)*Math.PI+Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(75*arrows[i].coordinates[1][0]+37,75*arrows[i].coordinates[1][1]+37);
+        ctx.lineTo(75*arrows[i].coordinates[1][0]+37+20*Math.cos(angle1),75*arrows[i].coordinates[1][1]+37-20*Math.sin(angle1));
+        ctx.stroke();
+
+        let angle2 = Math.atan((arrows[i].coordinates[1][1]-arrows[i].coordinates[0][1])/(arrows[i].coordinates[0][0]-arrows[i].coordinates[1][0]-0.001))
+        -Math.PI/4+(arrows[i].coordinates[1][0]-arrows[i].coordinates[0][0] < 0)*Math.PI+Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(75*arrows[i].coordinates[1][0]+37,75*arrows[i].coordinates[1][1]+37);
+        ctx.lineTo(75*arrows[i].coordinates[1][0]+37+20*Math.cos(angle2),75*arrows[i].coordinates[1][1]+37-20*Math.sin(angle2));
+        ctx.stroke();
+      }
+    }
+  }
+
   function drawBoard(){
     return new Promise(resolve => {
       ctx.drawImage(boardimg, 0, 0);
@@ -264,6 +303,7 @@ function startGame(botcolor){
           }
         }
       }
+      drawarrows();
       requestAnimationFrame(() => resolve());
     });
   }
@@ -413,8 +453,20 @@ function startGame(botcolor){
     botready = true;
   }
 
-  function select_pieces(e){
+  function mouse_down(e){
     let rect = canvas.getBoundingClientRect();
+    if(e.button === 0) {
+      arrows = [];
+      select_pieces(e, rect);
+      drawBoard();
+    }else{
+      // Right-click
+      arrows.push(new arrow(Math.floor((e.clientX - rect.left)/75), Math.floor((e.clientY - rect.top)/75)));
+      click = 2;
+    }
+  }
+
+  function select_pieces(e, rect){
     if(click == 0){
       x0 = Math.floor((e.clientX - rect.left)/75);
       x0 = (botcolor*(7-x0)+Number(botcolor == 0)*x0);
@@ -438,8 +490,24 @@ function startGame(botcolor){
     }
   }
 
+  function finish_arrow(e, rect){
+    this_arrow = arrows.length-1;
+    arrows[this_arrow].finish(Math.floor((e.clientX - rect.left)/75),Math.floor((e.clientY - rect.top)/75));
+    if(arrows[this_arrow].coordinates[0][0] == arrows[this_arrow].coordinates[1][0] 
+      && arrows[this_arrow].coordinates[0][1] == arrows[this_arrow].coordinates[1][1]){
+        arrows.pop();
+    }else{
+      arrows[this_arrow].visible = true;
+    }
+  }
+
   function mouse_up(e){
     let rect = canvas.getBoundingClientRect();
+    if(click == 2){
+      finish_arrow(e, rect);
+      drawBoard();
+      click = 0;
+    }
     if(click == 1 && turn != 2){
       x1 = Math.floor((e.clientX - rect.left)/75);
       x1 = (botcolor*(7-x1)+Number(botcolor == 0)*x1);
@@ -481,9 +549,16 @@ function startGame(botcolor){
     drawBoard();
   }
 
-  document.addEventListener('mousedown', select_pieces);
+  document.addEventListener('mousedown', mouse_down);
   document.addEventListener('mouseup', mouse_up);
   document.addEventListener('keydown', navigate_moves);
+  document.addEventListener('touchstart', mouse_down);
+  document.addEventListener('touchend', mouse_up)
+
+  canvas.addEventListener('contextmenu', function(event){
+    //prevent contextmenu from appearing
+    event.preventDefault();
+  });
 
   //prevent double click zoom on mobile
   var lastTouchEnd = 0;
