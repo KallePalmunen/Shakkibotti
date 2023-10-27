@@ -455,14 +455,14 @@ function startGame(botcolor){
 
   function mouse_down(e){
     let rect = canvas.getBoundingClientRect();
-    if(e.button === 0) {
-      arrows = [];
-      select_pieces(e, rect);
-      drawBoard();
-    }else{
+    if(e.button === 2){
       // Right-click
       arrows.push(new arrow(Math.floor((e.clientX - rect.left)/75), Math.floor((e.clientY - rect.top)/75)));
       click = 2;
+    }else{
+      arrows = [];
+      select_pieces(e, rect);
+      drawBoard();
     }
   }
 
