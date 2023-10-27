@@ -552,8 +552,6 @@ function startGame(botcolor){
   document.addEventListener('mousedown', mouse_down);
   document.addEventListener('mouseup', mouse_up);
   document.addEventListener('keydown', navigate_moves);
-  document.addEventListener('touchstart', mouse_down);
-  document.addEventListener('touchend', mouse_up)
 
   canvas.addEventListener('contextmenu', function(event){
     //prevent contextmenu from appearing
