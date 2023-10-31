@@ -1280,10 +1280,9 @@ extern "C" {
                             int x1 = can_move_positions[abs(n)-1][i][j+1];
                             if(botcanmove(n, y0, x0, y1, x1, pinnable, board, piece_positions, pieces
                             , pinners, enpassant, kingy, kingx)){
-                                double evaluation_minus = evaluate_change(y1, x1, -1, board[y1][x1])+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0;
-                                double current_movescore = evaluate_move(n, y0, x0, y1, x1, board, castled)
-                                    + evaluation_minus;
-                                double total_movescore = current_movescore 
+                                //change to eval
+                                double total_movescore = evaluate_move(n, y0, x0, y1, x1, board, castled)
+                                    + evaluate_change(y1, x1, -1, board[y1][x1])+(n < 9 && x1*8+y1 == enpassant)*intsign(n)*1.0
                                     + previous_movescore;
                                 if((total_movescore <= best && bot == 0)
                                     || (total_movescore >= best && bot == 1)){
