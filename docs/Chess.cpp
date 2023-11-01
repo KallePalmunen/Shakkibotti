@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <array>
 #include <chrono>
 #include <fstream>
 #include <string>
@@ -226,11 +227,10 @@ extern "C" {
         return result;
     }
 
-    std::vector<std::vector<int>> convert_board(const char* board_string){
+    std::array<std::array<int, 8>, 8> convert_board(const char* board_string){
         int i = 2;
-        std::vector<std::vector<int>> result;
+        std::array<std::array<int, 8>, 8> result;
         for(int y = 0; y < 8; y++){
-            result.push_back({});
             for(int x = 0; x < 8; x++){
                 std::string element = "";
                 while(true){
@@ -248,19 +248,18 @@ extern "C" {
                     element += board_string[i];
                     i++;
                 }
-                result[y].push_back(std::stoi(element));
+                result[y][x] = std::stoi(element);
             }
         }
         return result;
     }
 
-    std::vector<std::vector<std::vector<int>>> convert_positions(const char* positions_string, int moves){
+    std::vector<std::array<std::array<int, 8>, 8>> convert_positions(const char* positions_string, int moves){
         int i = 0;
-        std::vector<std::vector<std::vector<int>>> result;
+        std::vector<std::array<std::array<int, 8>, 8>> result;
         for(int move = 0; move <= moves; move++){
             result.push_back({});
             for(int y = 0; y < 8; y++){
-                result[move].push_back({});
                 for(int x = 0; x < 8; x++){
                     std::string element = "";
                     while(true){
@@ -278,7 +277,7 @@ extern "C" {
                         element += positions_string[i];
                         i++;
                     }
-                    result[move][y].push_back(std::stoi(element));
+                    result[move][y][x] = std::stoi(element);
                 }
             }
         }
@@ -286,7 +285,7 @@ extern "C" {
     }
 
     void printboard(const char* board_string){
-        std::vector<std::vector<int>> board = convert_board(board_string);
+        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
                 std::cout << board[i][j] << " ";
@@ -301,7 +300,7 @@ extern "C" {
         return (a > 0)-(a <= 0);
     }
 
-    bool pawnmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board, int enpassant){
+    bool pawnmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board, int enpassant){
         int piece_sign = int(n>1)-int(n<1);
         if(n > 0){
             if((x1 == x0 && (y1-y0 == 1 || (y1-y0 == 2 && y0 == 1 
@@ -325,7 +324,7 @@ extern "C" {
         return false;
     }
 
-    bool knightmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+    bool knightmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board){
         if(((y1 - y0 == 2 || y1 - y0 == -2) && (x1 - x0 == 1 || x1 - x0 == -1))
             || ((y1- y0 == 1 || y1 - y0 == -1) &&
             (x1 - x0 == 2 || x1 - x0 == -2))){
@@ -342,7 +341,7 @@ extern "C" {
 
     //longmove checks if there is anything in the way when moving bishops, rooks and queens. It also checks whether there is a piece in the endsquare
 
-    bool longmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+    bool longmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board){
         int y = y0, x = x0, xplus = (x1 != x0)*intsign(x1-x0)
         , yplus = (y1 != y0)*intsign(y1-y0);
         if(n > 0){
@@ -380,7 +379,7 @@ extern "C" {
         return false;
     }
 
-    bool bishopmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+    bool bishopmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board){
         if(abs(y1-y0) == abs(x1-x0)){
             if(longmove(n, y0, x0, y1, x1, board)){
                 return true;
@@ -390,7 +389,7 @@ extern "C" {
         return false;
     }
 
-    bool rookmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+    bool rookmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board){
         if((y1 != y0 && x1 == x0) || (y1 == y0 && x1 != x0)){
             if(longmove(n, y0, x0, y1, x1, board)){
                 return true;
@@ -400,14 +399,14 @@ extern "C" {
         return false;
     }
 
-    bool queenmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+    bool queenmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board){
         if(bishopmove(n, y0, x0, y1, x1, board) || rookmove(n, y0, x0, y1, x1, board)){
             return true;
         }
         return false;
     }
 
-    bool kingmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board){
+    bool kingmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board){
         if(abs(y1-y0) <= 1 && abs(x1-x0) <= 1 && 
         !(y1 == y0 && x1 == x0)){
             if(n > 0 && board[y1][x1] <= 0){
@@ -420,7 +419,7 @@ extern "C" {
         return false;
     }
 
-    bool piecemove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board, int enpassant){
+    bool piecemove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board, int enpassant){
         if(abs(n) < 20 && abs(n) >= 10){
             return knightmove(n, y0, x0, y1, x1, board);
         }
@@ -456,7 +455,7 @@ extern "C" {
         return false;
     }
 
-    bool check(int n, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>>& piece_positions
+    bool check(int n, std::array<std::array<int, 8>, 8>& board, std::vector<std::vector<std::vector<int>>>& piece_positions
     , std::vector<std::vector<int>>& pieces, int enpassant, int kingy = -1, int kingx = -1){
         if(kingy == -1) {
             bool found = false;
@@ -494,7 +493,7 @@ extern "C" {
         return false;
     }
 
-    bool botcheck(int n, int kingy, int kingx, std::vector<std::vector<int>>& board
+    bool botcheck(int n, int kingy, int kingx, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<int>& pinners, int enpassant){
         for(int i = 0; i < pinners.size(); i++){
             int piecen = pinners[i];
@@ -509,7 +508,7 @@ extern "C" {
         return false;
     }
 
-    bool castle(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board,
+    bool castle(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board,
     std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces, int kingmoved
     , int enpassant, std::vector<std::vector<int>> rookmoved){
         if(kingmoved%((n>0)*2+(n<0)*3) == 0 || rookmoved[(n>0)][x1>4] == 1){
@@ -540,7 +539,7 @@ extern "C" {
         return false;
     }
 
-    bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx, std::vector<std::vector<int>>& board
+    bool pin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces, int enpassant){
         board[y0][x0] = 0;
         int movetosquare = board[y1][x1];
@@ -589,7 +588,7 @@ extern "C" {
         return true;
     }
 
-    bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx, std::vector<std::vector<int>>& board
+    bool botpin(int n, int y0, int x0, int y1, int x1, int kingy, int kingx, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<int>& pinners, int enpassant){
         if(pinners.size() == 0){
             return false;
@@ -638,7 +637,7 @@ extern "C" {
         return true;
     }
 
-    bool ispinnable(int n, int y0, int x0, int kingy, int kingx, std::vector<std::vector<int>>& board
+    bool ispinnable(int n, int y0, int x0, int kingy, int kingx, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<int>& pinners, int enpassant){
         if(pinners.size() == 0){
             return false;
@@ -652,7 +651,7 @@ extern "C" {
         return true;
     }
 
-    bool canmove(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board
+    bool canmove(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions 
     , std::vector<std::vector<int>>& pieces, int kingmoved, int enpassant
     , std::vector<std::vector<int>>& rookmoved, int kingy = -1, int kingx = -1){
@@ -669,7 +668,7 @@ extern "C" {
         return false;
     }
 
-    bool botcanmove(int n, int y0, int x0, int y1, int x1, bool pinnable, std::vector<std::vector<int>>& board
+    bool botcanmove(int n, int y0, int x0, int y1, int x1, bool pinnable, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions
     , std::vector<std::vector<int>>& pieces, std::vector<int>& pinners, int enpassant, int kingy = -1, int kingx = -1){
         if(n * board[y1][x1] > 0){
@@ -696,7 +695,7 @@ extern "C" {
         return false;
     }
 
-    bool movesomewhere(int n, int y0, int x0, std::vector<std::vector<int>>& board
+    bool movesomewhere(int n, int y0, int x0, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions
     , std::vector<std::vector<int>>& pieces, int kingmoved, int enpassant
     , std::vector<std::vector<int>>& rookmoved, int kingy = -1, int kingx = -1){
@@ -710,7 +709,7 @@ extern "C" {
         return false;
     }
 
-    bool checkmate(int n, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>>& piece_positions
+    bool checkmate(int n, std::array<std::array<int, 8>, 8>& board, std::vector<std::vector<std::vector<int>>>& piece_positions
     , std::vector<std::vector<int>>& pieces, int kingmoved, int enpassant, std::vector<std::vector<int>>& rookmoved
     , int kingy = -1, int kingx = -1){
         if(!check(n, board, piece_positions, pieces, enpassant, kingy, kingx)){
@@ -733,7 +732,7 @@ extern "C" {
         return true;
     }
 
-    bool botcheckmate(int n, std::vector<std::vector<int>>& board
+    bool botcheckmate(int n, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces
     , std::vector<int>& pinners, int kingmoved, int enpassant, std::vector<std::vector<int>>& rookmoved, int kingy = -1, int kingx = -1){
         if(!botcheck(n, kingy, kingx, board, piece_positions, pinners, enpassant)){
@@ -756,7 +755,7 @@ extern "C" {
         return true;
     }
 
-    void movepieceto(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board, int& castled
+    void movepieceto(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board, int& castled
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces, int& kingmoved, int& enpassant
     , std::vector<std::vector<int>>& rookmoved){
         int promoteto;
@@ -803,7 +802,7 @@ extern "C" {
         board[y0][x0] = 0;
     }
 
-    bool stalemate(int n, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>>& piece_positions
+    bool stalemate(int n, std::array<std::array<int, 8>, 8>& board, std::vector<std::vector<std::vector<int>>>& piece_positions
     , std::vector<std::vector<int>>& pieces, int kingmoved, int enpassant, std::vector<std::vector<int>>& rookmoved){
         if(check(n, board, piece_positions, pieces, enpassant)){
             return false;
@@ -821,7 +820,7 @@ extern "C" {
         return true;
     }
 
-    bool compareposition(int moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
+    bool compareposition(int moment, std::array<std::array<int, 8>, 8>& board, std::vector<std::array<std::array<int, 8>, 8>> positions){
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
                 if(positions[moment][y][x] != board[y][x]){
@@ -832,7 +831,7 @@ extern "C" {
         return true;
     }
 
-    bool repetition(int this_moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
+    bool repetition(int this_moment, std::array<std::array<int, 8>, 8>& board, std::vector<std::array<std::array<int, 8>, 8>> positions){
         int repetitions = 0;
         for(int moment = 0; moment < this_moment; moment ++){
             if(compareposition(moment, board, positions)){
@@ -848,8 +847,8 @@ extern "C" {
     int gameend(int turn, int moves, const char* board_string, const char* positions_string
     , const char* piece_positions_str, const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
         //returns 2 if white won, 1 if black won, 0 if draw, -1 if game continues
-        std::vector<std::vector<int>> board = convert_board(board_string);
-        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
+        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
+        std::vector<std::array<std::array<int, 8>, 8>> positions = convert_positions(positions_string, moves);
         std::vector<std::vector<std::vector<int>>> piece_positions = string_to_vector_3d(piece_positions_str);
         std::vector<std::vector<int>> pieces = string_to_vector_2d(pieces_str);
         std::vector<std::vector<int>> rookmoved = string_to_vector_2d(rookmoved_str);
@@ -1055,7 +1054,7 @@ extern "C" {
 
     int movepiece(int y0, int x0, int movetoy, int movetox, int turn, const char* board_string, int castled
     , const char* piece_positions_str, const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
-        std::vector<std::vector<int>> board = convert_board(board_string);
+        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
         std::vector<std::vector<std::vector<int>>> piece_positions = string_to_vector_3d(piece_positions_str);
         std::vector<std::vector<int>> pieces = string_to_vector_2d(pieces_str);
         std::vector<std::vector<int>> rookmoved = string_to_vector_2d(rookmoved_str);
@@ -1075,7 +1074,7 @@ extern "C" {
         return 1;
     }
 
-    bool partialrepetition(int current_moment, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions){
+    bool partialrepetition(int current_moment, std::array<std::array<int, 8>, 8>& board, std::vector<std::array<std::array<int, 8>, 8>> positions){
         for(int moment = 0; moment < current_moment; moment++){
             if(compareposition(moment, board, positions)){
                 return true;
@@ -1096,7 +1095,7 @@ extern "C" {
         , piece_positions[50-1][int(bot == 0)][1], can_move_positions);
     }
 
-    std::vector<int> get_pinners(int piece_sign, int kingy, int kingx, std::vector<std::vector<int>>& board
+    std::vector<int> get_pinners(int piece_sign, int kingy, int kingx, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces, int enpassant){
         std::vector<int> pinners;
         for(int n1 = 0; n1 < 6; n1++){
@@ -1142,12 +1141,12 @@ extern "C" {
         return 0.0;
     }
 
-    double evaluate_move(int n, int y0, int x0, int y1, int x1, std::vector<std::vector<int>>& board, int castled){
+    double evaluate_move(int n, int y0, int x0, int y1, int x1, std::array<std::array<int, 8>, 8>& board, int castled){
         return evaluate_change(y1, x1, 1, board[y1][x1], n) + 
             evaluate_change(y0, x0, -1, board[y0][x0], n) + (castled % 2 == 0)*0.1 - (castled % 3 == 0)*0.1;
     }
 
-    double fulleval(std::vector<std::vector<int>>& board, int castled
+    double fulleval(std::array<std::array<int, 8>, 8>& board, int castled
     , std::vector<std::vector<std::vector<int>>>& piece_positions){
         double evaluation = 0;
         for(int n = 1; n < 51; n++){
@@ -1166,7 +1165,7 @@ extern "C" {
         return evaluation;
     }
 
-    std::vector<std::vector<int>> reorder(int moves, std::vector<std::vector<int>>& board, std::vector<std::vector<std::vector<int>>> positions
+    std::vector<std::vector<int>> reorder(int moves, std::array<std::array<int, 8>, 8>& board, std::vector<std::array<std::array<int, 8>, 8>> positions
     , int castled, std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces, int kingmoved
     , int enpassant, std::vector<std::vector<int>>& rookmoved, int bot){
         //save current state
@@ -1176,10 +1175,10 @@ extern "C" {
         std::vector<std::vector<int>> temp_rookmoved = rookmoved;
         std::vector<std::vector<int>> temp_pieces = pieces;
         std::vector<std::vector<std::vector<int>>> temp_piece_positions = piece_positions;
-        std::vector<std::vector<int>> temp_board = board;
+        std::array<std::array<int, 8>, 8> temp_board = board;
         std::vector<double> movescore;
         std::vector<std::vector<int>> starting_order;
-        std::vector<std::vector<std::vector<int>>> temp_positions = positions;
+        std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
         for(int n1 = 1; n1 < 51; n1++){
             int n = n1; 
             if(bot == 1){n=-n1;}
@@ -1246,7 +1245,7 @@ extern "C" {
         return return_vector;
     }
 
-    double last_move(int n0, int y00, int x00, int y10, int x10, double best, std::vector<std::vector<int>>& board
+    double last_move(int n0, int y00, int x00, int y10, int x10, double best, std::array<std::array<int, 8>, 8>& board
     , std::vector<std::vector<std::vector<int>>>& can_move_positions, int& castled
     , std::vector<std::vector<std::vector<int>>>& piece_positions, std::vector<std::vector<int>>& pieces, int& kingmoved
     , int& enpassant, std::vector<std::vector<int>>& rookmoved, int bot, int ntimes){
@@ -1314,7 +1313,7 @@ extern "C" {
         }
     }
 
-    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves, std::vector<std::vector<int>> board
+    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves, std::array<std::array<int, 8>, 8> board
     , std::vector<std::vector<std::vector<int>>> can_move_positions, int castled
     , std::vector<std::vector<std::vector<int>>> piece_positions, std::vector<std::vector<int>> pieces, int kingmoved
     , int enpassant, std::vector<std::vector<int>> rookmoved, int bot, int ntimes){
@@ -1335,7 +1334,7 @@ extern "C" {
         std::vector<std::vector<int>> temp_rookmoved = rookmoved;
         std::vector<std::vector<int>> temp_pieces = pieces;
         std::vector<std::vector<std::vector<int>>> temp_piece_positions = piece_positions;
-        std::vector<std::vector<int>> temp_board = board;
+        std::array<std::array<int, 8>, 8> temp_board = board;
         double movescore[332];
         int movescore_size = 0;
         double best_movescore = -piece_sign*1000000;
@@ -1427,7 +1426,7 @@ extern "C" {
         }
     }
 
-    void firstmove(int moves, std::vector<std::vector<int>> board, std::vector<std::vector<std::vector<int>>> positions
+    void firstmove(int moves, std::array<std::array<int, 8>, 8> board, std::vector<std::array<std::array<int, 8>, 8>> positions
     , std::vector<std::vector<std::vector<int>>> can_move_positions, int castled
     , std::vector<std::vector<std::vector<int>>> piece_positions, std::vector<std::vector<int>> pieces
     , std::vector<std::vector<int>>& bestmove, int kingmoved, int enpassant, std::vector<std::vector<int>> rookmoved, int bot
@@ -1439,8 +1438,8 @@ extern "C" {
         std::vector<std::vector<int>> temp_rookmoved = rookmoved;
         std::vector<std::vector<int>> temp_pieces = pieces;
         std::vector<std::vector<std::vector<int>>> temp_piece_positions = piece_positions;
-        std::vector<std::vector<int>> temp_board = board;
-        std::vector<std::vector<std::vector<int>>> temp_positions = positions;
+        std::array<std::array<int, 8>, 8> temp_board = board;
+        std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
         std::vector<double> movescore;
         double best_movescore = -intsign(bot == 0)*1000000;
         std::vector<std::vector<int>> order;
@@ -1570,7 +1569,7 @@ extern "C" {
         return myvector;
     }
 
-    bool compare_to_book(std::vector<std::vector<int>> book_board, std::vector<std::vector<int>>& board){
+    bool compare_to_book(std::vector<std::vector<int>> book_board, std::array<std::array<int, 8>, 8>& board){
         for(int j = 0; j < 8; j++){
             for(int k = 0; k < 8; k++){
                 if(book_board[j][k] != board[j][k]){
@@ -1581,7 +1580,7 @@ extern "C" {
         return true;
     }
 
-    std::vector<int> read_openingbook(int color, const char* openingbook_data, int size, std::vector<std::vector<int>>& board){
+    std::vector<int> read_openingbook(int color, const char* openingbook_data, int size, std::array<std::array<int, 8>, 8>& board){
         std::vector<std::vector<std::vector<std::vector<int>>>> openingbook = open_openingbook(openingbook_data, size);
         for(int i = 0; i < openingbook.size(); i++){
             if(compare_to_book(openingbook[i][0], board)){
@@ -1596,10 +1595,10 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
-        std::cout << "updated" << '\n';
+        std::cout << "updated0" << '\n';
         //define vectors
-        std::vector<std::vector<int>> board = convert_board(board_string);
-        std::vector<std::vector<std::vector<int>>> positions = convert_positions(positions_string, moves);
+        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
+        std::vector<std::array<std::array<int, 8>, 8>> positions = convert_positions(positions_string, moves);
         std::vector<std::vector<std::vector<int>>> piece_positions = string_to_vector_3d(piece_positions_str);
         std::vector<std::vector<int>> pieces = string_to_vector_2d(pieces_str);
         std::vector<std::vector<int>> rookmoved = string_to_vector_2d(rookmoved_str);
