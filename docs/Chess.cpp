@@ -8,7 +8,6 @@
 #include <sstream>
 
 extern "C" {
-    double timer0 = 0.0;
     double pawn_position_eval[8][8] = {{80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0},{0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
     ,{0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1},{0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05},{0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0}
     ,{0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05},{0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05},{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0}};
@@ -1389,12 +1388,7 @@ extern "C" {
                                 }
                                 //return to saved state
                                 enpassant = temp_enpassant;
-                                auto start = std::chrono::high_resolution_clock::now();
                                 piece_positions = temp_piece_positions;
-                                auto stop = std::chrono::high_resolution_clock::now();
-                                auto duration = std::chrono::duration_cast
-                                    <std::chrono::nanoseconds>(stop - start);
-                                timer0 += duration.count()/1000000000.0;
                                 kingmoved = temp_kingmoved;
                                 castled = temp_castled;
                                 rookmoved = temp_rookmoved;
@@ -1609,7 +1603,6 @@ extern "C" {
         std::vector<std::vector<int>> rookmoved = string_to_vector_2d(rookmoved_str);
         
         int ntimesmin = 4;
-        timer0 = 0.0;
         //ntimes == (amount of half moves that basicbot searches forward) - 2
         int ntimes = ntimesmin;
         //amount of moves calculated one full move deeper
@@ -1662,7 +1655,6 @@ extern "C" {
         stop = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
-        std::cout << timer0 << '\n';
         std::cout << duration.count()/1000.0 << '\n';
         std::cout <<  convert_to_png(n, y0, x0, y1, x1) << ", " << score << '\n';
         return vector_to_string({n, y0, x0, y1, x1});
