@@ -85,6 +85,19 @@ class TicTacToe:
     def convert_to_action(self, x, y):
         return self.column_count*y+x
     
+class Chess:
+    def __init__(self): #run when class is initiated
+        self.row_count = 8
+        self.column_count = 8
+        self.action_size = 2*self.row_count * self.column_count
+    
+    def __repr__(self): #string representation of this class
+        return "Chess"
+    
+    def get_initial_state(self):
+        return np.array([[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+         [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]])
+    
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device):
         super().__init__() #initiates the parent class
