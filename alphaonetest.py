@@ -14,6 +14,7 @@ from tqdm.notebook import trange
 import random
 import math
 import time
+from Chessbot1 import piecemove
 
 class TicTacToe:
     def __init__(self): #run when class is initiated
@@ -90,6 +91,9 @@ class Chess:
         self.row_count = 8
         self.column_count = 8
         self.action_size = 2*self.row_count * self.column_count
+        self.king_moved = [0, 0]
+        self.king_moved = [[0,0],[0,0]]
+        self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
     
     def __repr__(self): #string representation of this class
         return "Chess"
@@ -97,6 +101,65 @@ class Chess:
     def get_initial_state(self):
         return np.array([[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
          [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]])
+    
+    def promote(piece, y1):
+        if piece < 10 and piece > 0:
+            if y1 == 7:
+                return True
+        if piece > -10 and piece < 0:
+            if y1 == 0:
+                return True
+    
+    def get_next_state(self, state, action):
+        start_position = action // (self.column_count*self.row_count)
+        end_position = (action - start_position) / (self.column_count*self.row_count)
+        y0 = start_position // self.column_count
+        x0 = start_position % self.column_count
+        y1 = end_position // self.column_count
+        x1 = end_position % self.column_count
+        moved_piece = state[y0, x0]
+        if(abs(moved_piece) == 50):
+            if abs(x1 - x0) > 1:
+                whichrook = int(math.copysign(30 + (x1 > 4), moved_piece))
+                state[y1, state[y1].index(whichrook)] = 0
+                state[y1, x1 + int(math.copysign(1, 4-x1))] = whichrook
+            self.kingmoved[(moved_piece > 0)] = 1
+        state[y0,x0] = 0
+        if(abs(moved_piece) == 30 or abs(moved_piece) == 31):
+            self.rookmoved[(moved_piece >0)][abs(moved_piece)-30] = 1
+        if self.promote(moved_piece, y1):
+            promoteto = 4
+            state[y1,x1] = int(math.copysign(1, moved_piece))*(promoteto*10+self.pieces[promoteto][(moved_piece < 0)])
+            self.pieces[promoteto][(moved_piece < 0)] += 1
+        else:
+            state[y1,x1] = moved_piece
+        if enpassant >= 0 and x1*8+y1 == enpassant:
+            state[y1-int(math.copysign(1, y1 - y0)),y1] = 0
+        if abs(moved_piece) < 10 and abs(y1 - y0) > 1:
+            enpassant = x1*8+y0+int(math.copysign(1, y1 - y0))
+        else:
+            enpassant = -1
+        return state
+    
+    def get_valid_moves(self, state, player):
+        #flattens state into a 1D array, and returns a new array of 8-bit unsigned integers 
+        #where each element is 1 if the corresponding element in the original array was 0, and 0 otherwise
+        valid_moves = []
+        for y0 in range(self.row_count):
+            for x0 in range(self.column_count):
+                valid_moves += [[]]
+                if state[y0,x0] != 0 and np.sign(state[y0,x0]) == np.sign(player):
+                    for y1 in range(self.row_count):
+                        for x1 in range(self.column_count):
+                            if piecemove(state[y0,x0], y0, x0, y1, x1):
+                                valid_moves[y0*self.column_count+x0] += [1]
+                            else:
+                                valid_moves[y0*self.column_count+x0] += [0]
+                else:
+                    for i in range(self.row_count*self.column_count):
+                        valid_moves[y0*self.column_count+x0] += [0]
+        valid_moves = np.array(valid_moves)
+        return (valid_moves.reshape(-1)).astype(np.uint8)
     
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device):
