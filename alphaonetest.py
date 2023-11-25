@@ -151,6 +151,7 @@ class Chess:
                 if state[y0,x0] != 0 and np.sign(state[y0,x0]) == np.sign(player):
                     for y1 in range(self.row_count):
                         for x1 in range(self.column_count):
+                            #use of piecemove is problematic
                             if piecemove(state[y0,x0], y0, x0, y1, x1):
                                 valid_moves[y0*self.column_count+x0] += [1]
                             else:
@@ -160,6 +161,20 @@ class Chess:
                         valid_moves[y0*self.column_count+x0] += [0]
         valid_moves = np.array(valid_moves)
         return (valid_moves.reshape(-1)).astype(np.uint8)
+
+    def check_win(self, state, action):
+        if action == None:
+            return False
+        
+        start_position = action // (self.column_count*self.row_count)
+        y0 = start_position // self.column_count
+        x0 = start_position % self.column_count
+
+        player = np.sign(state[y0, x0])
+
+        new_state = self.get_next_state(state, action)
+
+        #check for checkmate        
     
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device):
