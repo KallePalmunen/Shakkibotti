@@ -8,6 +8,7 @@
 #include <sstream>
 
 extern "C" {
+    //evaluation reference tables from white's perspective
     double pawn_position_eval[8][8] = {{80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0},{0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
     ,{0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1},{0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05},{0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0}
     ,{0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05},{0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05},{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0}};
@@ -457,6 +458,7 @@ extern "C" {
 
     bool check(int n, std::array<std::array<int, 8>, 8>& board, std::array<std::array<std::array<int, 2>,2>, 50>& piece_positions
     , std::vector<std::vector<int>>& pieces, int enpassant, int kingy = -1, int kingx = -1){
+        //find the position of the king if not provided
         if(kingy == -1) {
             bool found = false;
             for(int y = 0; y < 8; y++) {
@@ -476,9 +478,9 @@ extern "C" {
                 return true;
             }
         }
-        for(int n1 = 0; n1 < 6; n1++){
-            for(int n2 = 0; n2 < pieces[n1][(n > 0)]; n2++){
-                int piecen = -intsign(n)*(n1*10+n2+(n1 == 0));
+        for(int piece_type = 0; piece_type < 6; piece_type++){
+            for(int n2 = 0; n2 < pieces[piece_type][(n > 0)]; n2++){
+                int piecen = -intsign(n)*(piece_type*10+n2+(piece_type == 0));
                 if(piecen != 0){
                     if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
@@ -715,9 +717,9 @@ extern "C" {
         if(!check(n, board, piece_positions, pieces, enpassant, kingy, kingx)){
             return false;
         }
-        for(int n1 = 0; n1 < 6; n1++){
-            for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
-                int piecen = intsign(n)*(n1*10+n2);
+        for(int piece_type = 0; piece_type < 6; piece_type++){
+            for(int n2 = 0; n2 < pieces[piece_type][(n < 0)]; n2++){
+                int piecen = intsign(n)*(piece_type*10+n2);
                 if(piecen != 0){
                     if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
@@ -738,9 +740,9 @@ extern "C" {
         if(!botcheck(n, kingy, kingx, board, piece_positions, pinners, enpassant)){
             return false;
         }
-        for(int n1 = 0; n1 < 6; n1++){
-            for(int n2 = 0; n2 < pieces[n1][(n < 0)]; n2++){
-                int piecen = intsign(n)*(n1*10+n2);
+        for(int piece_type = 0; piece_type < 6; piece_type++){
+            for(int n2 = 0; n2 < pieces[piece_type][(n < 0)]; n2++){
+                int piecen = intsign(n)*(piece_type*10+n2);
                 if(piecen != 0){
                     if(piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = piece_positions[abs(piecen)-1][int(piecen<0)][0];
@@ -1098,9 +1100,9 @@ extern "C" {
     std::vector<int> get_pinners(int piece_sign, int kingy, int kingx, std::array<std::array<int, 8>, 8>& board
     , std::array<std::array<std::array<int, 2>,2>, 50>& piece_positions, std::vector<std::vector<int>>& pieces, int enpassant){
         std::vector<int> pinners;
-        for(int n1 = 0; n1 < 6; n1++){
-            for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
-                int n = piece_sign*(10*n1+n2+int(n1 == 0));
+        for(int piece_type = 0; piece_type < 6; piece_type++){
+            for(int n2 = 0; n2 < pieces[piece_type][piece_sign!=1]; n2++){
+                int n = piece_sign*(10*piece_type+n2+int(piece_type == 0));
                 int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = piece_positions[abs(n)-1][int(n<0)][1];
                 if(piecemove(n, y0, x0, kingy, kingx, board, enpassant)){
@@ -1265,10 +1267,10 @@ extern "C" {
         double best_movescore = -piece_sign*1000000;
         for(int n00 = 0; n00 < 6; n00++){
             //Goes through the piece types in peculiar order
-            int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
+            int piece_type = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
             + 5*(n00 == 5));
-            for(int n2 = 0; n2 < pieces[n1][piece_sign!=1]; n2++){
-                int n = piece_sign*(10*n1+n2+int(n1 == 0));
+            for(int n2 = 0; n2 < pieces[piece_type][piece_sign!=1]; n2++){
+                int n = piece_sign*(10*piece_type+n2+int(piece_type == 0));
                 if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                     int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                     int x0 = piece_positions[abs(n)-1][int(n<0)][1];
@@ -1340,10 +1342,10 @@ extern "C" {
         double best_movescore = -piece_sign*1000000;
         double previous_movescore = evaluate_move(n0, y00, x00, y10, x10, board, castled);
         for(int n00 = 0; n00 < 6; n00++){
-            int n1 = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
+            int piece_type = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
             + 5*(n00 == 5));
-            for(int n2 = 0; n2 < pieces[n1][(piece_sign!=1)]; n2++){
-                int n = piece_sign*(10*n1+n2+int(n1 == 0));
+            for(int n2 = 0; n2 < pieces[piece_type][(piece_sign!=1)]; n2++){
+                int n = piece_sign*(10*piece_type+n2+int(piece_type == 0));
                 if(piece_positions[abs(n)-1][int(n<0)][0] != -1){
                     int y0 = piece_positions[abs(n)-1][int(n<0)][0];
                     int x0 = piece_positions[abs(n)-1][int(n<0)][1];
