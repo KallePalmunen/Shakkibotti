@@ -14,3 +14,6 @@ game = Chess()
 board = game.get_initial_state()
 player = 1
 moves = game.get_valid_moves(board, player)
+
+print(f"state: {board}")
+print(f"encoded state: {game.get_encoded_state(board)}")

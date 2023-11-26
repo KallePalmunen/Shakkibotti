@@ -178,6 +178,31 @@ class Chess:
             return 0, True
         return 0, False
     
+    def get_opponent(self, player):
+        return -player
+    
+    def get_opponent_value(self, value):
+        return -value
+    
+    def change_perspective(self, state, player):
+        return state * player
+    
+    def get_encoded_state(self, state):
+        #encoded_state is a matrix where each row represents whether each element in the state array is a white or black pawn, knight, bishop,
+        #rook, queen, king, or empty
+        encoded_state = np.stack(
+            (np.logical_and(state > 0, state < 10), np.logical_and(state >= 10, state < 20), np.logical_and(state >= 20, state < 30)
+             , np.logical_and(state >= 30, state < 40), np.logical_and(state >= 40, state < 50), state == 50, state == 0
+             , np.logical_and(state < 0, state > -10), np.logical_and(state <= -10, state > -20), np.logical_and(state <= -20, state > -30)
+             , np.logical_and(state <= -30, state > -40), np.logical_and(state <= -40, state > -50), state == -50)
+        ).astype(np.float32)
+        
+        if len(state.shape) == 3:
+            #swaps vertical and horizontal axes
+            encoded_state = np.swapaxes(encoded_state, 0, 1)
+        
+        return encoded_state
+    
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device):
         super().__init__() #initiates the parent class
