@@ -14,7 +14,7 @@ from tqdm.notebook import trange
 import random
 import math
 import time
-from Chessbot1 import piecemove
+from Chess import *
 
 class TicTacToe:
     def __init__(self): #run when class is initiated
@@ -101,14 +101,6 @@ class Chess:
     def get_initial_state(self):
         return np.array([[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
          [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]])
-    
-    def promote(piece, y1):
-        if piece < 10 and piece > 0:
-            if y1 == 7:
-                return True
-        if piece > -10 and piece < 0:
-            if y1 == 0:
-                return True
     
     def get_next_state(self, state, action):
         start_position = action // (self.column_count*self.row_count)
