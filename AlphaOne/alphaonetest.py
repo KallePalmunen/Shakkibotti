@@ -203,6 +203,9 @@ class Chess:
         
         return encoded_state
     
+    def convert_to_action(self, y0, x0, y1, x1):
+        return (y1*self.column_count + x1)*self.column_count*self.row_count + self.column_count*y0 + x0
+    
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device):
         super().__init__() #initiates the parent class
