@@ -91,9 +91,10 @@ class Chess:
         self.row_count = 8
         self.column_count = 8
         self.action_size = 2*self.row_count * self.column_count
-        self.king_moved = [0, 0]
-        self.king_moved = [[0,0],[0,0]]
+        self.kingmoved = [0, 0]
+        self.rookmoved = [[0,0],[0,0]]
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
+        self.enpassant = -1
     
     def __repr__(self): #string representation of this class
         return "Chess"
@@ -113,7 +114,8 @@ class Chess:
         if(abs(moved_piece) == 50):
             if abs(x1 - x0) > 1:
                 whichrook = int(math.copysign(30 + (x1 > 4), moved_piece))
-                state[y1, state[y1].index(whichrook)] = 0
+                whichrook_y = np.where(state[y1] == whichrook)[0]
+                state[y1, whichrook_y] = 0
                 state[y1, x1 + int(math.copysign(1, 4-x1))] = whichrook
             self.kingmoved[(moved_piece > 0)] = 1
         state[y0,x0] = 0
@@ -144,7 +146,7 @@ class Chess:
                     for y1 in range(self.row_count):
                         for x1 in range(self.column_count):
                             #use of piecemove is problematic
-                            if piecemove(state[y0,x0], y0, x0, y1, x1):
+                            if piecemove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
                                 valid_moves[y0*self.column_count+x0] += [1]
                             else:
                                 valid_moves[y0*self.column_count+x0] += [0]
@@ -166,7 +168,15 @@ class Chess:
 
         new_state = self.get_next_state(state, action)
 
-        #check for checkmate        
+        if checkmate(new_state, -player*50, self.pieces, self.enpassant):
+            return True
+    
+    def get_value_and_terminated(self, state, action):
+        if self.check_win(state, action):
+            return 1, True
+        if np.sum(self.get_valid_moves(state)) == 0:
+            return 0, True
+        return 0, False
     
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device):
