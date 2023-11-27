@@ -91,7 +91,7 @@ class Chess:
     def __init__(self): #run when class is initiated
         self.row_count = 8
         self.column_count = 8
-        self.action_size = 2*self.row_count * self.column_count
+        self.action_size = self.row_count**2 * self.column_count**2
         self.kingmoved = [0, 0]
         self.rookmoved = [[0,0],[0,0]]
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
@@ -499,7 +499,7 @@ tictactoe = TicTacToe()
 def learn(args, game):
     model = ResNet(game, 4, 64, device=device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    alphaZero = AlphaZero(model, optimizer, tictactoe, args)
+    alphaZero = AlphaZero(model, optimizer, game, args)
     start_time = time.time()
     alphaZero.learn()
     print(f"learning time: {time.time()-start_time}s")
@@ -534,7 +534,7 @@ def play(args, game):
                 print("tie")
             break
 
-        policy = MCTS(tictactoe, args, model).search(state)
+        policy = MCTS(game, args, model).search(state)
         valid_moves = tictactoe.get_valid_moves(state)
         policy *= valid_moves
         policy /= np.sum(policy)
