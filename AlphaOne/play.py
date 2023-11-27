@@ -9,4 +9,6 @@ args = {
     'temperature': 0,
 }
 
-play(args)
+game = TicTacToe()
+
+play(args, game)
