@@ -13,6 +13,6 @@ args = {
     'dirichlet_alpha': 0.3
 }
 
-game = TicTacToe()
+game = Chess()
 
 learn(args, game)
