@@ -21,6 +21,7 @@ class TicTacToe:
         self.row_count = 8
         self.column_count = 8
         self.action_size = self.row_count * self.column_count
+        self.max_search_depth = 1000000 #arbitrary high number
         
     def __repr__(self): #string representation of this class
         return "TicTacToe"
@@ -54,7 +55,7 @@ class TicTacToe:
             or np.sum(np.diag(np.flip(state, axis=0))) == player * self.row_count
         )
     
-    def get_value_and_terminated(self, state, action):
+    def get_value_and_terminated(self, state, action, depth):
         if self.check_win(state, action):
             return 1, True
         if np.sum(self.get_valid_moves(state)) == 0:
@@ -95,6 +96,7 @@ class Chess:
         self.rookmoved = [[0,0],[0,0]]
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
         self.enpassant = -1
+        self.max_search_depth = 10
     
     def __repr__(self): #string representation of this class
         return "Chess"
@@ -171,11 +173,13 @@ class Chess:
         if checkmate(new_state, -player*50, self.pieces, self.enpassant):
             return True
     
-    def get_value_and_terminated(self, state, action):
+    def get_value_and_terminated(self, state, action, depth):
         if self.check_win(state, action):
             return 1, True
         if np.sum(self.get_valid_moves(state)) == 0:
             return 0, True
+        if depth >= self.max_search_depth:
+            return 0.5, True
         return 0, False
     
     def get_opponent(self, player):
@@ -300,7 +304,7 @@ plt.bar(range(tictactoe.action_size), policy)
 #plt.show()
 
 class Node:
-    def __init__(self, game, args, state, parent=None, action_taken=None, prior=0, visit_count=0):
+    def __init__(self, game, args, state, parent=None, action_taken=None, prior=0, visit_count=0, depth = 0):
         self.game = game
         self.args = args
         self.state = state
@@ -312,6 +316,7 @@ class Node:
         
         self.visit_count = visit_count
         self.value_sum = 0
+        self.depth = depth
         
     def is_fully_expanded(self):
         return len(self.children) > 0
@@ -342,7 +347,7 @@ class Node:
                 child_state = self.game.get_next_state(child_state, action, 1)
                 child_state = self.game.change_perspective(child_state, player=-1)
 
-                child = Node(self.game, self.args, child_state, self, action, prob)
+                child = Node(self.game, self.args, child_state, self, action, prob, depth = self.depth + 1)
                 self.children.append(child)
                 
         return child
@@ -364,7 +369,7 @@ class MCTS:
         
     @torch.no_grad() #don't track gradients for backpropagation
     def search(self, state):
-        root = Node(self.game, self.args, state, visit_count=1)
+        root = Node(self.game, self.args, state, visit_count=1, depth = 0)
         
         policy, _ = self.model(
             torch.tensor(self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
@@ -384,7 +389,7 @@ class MCTS:
             while node.is_fully_expanded():
                 node = node.select()
                 
-            value, is_terminal = self.game.get_value_and_terminated(node.state, node.action_taken)
+            value, is_terminal = self.game.get_value_and_terminated(node.state, node.action_taken, node.depth)
             value = self.game.get_opponent_value(value)
             
             if not is_terminal:
@@ -434,7 +439,7 @@ class AlphaZero:
             
             state = self.game.get_next_state(state, action, player)
             
-            value, is_terminal = self.game.get_value_and_terminated(state, action)
+            value, is_terminal = self.game.get_value_and_terminated(state, action, 0)
             
             if is_terminal:
                 returnMemory = []
@@ -491,17 +496,17 @@ game = TicTacToe()
 
 tictactoe = TicTacToe()
 
-model = ResNet(tictactoe, 4, 64, device=device)
-
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-def learn(args):
+def learn(args, game):
+    model = ResNet(game, 4, 64, device=device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     alphaZero = AlphaZero(model, optimizer, tictactoe, args)
     start_time = time.time()
     alphaZero.learn()
     print(f"learning time: {time.time()-start_time}s")
 
-def play(args):
+def play(args, game):
+    model = ResNet(game, 4, 64, device=device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     #load previously learned values
     model.load_state_dict(torch.load("model_2_TicTacToe.pt", map_location=device))
     model.eval() #playing mode
@@ -522,8 +527,8 @@ def play(args):
 
         state = tictactoe.get_next_state(state, action, -1)
         print(state)
-        if tictactoe.get_value_and_terminated(state, action)[1]:
-            if tictactoe.get_value_and_terminated(state, action)[0] == 1:
+        if tictactoe.get_value_and_terminated(state, action, 0)[1]:
+            if tictactoe.get_value_and_terminated(state, action, 0)[0] == 1:
                 print("You win!")
             else:
                 print("tie")
@@ -536,8 +541,8 @@ def play(args):
         action = int(np.argmax(policy))
         state = tictactoe.get_next_state(state, action, 1)
         print(state)
-        if tictactoe.get_value_and_terminated(state, action)[1]:
-            if tictactoe.get_value_and_terminated(state, action)[0] == 1:
+        if tictactoe.get_value_and_terminated(state, action, 0)[1]:
+            if tictactoe.get_value_and_terminated(state, action, 0)[0] == 1:
                 print("You lose")
             else:
                 print("tie")
