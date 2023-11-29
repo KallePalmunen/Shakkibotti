@@ -105,13 +105,15 @@ class Chess:
         return np.array([[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
          [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]])
     
-    def get_next_state(self, state, action):
+    def get_next_state(self, state, action, player):
+        #get y0, x0, y1, x1 by inversing convert_to_action
         start_position = action // (self.column_count*self.row_count)
-        end_position = (action - start_position) / (self.column_count*self.row_count)
+        end_position = action - self.column_count*self.row_count*start_position
         y0 = start_position // self.column_count
         x0 = start_position % self.column_count
         y1 = end_position // self.column_count
         x1 = end_position % self.column_count
+        
         moved_piece = state[y0, x0]
         if(abs(moved_piece) == 50):
             if abs(x1 - x0) > 1:
@@ -123,13 +125,13 @@ class Chess:
         state[y0,x0] = 0
         if(abs(moved_piece) == 30 or abs(moved_piece) == 31):
             self.rookmoved[(moved_piece >0)][abs(moved_piece)-30] = 1
-        if self.promote(moved_piece, y1):
+        if promote(moved_piece, y1):
             promoteto = 4
             state[y1,x1] = int(math.copysign(1, moved_piece))*(promoteto*10+self.pieces[promoteto][(moved_piece < 0)])
             self.pieces[promoteto][(moved_piece < 0)] += 1
         else:
             state[y1,x1] = moved_piece
-        if enpassant >= 0 and x1*8+y1 == enpassant:
+        if self.enpassant >= 0 and x1*8+y1 == self.enpassant:
             state[y1-int(math.copysign(1, y1 - y0)),y1] = 0
         if abs(moved_piece) < 10 and abs(y1 - y0) > 1:
             enpassant = x1*8+y0+int(math.copysign(1, y1 - y0))
@@ -137,14 +139,14 @@ class Chess:
             enpassant = -1
         return state
     
-    def get_valid_moves(self, state, player):
+    def get_valid_moves(self, state):
         #flattens state into a 1D array, and returns a new array of 8-bit unsigned integers 
         #where each element is 1 if the corresponding element in the original array was 0, and 0 otherwise
         valid_moves = []
         for y0 in range(self.row_count):
             for x0 in range(self.column_count):
                 valid_moves += [[]]
-                if state[y0,x0] != 0 and np.sign(state[y0,x0]) == np.sign(player):
+                if state[y0,x0] > 0:
                     for y1 in range(self.row_count):
                         for x1 in range(self.column_count):
                             #use of piecemove is problematic
@@ -168,9 +170,9 @@ class Chess:
 
         player = np.sign(state[y0, x0])
 
-        new_state = self.get_next_state(state, action)
+        new_state = self.get_next_state(state, action, player)
 
-        if checkmate(new_state, -player*50, self.pieces, self.enpassant):
+        if checkmate(new_state, -player*50, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
             return True
     
     def get_value_and_terminated(self, state, action, depth):
@@ -208,7 +210,7 @@ class Chess:
         return encoded_state
     
     def convert_to_action(self, y0, x0, y1, x1):
-        return (y1*self.column_count + x1)*self.column_count*self.row_count + self.column_count*y0 + x0
+        return (self.column_count*y0 + x0)*self.column_count*self.row_count + y1*self.column_count + x1
     
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device):
@@ -216,7 +218,7 @@ class ResNet(nn.Module):
         
         self.device = device
         self.startBlock = nn.Sequential(
-            nn.Conv2d(3, num_hidden, kernel_size=3, padding=1), #convolutional layer(input channels, output channels, size of layer, match the input size with output size)
+            nn.Conv2d(13, num_hidden, kernel_size=3, padding=1), #convolutional layer(input channels, output channels, size of layer, match the input size with output size)
             nn.BatchNorm2d(num_hidden), #normalize output
             nn.ReLU()
         )
@@ -271,37 +273,7 @@ class ResBlock(nn.Module):
         x = F.relu(x)
         return x
 
-import matplotlib.pyplot as plt
-
-tictactoe = TicTacToe()
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-state = tictactoe.get_initial_state()
-state = tictactoe.get_next_state(state, 2, -1)
-state = tictactoe.get_next_state(state, 4, -1)
-state = tictactoe.get_next_state(state, 6, 1)
-state = tictactoe.get_next_state(state, 8, 1)
-
-
-encoded_state = tictactoe.get_encoded_state(state)
-
-tensor_state = torch.tensor(encoded_state, device=device).unsqueeze(0) #.unsqueeze ads an extra dimension
-
-model = ResNet(tictactoe, 4, 64, device=device)
-model.eval() #playing mode
-
-policy, value = model(tensor_state)
-value = value.item()
-policy = torch.softmax(policy, axis=1).squeeze(0).detach().cpu().numpy()
-
-print(value)
-
-print(state)
-print(tensor_state)
-
-plt.bar(range(tictactoe.action_size), policy)
-#plt.show()
 
 class Node:
     def __init__(self, game, args, state, parent=None, action_taken=None, prior=0, visit_count=0, depth = 0):
@@ -523,9 +495,9 @@ def play(args, game):
         while(y <= 0 or y > tictactoe.row_count or x <= 0 or x > tictactoe.column_count):
             y = int(input("select row: "))
             x = int(input("select column: "))
-            action = tictactoe.convert_to_action(x-1, y-1)
+            action = game.convert_to_action(x-1, y-1)
 
-        state = tictactoe.get_next_state(state, action, -1)
+        state = game.get_next_state(state, action, -1)
         print(state)
         if tictactoe.get_value_and_terminated(state, action, 0)[1]:
             if tictactoe.get_value_and_terminated(state, action, 0)[0] == 1:
@@ -535,11 +507,11 @@ def play(args, game):
             break
 
         policy = MCTS(game, args, model).search(state)
-        valid_moves = tictactoe.get_valid_moves(state)
+        valid_moves = game.get_valid_moves(state)
         policy *= valid_moves
         policy /= np.sum(policy)
         action = int(np.argmax(policy))
-        state = tictactoe.get_next_state(state, action, 1)
+        state = game.get_next_state(state, action, 1)
         print(state)
         if tictactoe.get_value_and_terminated(state, action, 0)[1]:
             if tictactoe.get_value_and_terminated(state, action, 0)[0] == 1:
