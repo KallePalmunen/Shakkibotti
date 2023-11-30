@@ -22,6 +22,7 @@ class TicTacToe:
         self.column_count = 8
         self.action_size = self.row_count * self.column_count
         self.max_search_depth = 1000000 #arbitrary high number
+        self.max_game_length = 1000000 #arbitrary high number
         
     def __repr__(self): #string representation of this class
         return "TicTacToe"
@@ -97,6 +98,7 @@ class Chess:
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
         self.enpassant = -1
         self.max_search_depth = 10
+        self.max_game_length = 50
     
     def __repr__(self): #string representation of this class
         return "Chess"
@@ -398,6 +400,7 @@ class AlphaZero:
         memory = []
         player = 1
         state = self.game.get_initial_state()
+        move_count = 0
         
         while True:
             neutral_state = self.game.change_perspective(state, player)
@@ -412,8 +415,10 @@ class AlphaZero:
             state = self.game.get_next_state(state, action, player)
             
             value, is_terminal = self.game.get_value_and_terminated(state, action, 0)
+
+            move_count += 1
             
-            if is_terminal:
+            if is_terminal or move_count >= self.game.max_game_length:
                 returnMemory = []
                 for hist_neutral_state, hist_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
@@ -476,31 +481,30 @@ def learn(args, game):
     alphaZero.learn()
     print(f"learning time: {time.time()-start_time}s")
 
-def play(args, game):
+def play(args, game, model_dict):
     model = ResNet(game, 4, 64, device=device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     #load previously learned values
-    model.load_state_dict(torch.load("model_2_TicTacToe.pt", map_location=device))
+    model.load_state_dict(torch.load(model_dict, map_location=device))
     model.eval() #playing mode
 
     print("Game starts")
-    tictactoe = TicTacToe()
-    state = tictactoe.get_initial_state()
+    state = game.get_initial_state()
     print(state)
 
     while True:
         y = -1
         x = -1
         action = 0
-        while(y <= 0 or y > tictactoe.row_count or x <= 0 or x > tictactoe.column_count):
+        while(y <= 0 or y > game.row_count or x <= 0 or x > game.column_count):
             y = int(input("select row: "))
             x = int(input("select column: "))
             action = game.convert_to_action(x-1, y-1)
 
         state = game.get_next_state(state, action, -1)
         print(state)
-        if tictactoe.get_value_and_terminated(state, action, 0)[1]:
-            if tictactoe.get_value_and_terminated(state, action, 0)[0] == 1:
+        if game.get_value_and_terminated(state, action, 0)[1]:
+            if game.get_value_and_terminated(state, action, 0)[0] == 1:
                 print("You win!")
             else:
                 print("tie")
@@ -513,8 +517,8 @@ def play(args, game):
         action = int(np.argmax(policy))
         state = game.get_next_state(state, action, 1)
         print(state)
-        if tictactoe.get_value_and_terminated(state, action, 0)[1]:
-            if tictactoe.get_value_and_terminated(state, action, 0)[0] == 1:
+        if game.get_value_and_terminated(state, action, 0)[1]:
+            if game.get_value_and_terminated(state, action, 0)[0] == 1:
                 print("You lose")
             else:
                 print("tie")

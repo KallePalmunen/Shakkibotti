@@ -10,5 +10,6 @@ args = {
 }
 
 game = TicTacToe()
+model_dict = "model_2_Chess.pt"
 
-play(args, game)
+play(args, game, model_dict)
