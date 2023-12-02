@@ -215,12 +215,12 @@ class Chess:
         return (self.column_count*y0 + x0)*self.column_count*self.row_count + y1*self.column_count + x1
     
 class ResNet(nn.Module):
-    def __init__(self, game, num_resBlocks, num_hidden, device):
+    def __init__(self, game, num_resBlocks, num_hidden, device, number_of_input_channels):
         super().__init__() #initiates the parent class
         
         self.device = device
         self.startBlock = nn.Sequential(
-            nn.Conv2d(13, num_hidden, kernel_size=3, padding=1), #convolutional layer(input channels, output channels, size of layer, match the input size with output size)
+            nn.Conv2d(number_of_input_channels, num_hidden, kernel_size=3, padding=1), #convolutional layer(input channels, output channels, size of layer, match the input size with output size)
             nn.BatchNorm2d(num_hidden), #normalize output
             nn.ReLU()
         )
@@ -474,15 +474,16 @@ game = TicTacToe()
 tictactoe = TicTacToe()
 
 def learn(args, game):
-    model = ResNet(game, 4, 64, device=device)
+    model = ResNet(game, 4, 64, device=device, number_of_input_channels=13)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    model.train() #training mode
     alphaZero = AlphaZero(model, optimizer, game, args)
     start_time = time.time()
     alphaZero.learn()
     print(f"learning time: {time.time()-start_time}s")
 
 def play(args, game, model_dict):
-    model = ResNet(game, 4, 64, device=device)
+    model = ResNet(game, 4, 64, device=device, number_of_input_channels=13)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     #load previously learned values
     model.load_state_dict(torch.load(model_dict, map_location=device))
@@ -493,13 +494,21 @@ def play(args, game, model_dict):
     print(state)
 
     while True:
-        y = -1
-        x = -1
+        y0 = -1
+        x0 = -1
+        y1 = -1
+        x1 = -1
+
         action = 0
-        while(y <= 0 or y > game.row_count or x <= 0 or x > game.column_count):
-            y = int(input("select row: "))
-            x = int(input("select column: "))
-            action = game.convert_to_action(x-1, y-1)
+        while(y0 <= 0 or y0 > game.row_count or x0 <= 0 or x0 > game.column_count):
+            y0 = int(input("select row: "))
+            x0 = int(input("select column: "))
+        
+        while(y1 <= 0 or y1 > game.row_count or x1 <= 0 or x1 > game.column_count):
+            y1 = int(input("select row: "))
+            x1 = int(input("select column: "))
+
+        action = game.convert_to_action(y0-1, x0-1, y1-1, x1-1)
 
         state = game.get_next_state(state, action, -1)
         print(state)
