@@ -1,4 +1,4 @@
-from alphaonetest import *
+from sigmazero import *
 
 args = {
     'C': 2,
