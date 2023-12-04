@@ -172,7 +172,7 @@ class Chess:
 
         player = np.sign(state[y0, x0])
 
-        new_state = self.get_next_state(state, action, player)
+        new_state = self.get_next_state(np.copy(state), action, player)
 
         if checkmate(new_state, -player*50, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
             return True
@@ -519,12 +519,14 @@ def play(args, game, model_dict):
                 print("tie")
             break
 
+        state = game.change_perspective(state, -1)
         policy = MCTS(game, args, model).search(state)
         valid_moves = game.get_valid_moves(state)
         policy *= valid_moves
         policy /= np.sum(policy)
         action = int(np.argmax(policy))
         state = game.get_next_state(state, action, 1)
+        state = game.change_perspective(state, -1)
         print(state)
         if game.get_value_and_terminated(state, action, 0)[1]:
             if game.get_value_and_terminated(state, action, 0)[0] == 1:
