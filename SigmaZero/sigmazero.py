@@ -193,7 +193,8 @@ class Chess:
         return -value
     
     def change_perspective(self, state, player):
-        return state * player
+        return np.flipud(state * player) #flips the board and changes the signs
+        #this is slow
     
     def get_encoded_state(self, state):
         #encoded_state is a matrix where each row represents whether each element in the state array is a white or black pawn, knight, bishop,
@@ -465,8 +466,8 @@ class AlphaZero:
             for epoch in trange(self.args['num_epochs']):
                 self.train(memory)
             
-            torch.save(self.model.state_dict(), f"model_{iteration}_{self.game}.pt")
-            torch.save(self.optimizer.state_dict(), f"optimizer_{iteration}_{self.game}.pt")
+            torch.save(self.model.state_dict(), f"./SigmaZero/models/model_{iteration}_{self.game}.pt")
+            torch.save(self.optimizer.state_dict(), f"./SigmaZero/models/optimizer_{iteration}_{self.game}.pt")
 
     
 game = TicTacToe()
