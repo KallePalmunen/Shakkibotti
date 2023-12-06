@@ -151,8 +151,7 @@ class Chess:
                 if state[y0,x0] > 0:
                     for y1 in range(self.row_count):
                         for x1 in range(self.column_count):
-                            #use of piecemove is problematic
-                            if piecemove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+                            if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
                                 valid_moves[y0*self.column_count+x0] += [1]
                             else:
                                 valid_moves[y0*self.column_count+x0] += [0]
@@ -324,7 +323,6 @@ class Node:
 
                 child = Node(self.game, self.args, child_state, self, action, prob, depth = self.depth + 1)
                 self.children.append(child)
-                
         return child
             
     def backpropagate(self, value):
@@ -415,7 +413,8 @@ class AlphaZero:
             
             state = self.game.get_next_state(state, action, player)
             
-            value, is_terminal = self.game.get_value_and_terminated(state, action, 0)
+            #check if opponent has valid moves
+            value, is_terminal = self.game.get_value_and_terminated(self.game.change_perspective(state, -1), action, 0)
 
             move_count += 1
             
