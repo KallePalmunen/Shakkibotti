@@ -34,6 +34,11 @@ def piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpass
         return False
     return False
 
+def canmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
+    if piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant) and not pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
+        return True
+    return False
+
 def pawnmove(state, piece, y0, x0, y1, x1, enpassant):
     if piece > 0:
         if ((x1 == x0 and (y1-y0 == 1 or (y1-y0 == 2 and y0 == 1 and state[y1-1,x1] == 0)) and state[y1,x1] == 0) or 
@@ -130,7 +135,7 @@ def checkmate(state, piece, kingmoved, rookmoved, pieces, enpassant):
                 for ii in range(8):
                     if i in state[ii]:
                         piecey0 = ii
-                        piecex0 = np.where(state[ii] == i)[0]
+                        piecex0 = np.where(state[ii] == i)[0][0]
                         for j in range(8):
                             for jj in range(8):
                                 if piecemove(state, i, piecey0, piecex0, j, jj, kingmoved, rookmoved, pieces, enpassant):
@@ -160,7 +165,7 @@ def checkmate(state, piece, kingmoved, rookmoved, pieces, enpassant):
                 for ii in range(8):
                     if -i in state[ii]:
                         piecey0 = ii
-                        piecex0 = np.where(state[ii] == -i)[0]
+                        piecex0 = np.where(state[ii] == -i)[0][0]
                         for j in range(8):
                             for jj in range(8):
                                 if piecemove(state, -i, piecey0, piecex0, j, jj, kingmoved, rookmoved, pieces, enpassant):
@@ -177,12 +182,31 @@ def checkmate(state, piece, kingmoved, rookmoved, pieces, enpassant):
         return True
 
 
-def check(state, piece, kingmoved, rookmoved, pieces, enpassant):
+def check(state, piece, kingmoved, rookmoved, pieces, enpassant, testing = False):
+    if piece > 0:
+        for i in range(8):
+            if piece in state[i]:
+                kingy = i
+                kingx = np.where(state[i] == piece)[0][0]
+                break
+        else:
+            return True
+        for n1 in range(6):
+            for n2 in range(pieces[n1][1]):
+                i = n1*10+n2
+                for ii in range(8):
+                    if -i in state[ii]:
+                        if testing and i == 20:
+                            print(ii, np.where(state[ii] == -i)[0][0])
+                        if piecemove(state, -i, ii, np.where(state[ii] == -i)[0][0], kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
+                            return True
+                        break
+        return False
     if piece < 0:
         for i in range(8):
             if piece in state[i]:
                 kingy = i
-                kingx = np.where(state[i] == piece)[0]
+                kingx = np.where(state[i] == piece)[0][0]
                 break
         else:
             return True
@@ -191,24 +215,7 @@ def check(state, piece, kingmoved, rookmoved, pieces, enpassant):
                 i = n1*10+n2
                 for ii in range(8):
                     if i in state[ii]:
-                        if piecemove(state, i, ii, np.where(state[ii] == i)[0], kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
-                            return True
-                        break
-        return False
-    if piece > 0:
-        for i in range(8):
-            if piece in state[i]:
-                kingy = i
-                kingx = np.where(state[i] == piece)[0]
-                break
-        else:
-            return True
-        for n1 in range(6):
-            for n2 in range(state[n1][1]):
-                i = n1*10+n2
-                for ii in range(8):
-                    if -i in state[ii]:
-                        if piecemove(state, -i, ii, np.where(state[ii] == -i)[0], kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
+                        if piecemove(state, i, ii, np.where(state[ii] == i)[0][0], kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
                             return True
                         break
         return False
@@ -223,7 +230,7 @@ def pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
     if enpassant >= 0 and x1*8+y1 == enpassant:
         enpassanted = state[y1-int(math.copysign(1, y1 - y0)), x1]
         state[y1-int(math.copysign(1, y1 - y0)), y1] = 0
-    if not check(state, int(math.copysign(50,piece)), kingmoved, rookmoved, pieces, enpassant):
+    if not check(state, np.sign(piece)*50, kingmoved, rookmoved, pieces, enpassant):
         state[y0,x0] = piece
         state[y1,x1] = movetosquare
         if enpassanted != "":
@@ -266,7 +273,7 @@ def stalemate(state, piece, kingmoved, rookmoved, pieces, enpassant):
     for i in range(1, 51):
         for ii in range(8):
             if int(math.copysign(i, piece)) in state[ii]:
-                if movesomewhere(int(math.copysign(i, piece)), ii, np.where(state[ii] == int(math.copysign(i, piece)))[0]):
+                if movesomewhere(int(math.copysign(i, piece)), ii, np.where(state[ii] == int(math.copysign(i, piece)))[0][0]):
                     return False
                 break
     return True
