@@ -556,6 +556,8 @@ def play(args, game, model_dict):
                 print("tie")
             break
 
+        start_time = time.time()
+
         state = game.change_perspective(state, -1)
         policy = MCTS(game, args, model).search(state)
         valid_moves = game.get_valid_moves(state)
@@ -565,6 +567,9 @@ def play(args, game, model_dict):
         state = game.get_next_state(state, action, 1)
         state = game.change_perspective(state, -1)
         print(state)
+
+        print(f"{round(time.time()-start_time,2)}s")#print calculation time
+
         if game.get_value_and_terminated(state, action, 0)[1]:
             if game.get_value_and_terminated(state, action, 0)[0] == 1:
                 print("You lose")
