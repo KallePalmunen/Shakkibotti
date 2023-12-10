@@ -19,78 +19,7 @@ from Chess import *
 def normalize(score):
     return 1 / (1 + np.exp(-0.5*score))
 
-class TicTacToe:
-    def __init__(self): #run when class is initiated
-        self.row_count = 8
-        self.column_count = 8
-        self.action_size = self.row_count * self.column_count
-        self.max_search_depth = 1000000 #arbitrary high number
-        self.max_game_length = 1000000 #arbitrary high number
-        
-    def __repr__(self): #string representation of this class
-        return "TicTacToe"
-        
-    def get_initial_state(self):
-        return np.zeros((self.row_count, self.column_count))
-    
-    def get_next_state(self, state, action, player):
-        row = action // self.column_count
-        column = action % self.column_count
-        state[row, column] = player
-        return state
-    
-    def get_valid_moves(self, state):
-        #flattens state into a 1D array, and returns a new array of 8-bit unsigned integers 
-        #where each element is 1 if the corresponding element in the original array was 0, and 0 otherwise
-        return (state.reshape(-1) == 0).astype(np.uint8)
-    
-    def check_win(self, state, action):
-        if action == None:
-            return False
-        
-        row = action // self.column_count
-        column = action % self.column_count
-        player = state[row, column]
-        
-        return (
-            np.sum(state[row, :]) == player * self.column_count
-            or np.sum(state[:, column]) == player * self.row_count
-            or np.sum(np.diag(state)) == player * self.row_count
-            or np.sum(np.diag(np.flip(state, axis=0))) == player * self.row_count
-        )
-    
-    def get_value_and_terminated(self, state, action, depth):
-        if self.check_win(state, action):
-            return 1, True
-        if np.sum(self.get_valid_moves(state)) == 0:
-            return 0, True
-        return 0, False
-    
-    def get_opponent(self, player):
-        return -player
-    
-    def get_opponent_value(self, value):
-        return -value
-    
-    def change_perspective(self, state, player):
-        return state * player
-    
-    def get_encoded_state(self, state):
-        #encoded_state is a matrix where each row represents whether each element in the state array is equal to -1, 0, or 1
-        #, and each element is represented as a floating-point number (1.0 for True and 0.0 for False)
-        encoded_state = np.stack(
-            (state == -1, state == 0, state == 1)
-        ).astype(np.float32)
-        
-        if len(state.shape) == 3:
-            #swaps vertical and horizontal axes
-            encoded_state = np.swapaxes(encoded_state, 0, 1)
-        
-        return encoded_state
 
-    def convert_to_action(self, x, y):
-        return self.column_count*y+x
-    
 class Chess:
     def __init__(self): #run when class is initiated
         self.row_count = 8
@@ -517,11 +446,6 @@ class AlphaZero:
             
             torch.save(self.model.state_dict(), f"./SigmaZero/models/model_{iteration}_{self.game}.pt")
             torch.save(self.optimizer.state_dict(), f"./SigmaZero/models/optimizer_{iteration}_{self.game}.pt")
-
-    
-game = TicTacToe()
-
-tictactoe = TicTacToe()
 
 def learn(args, game):
     model = ResNet(game, 4, 64, device=device, number_of_input_channels=13)
