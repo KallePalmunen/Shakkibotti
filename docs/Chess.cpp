@@ -533,8 +533,8 @@ extern "C" {
             }
         }
         for(int piece_type = 0; piece_type < 6; piece_type++){
-            for(int n2 = 0; n2 < game.pieces[piece_type][(piece > 0)]; n2++){
-                int piecen = -intsign(piece)*(piece_type*10+n2+(piece_type == 0));
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][(piece > 0)]; piece_number++){
+                int piecen = -intsign(piece)*(piece_type*10+piece_number+(piece_type == 0));
                 if(piecen != 0){
                     if(game.piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = game.piece_positions[abs(piecen)-1][int(piecen<0)][0];
@@ -758,8 +758,8 @@ extern "C" {
             return false;
         }
         for(int piece_type = 0; piece_type < 6; piece_type++){
-            for(int n2 = 0; n2 < game.pieces[piece_type][(piece < 0)]; n2++){
-                int piecen = intsign(piece)*(piece_type*10+n2);
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][(piece < 0)]; piece_number++){
+                int piecen = intsign(piece)*(piece_type*10+piece_number);
                 if(piecen != 0){
                     if(game.piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = game.piece_positions[abs(piecen)-1][int(piecen<0)][0];
@@ -779,8 +779,8 @@ extern "C" {
             return false;
         }
         for(int piece_type = 0; piece_type < 6; piece_type++){
-            for(int n2 = 0; n2 < game.pieces[piece_type][(piece < 0)]; n2++){
-                int piecen = intsign(piece)*(piece_type*10+n2);
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][(piece < 0)]; piece_number++){
+                int piecen = intsign(piece)*(piece_type*10+piece_number);
                 if(piecen != 0){
                     if(game.piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = game.piece_positions[abs(piecen)-1][int(piecen<0)][0];
@@ -1142,8 +1142,8 @@ extern "C" {
     std::vector<int> get_pinners(int piece_sign, int kingy, int kingx, Chess& game){
         std::vector<int> pinners;
         for(int piece_type = 0; piece_type < 6; piece_type++){
-            for(int n2 = 0; n2 < game.pieces[piece_type][piece_sign!=1]; n2++){
-                int n = piece_sign*(10*piece_type+n2+int(piece_type == 0));
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][piece_sign!=1]; piece_number++){
+                int n = piece_sign*(10*piece_type+piece_number+int(piece_type == 0));
                 int y0 = game.piece_positions[abs(n)-1][int(n<0)][0];
                 int x0 = game.piece_positions[abs(n)-1][int(n<0)][1];
                 if(piecemove(n, y0, x0, kingy, kingx, game)){
@@ -1276,11 +1276,11 @@ extern "C" {
         return return_vector;
     }
 
-    double last_move(int n0, int y00, int x00, int y10, int x10, double best
+    double last_move(int previous_piece, int previous_y0, int previous_x0, int previous_y1, int previous_x1, double best
     , std::vector<std::vector<std::vector<int>>>& can_move_positions, Chess& game, int bot, int ntimes){
         int piece_sign = int(bot == 1)-int(bot == 0);
-        int kingy = game.piece_positions[49][int(n0>0)][0];
-        int kingx = game.piece_positions[49][int(n0>0)][1];
+        int kingy = game.piece_positions[49][int(previous_piece>0)][0];
+        int kingx = game.piece_positions[49][int(previous_piece>0)][1];
         if(kingy == -1){
             return -piece_sign*500000/(ntimes+1.0);
         }
@@ -1288,16 +1288,16 @@ extern "C" {
         if(botcheckmate(piece_sign*50, pinners, game, kingy, kingx)){
             return -piece_sign*500000/(ntimes+1.0);
         }
-        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10, game);
+        double previous_movescore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
         double movescore[304];
         int movescore_size = 0;
         double best_movescore = -piece_sign*1000000;
-        for(int n00 = 0; n00 < 6; n00++){
+        for(int i = 0; i < 6; i++){
             //Goes through the piece types in peculiar order
-            int piece_type = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
-            + 5*(n00 == 5));
-            for(int n2 = 0; n2 < game.pieces[piece_type][piece_sign!=1]; n2++){
-                int piece = piece_sign*(10*piece_type+n2+int(piece_type == 0));
+            int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
+            + 5*(i == 5));
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][piece_sign!=1]; piece_number++){
+                int piece = piece_sign*(10*piece_type+piece_number+int(piece_type == 0));
                 if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
                     int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
                     int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
@@ -1321,9 +1321,11 @@ extern "C" {
                                 }
                                 movescore[movescore_size] = total_movescore;
                                 movescore_size++;
+                                //if the piece is a bishop, a rook or a queen, break if a piece is in the way
                                 if(abs(piece) > 19 && abs(piece) < 50 && game.board[y1][x1] != 0){
                                     break;
                                 }
+                            //if the piece is a bishop, a rook or a queen, break if a piece is in the way
                             }else if(abs(piece) > 19 && abs(piece) < 50 && game.board[y1][x1] != 0){
                                 break;
                             }
@@ -1341,13 +1343,13 @@ extern "C" {
         }
     }
 
-    double nth_move(int n0, int y00, int x00, int y10, int x10, double best, int nmoremoves
-    , std::vector<std::vector<std::vector<int>>> can_move_positions, Chess& game, int bot, int ntimes){
+    double nth_move(int previous_piece, int previous_y0, int previous_x0, int previous_y1, int previous_x1, double best
+    , int nmoremoves, std::vector<std::vector<std::vector<int>>> can_move_positions, Chess& game, int bot, int ntimes){
         int piece_sign = (intsign(bot==0))*((nmoremoves%2 == 1)-(nmoremoves%2 == 0));
         //white == 0, black == 1
         int color = int(piece_sign!=1);
-        int kingy = game.piece_positions[49][int(n0>0)][0];
-        int kingx = game.piece_positions[49][int(n0>0)][1];
+        int kingy = game.piece_positions[49][int(previous_piece>0)][0];
+        int kingx = game.piece_positions[49][int(previous_piece>0)][1];
         if(kingy == -1){
             return -piece_sign*500000/(ntimes+1.0);
         }
@@ -1361,12 +1363,12 @@ extern "C" {
         double movescore[332];
         int movescore_size = 0;
         double best_movescore = -piece_sign*1000000;
-        double previous_movescore = evaluate_move(n0, y00, x00, y10, x10, game);
-        for(int n00 = 0; n00 < 6; n00++){
-            int piece_type = int(1*(n00 == 0)+2*(n00 == 1)+3*(n00 == 2)+4*(n00 == 3)
-            + 5*(n00 == 5));
-            for(int n2 = 0; n2 < game.pieces[piece_type][(piece_sign!=1)]; n2++){
-                int piece = piece_sign*(10*piece_type+n2+int(piece_type == 0));
+        double previous_movescore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
+        for(int i = 0; i < 6; i++){
+            int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
+            + 5*(i == 5));
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][(piece_sign!=1)]; piece_number++){
+                int piece = piece_sign*(10*piece_type+piece_number+int(piece_type == 0));
                 if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
                     int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
                     int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
@@ -1593,7 +1595,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
-        std::cout << "updated" << '\n';
+        std::cout << "updated0" << '\n';
         //define vectors
         std::array<std::array<int, 8>, 8> board = convert_board(board_string);
         std::vector<std::array<std::array<int, 8>, 8>> positions = convert_positions(positions_string, moves);
