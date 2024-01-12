@@ -1,29 +1,26 @@
 # Shakkibotti
 
-A chess bot.
+This project contains different versions of chess bots. The following versions are included:    
 
-## requirement
-
-### python version
-- python
-- pygame
-- numpy
-
-### C++ console application
-- a C++ compiler
+- A random mover bot (python version)    
+- A minimax chess bot (python version)  
+- A minimax chess bot with alpha-beta pruning (C++/web version)     
+- A neural network chess bot (not functional)   
+- A neural network MCTS chess bot (not functional, in development)  
 
 ## How to play
 
-### web version
+### C++/web version
 
+visit the following website:    
 https://kallepalmunen.github.io/Shakkibotti/
 
 ### python version
 
-- install requirements
-- run pygametester.py
+**1. install requirements**     
 
-### C++ console application
+    python -m pip install -r requirements.txt   
 
-- on "Console application" branch, compile and run Ches.cpp
-- enter your moves in the format "starting square""destination square" for example "e2e4"
+**2. run pygametester.py**
+
+You can change the version you want to use by changing the value of "botlevel" in pygametester.py
