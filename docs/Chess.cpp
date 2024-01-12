@@ -63,24 +63,27 @@ extern "C" {
         }
     };
 
-    std::string piece_to_letter(int n){
-        if(abs(n) > 9 && abs(n) < 20){
+    //Converts a piece to the corresponding PGN letter
+    std::string piece_to_letter(int piece){
+        if(abs(piece) > 9 && abs(piece) < 20){
             return "N";
         }
-        if(abs(n) > 19 && abs(n) < 30){
+        if(abs(piece) > 19 && abs(piece) < 30){
             return "B";
         }
-        if(abs(n) > 29 && abs(n) < 40){
+        if(abs(piece) > 29 && abs(piece) < 40){
             return "R";
         }
-        if(abs(n) > 39 && abs(n) < 50){
+        if(abs(piece) > 39 && abs(piece) < 50){
             return "Q";
         }
-        if(abs(n) > 49){
+        if(abs(piece) > 49){
             return "K";
         }
         return "";
     }
+
+    //Converts a file to the corresponding PGN letter
     std::string file_to_letter(int x){
         if(x == 7){
             return "a";
@@ -109,6 +112,7 @@ extern "C" {
         return "";
     }
 
+    //Converts a PGN letter to the corresponding file number
     int letter_to_file(const char x){
         if(x == 'a'){
             return 7;
@@ -137,14 +141,17 @@ extern "C" {
         return -1;
     }
 
-    std::string convert_to_png(int n, int y0, int x0, int y1, int x1){
-        return piece_to_letter(n)  + file_to_letter(x0) + std::to_string(y0+1) + file_to_letter(x1) + std::to_string(y1+1);
+    //Converts move to pseudo pgn format (doesn't include information about captures etc)
+    std::string convert_to_pgn(int piece, int y0, int x0, int y1, int x1){
+        return piece_to_letter(piece)  + file_to_letter(x0) + std::to_string(y0+1) + file_to_letter(x1) + std::to_string(y1+1);
     }
 
-    std::vector<int> convert_from_png(std::string move){
+    //Gets the variable values for a move from pseudo pgn format (doesn't include information about captures etc)
+    std::vector<int> convert_from_pgn(std::string move){
         return {int(move[1]-'0')-1, letter_to_file(move[0]), int(move[3]-'0')-1, letter_to_file(move[2])};
     }
 
+    //Converts a vector to a string (for example {0,1,2,3} -> "{0,1,2,3}")
     const char* vector_to_string(std::vector<int> vector){
         std::ostringstream oss;
         oss << "[";
@@ -163,6 +170,7 @@ extern "C" {
         return charPtr;
     }
 
+    //Converts a 2d vector to a string (for example {{0,1},{2,3}} -> "{{0,1},{2,3}}")
     std::vector<std::vector<int>> string_to_vector_2d(const char* can_move_positions_str){
         int i = 1;
         int j = -1;
@@ -202,6 +210,7 @@ extern "C" {
         return result;
     }
 
+    //Converts the variable rookmoved from vector to array
     std::array<std::array<int, 2>,2> rookmoved_to_array(std::vector<std::vector<int>> rookmoved_vector){
         std::array<std::array<int, 2>,2> rookmoved_array;
         for(int i = 0; i < 2; i++){
@@ -212,6 +221,7 @@ extern "C" {
         return rookmoved_array;
     }
 
+    //Converts the variable pieces from vector to array
     std::array<std::array<int, 2>,6> pieces_to_array(std::vector<std::vector<int>> pieces_vector){
         std::array<std::array<int, 2>,6> pieces_array;
         for(int i = 0; i < 6; i++){
@@ -222,6 +232,7 @@ extern "C" {
         return pieces_array;
     }
 
+    //Converts the variable piece_positions from string to array
     std::array<std::array<std::array<int, 2>,2>, 50> convert_piece_positions(const char* can_move_positions_str){
         int i = 1;
         int j = -1;
@@ -283,6 +294,7 @@ extern "C" {
         return result;
     }
 
+    //Converts the variable board from string to array
     std::array<std::array<int, 8>, 8> convert_board(const char* board_string){
         int i = 2;
         std::array<std::array<int, 8>, 8> result;
@@ -310,6 +322,7 @@ extern "C" {
         return result;
     }
 
+    //Converts the variable positions from string to array
     std::vector<std::array<std::array<int, 8>, 8>> convert_positions(const char* positions_string, int moves){
         int i = 0;
         std::vector<std::array<std::array<int, 8>, 8>> result;
@@ -340,6 +353,7 @@ extern "C" {
         return result;
     }
 
+    //prints out the elements in board
     void printboard(const char* board_string){
         std::array<std::array<int, 8>, 8> board = convert_board(board_string);
         for(int i = 0; i < 8; i++){
@@ -1585,7 +1599,7 @@ extern "C" {
         for(int i = 0; i < openingbook.size(); i++){
             if(compare_to_book(openingbook[i][0], game)){
                 std::vector<int> bookmove = openingbook[i][1][0];
-                std::cout << convert_to_png(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]) << '\n';
+                std::cout << convert_to_pgn(bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]) << '\n';
                 return {1, bookmove[0], bookmove[1], bookmove[2], bookmove[3], bookmove[4]};
             }
         }
@@ -1595,7 +1609,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
-        std::cout << "updated0" << '\n';
+        std::cout << "updated" << '\n';
         //define vectors
         std::array<std::array<int, 8>, 8> board = convert_board(board_string);
         std::vector<std::array<std::array<int, 8>, 8>> positions = convert_positions(positions_string, moves);
@@ -1657,7 +1671,7 @@ extern "C" {
         duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
         std::cout << duration.count()/1000.0 << '\n';
-        std::cout <<  convert_to_png(piece, y0, x0, y1, x1) << ", " << score << '\n';
+        std::cout <<  convert_to_pgn(piece, y0, x0, y1, x1) << ", " << score << '\n';
         return vector_to_string({piece, y0, x0, y1, x1});
     }
 }
