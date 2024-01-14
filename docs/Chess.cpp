@@ -1302,10 +1302,10 @@ extern "C" {
         if(botcheckmate(piece_sign*50, pinners, game, kingy, kingx)){
             return -piece_sign*500000/(ntimes+1.0);
         }
+        //get evaluation change for previous move
         double previous_movescore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
-        double movescore[304];
-        int movescore_size = 0;
         double best_movescore = -piece_sign*1000000;
+        
         for(int i = 0; i < 6; i++){
             //Goes through the piece types in peculiar order
             int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
@@ -1321,7 +1321,7 @@ extern "C" {
                             int y1 = can_move_positions[abs(piece)-1][i][j];
                             int x1 = can_move_positions[abs(piece)-1][i][j+1];
                             if(botcanmove(piece, y0, x0, y1, x1, pinnable, pinners, game, kingy, kingx)){
-                                //change to eval
+                                //change to evaluation
                                 double total_movescore = evaluate_move(piece, y0, x0, y1, x1, game)
                                     + evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0
                                     + previous_movescore;
@@ -1333,8 +1333,6 @@ extern "C" {
                                     || (total_movescore > best_movescore && bot == 1)){
                                     best_movescore = total_movescore;
                                 }
-                                movescore[movescore_size] = total_movescore;
-                                movescore_size++;
                                 //if the piece is a bishop, a rook or a queen, break if a piece is in the way
                                 if(abs(piece) > 19 && abs(piece) < 50 && game.board[y1][x1] != 0){
                                     break;
@@ -1348,12 +1346,10 @@ extern "C" {
                 }
             }
         }
-        if(movescore_size == 0){
+        if(best_movescore == -piece_sign*1000000){ //no legal moves
             return 0.0;
-        }else if(bot == 0){
-            return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
         }else{
-            return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
+            return best_movescore; 
         }
     }
 
@@ -1374,10 +1370,10 @@ extern "C" {
         Chess game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
         , game.rookmoved, game.pieces);
 
-        double movescore[332];
-        int movescore_size = 0;
         double best_movescore = -piece_sign*1000000;
+        //get evaluation change for previous move
         double previous_movescore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
+
         for(int i = 0; i < 6; i++){
             int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
             + 5*(i == 5));
@@ -1441,20 +1437,16 @@ extern "C" {
                                     || (total_movescore > best_movescore && (piece_sign==1))){
                                     best_movescore = total_movescore;
                                 }
-                                movescore[movescore_size] = total_movescore;
-                                movescore_size++;
                             }
                         }
                     }
                 }
             }
         }
-        if(movescore_size == 0){
+        if(best_movescore == -piece_sign*1000000){ //no legal moves
             return 0.0;
-        }else if((piece_sign!=1)){
-            return *std::min_element(&movescore[0], &movescore[0]+movescore_size);
         }else{
-            return *std::max_element(&movescore[0], &movescore[0]+movescore_size); 
+            return best_movescore; 
         }
     }
 
