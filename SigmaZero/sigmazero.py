@@ -24,7 +24,7 @@ class Chess:
     def __init__(self): #run when class is initiated
         self.row_count = 8
         self.column_count = 8
-        self.action_size = self.row_count**2 * self.column_count**2
+        self.action_size = self.row_count * self.column_count
         self.kingmoved = [0, 0]
         self.rookmoved = [[0,0],[0,0]]
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
@@ -38,9 +38,7 @@ class Chess:
         self.rook_position_eval = [[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.05,0.1,0.1,0.1,0.1,0.1,0.1,0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[0.0,0.0,0.0,0.5,0.5,0.0,0.0,0.0]]
         self.queen_position_eval = [[-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2],[-0.1,0.0,0.0,0.0,0.0,0.0,0.0,-0.1],[-0.1,0.0,0.05,0.05,0.05,0.05,0.0,-0.1],[-0.05,0.0,0.05,0.05,0.05,0.05,0.0,-0.05],[0.0,0.0,0.05,0.05,0.05,0.05,0.0,-0.05],[-0.1,0.05,0.05,0.05,0.05,0.05,0.0,-0.1],[-0.1,0.0,0.05,0.0,0.0,0.0,0.0,-0.1],[-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2]]
         self.king_position_eval = [[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.2,-0.3,-0.3,-0.4,-0.4,-0.3,-0.3,-0.2],[-0.1,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.1],[0.2,0.2,0.0,0.0,0.0,0.0,0.2,0.2],[0.2,0.3,0.1,0.0,0.0,0.1,0.3,0.2]]
-        #numpy array where each board element is reprecented by a prime
-        self.prime_representation = np.array([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311])
-    
+        
     def __repr__(self): #string representation of this class
         return "Chess"
     
@@ -82,34 +80,34 @@ class Chess:
             enpassant = -1
         return state
     
-    def get_valid_moves(self, state):
-        valid_moves = []
-        for y0 in range(self.row_count):
-            for x0 in range(self.column_count):
-                valid_moves += [[]]
-                if state[y0,x0] > 0:
-                    for y1 in range(self.row_count):
-                        for x1 in range(self.column_count):
-                            if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
-                                valid_moves[y0*self.column_count+x0] += [1]
-                            else:
-                                valid_moves[y0*self.column_count+x0] += [0]
-                else:
-                    for i in range(self.row_count*self.column_count):
-                        valid_moves[y0*self.column_count+x0] += [0]
-        valid_moves = np.array(valid_moves)
+    #note to self: first get valid start squares, then get valid moves for that start square (and others if necessary)
+    
+    def get_valid_endsquares(self, state, y0, x0):
+        valid_moves = np.zeros(self.action_size)
+        for y1 in range(self.row_count):
+            for x1 in range(self.column_count):
+                if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+                    valid_moves[y1*self.column_count+x1] = 1
+        
         return (valid_moves.reshape(-1)).astype(np.uint8)
     
-    def get_valid_moves_alternative(self, state):
-        valid_moves = np.ones(self.row_count*self.column_count)
+    def valid_moves_exist(self, state, y0, x0):
+        if state[y0,x0] <= 0:
+            return False
+
+        for y1 in range(self.row_count):
+            for x1 in range(self.column_count):
+                if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+                    return True
+        
+        return False
+    
+    def get_valid_startsquares(self, state):
+        valid_moves = np.zeros(self.action_size)
         for y0 in range(self.row_count):
             for x0 in range(self.column_count):
-                if state[y0,x0] > 0:
+                if(self.valid_moves_exist(state, y0, x0)):
                     valid_moves[y0*self.column_count+x0] = 1
-                    for y1 in range(self.row_count):
-                        for x1 in range(self.column_count):
-                            if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
-                                valid_moves[y0*self.column_count+x0] *= self.prime_representation[y1*self.column_count+x1]
         return valid_moves
 
     def check_win(self, state, action):
@@ -158,7 +156,8 @@ class Chess:
     def get_value_and_terminated(self, state, action, depth):
         if self.check_win(state, action):
             return 1, True
-        if np.sum(self.get_valid_moves(state)) == 0:
+        #here we can check the valid startsquares
+        if np.sum(self.get_valid_startsquares(state)) == 0:
             return 0, True
         if depth >= self.max_search_depth:
             return normalize(self.evaluation(state)), True
@@ -209,7 +208,15 @@ class ResNet(nn.Module):
             [ResBlock(num_hidden) for i in range(num_resBlocks)]
         )
         
-        self.policyHead = nn.Sequential(
+        self.policyHead_startsquare = nn.Sequential(
+            nn.Conv2d(num_hidden, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Flatten(), #takes each element from a tensor to an array
+            nn.Linear(32 * game.row_count * game.column_count, game.action_size) #linear transformation(input size, output size)
+        )
+
+        self.policyHead_endsquare = nn.Sequential(
             nn.Conv2d(num_hidden, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(),
@@ -233,9 +240,10 @@ class ResNet(nn.Module):
         x = self.startBlock(x)
         for resBlock in self.backBone:
             x = resBlock(x)
-        policy = self.policyHead(x)
+        startsquare_policy = self.policyHead_startsquare(x)
+        endsquare_policy = self.policyHead_endsquare(x)
         value = self.valueHead(x)
-        return policy, value
+        return startsquare_policy, endsquare_policy, value
         
         
 class ResBlock(nn.Module):
@@ -293,9 +301,12 @@ class Node:
             q_value = 1 - ((child.value_sum / child.visit_count) + 1) / 2
         return q_value + self.args['C'] * (math.sqrt(self.visit_count) / (child.visit_count + 1)) * child.prior
     
-    def expand(self, policy):
-        for action, prob in enumerate(policy):
+    #update this plz
+    def expand(self, startsquare_policy, endsquare_policy):
+        for action, prob in enumerate(startsquare_policy):
             if prob > 0:
+                #check for endsquare policy
+                #for endsquare, endsquare_probability in enumerate...
                 child_state = self.state.copy()
                 child_state = self.game.get_next_state(child_state, action, 1)
                 child_state = self.game.change_perspective(child_state, player=-1)
@@ -323,17 +334,23 @@ class MCTS:
     def search(self, state):
         root = Node(self.game, self.args, state, visit_count=1, depth = 0)
         
-        policy, _ = self.model(
+        startsquare_policy, endsquare_policy, _ = self.model(
             torch.tensor(self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
         )
-        policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
-        policy = (1 - self.args['dirichlet_epsilon']) * policy + self.args['dirichlet_epsilon'] \
+        startsquare_policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
+        endsquare_policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
+        #add randomness
+        startsquare_policy = (1 - self.args['dirichlet_epsilon']) * startsquare_policy + self.args['dirichlet_epsilon'] \
+            * np.random.dirichlet([self.args['dirichlet_alpha']] * self.game.action_size)
+        endsquare_policy = (1 - self.args['dirichlet_epsilon']) * endsquare_policy + self.args['dirichlet_epsilon'] \
             * np.random.dirichlet([self.args['dirichlet_alpha']] * self.game.action_size)
         
-        valid_moves = self.game.get_valid_moves(state)
-        policy *= valid_moves
-        policy /= np.sum(policy)
-        root.expand(policy)
+        valid_startsquares = self.game.get_valid_startsquares(state)
+        startsquare_policy *= valid_startsquares
+        startsquare_policy /= np.sum(startsquare_policy)
+        endsquare_policy /= np.sum(endsquare_policy)
+
+        root.expand(startsquare_policy, endsquare_policy)
         
         for search in range(self.args['num_searches']):
             node = root
@@ -345,17 +362,20 @@ class MCTS:
             value = self.game.get_opponent_value(value)
             
             if not is_terminal:
-                policy, value = self.model(
+                startsquare_policy, endsquare_policy, value = self.model(
                     torch.tensor(self.game.get_encoded_state(node.state), device=self.model.device).unsqueeze(0)
                 )
-                policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
-                valid_moves = self.game.get_valid_moves(node.state)
-                policy *= valid_moves
-                policy /= np.sum(policy)
+                startsquare_policy = torch.softmax(startsquare_policy, axis=1).squeeze(0).cpu().numpy()
+                endsquare_policy = torch.softmax(endsquare_policy, axis=1).squeeze(0).cpu().numpy()
+                valid_startsquares = self.game.get_valid_startsquares(node.state)
+                #get two policies: one for startsquare and one for endsquare
+                startsquare_policy *= valid_startsquares
+                startsquare_policy /= np.sum(startsquare_policy)
+                endsquare_policy /= np.sum(endsquare_policy)
                 
                 value = value.item()
                 
-                node.expand(policy)
+                node.expand(startsquare_policy, endsquare_policy)
                 
             node.backpropagate(value)    
             
@@ -412,6 +432,7 @@ class AlphaZero:
                 
     def train(self, memory):
         random.shuffle(memory)
+        #update this plz
         for batchIdx in range(0, len(memory), self.args['batch_size']):
             sample = memory[batchIdx:min(len(memory) - 1, batchIdx + self.args['batch_size'])] # Change to memory[batchIdx:batchIdx+self.args['batch_size']] in case of an error
             state, policy_targets, value_targets = zip(*sample)
@@ -496,8 +517,10 @@ def play(args, game, model_dict):
         start_time = time.time()
 
         state = game.change_perspective(state, -1)
+        #update this plz
         policy = MCTS(game, args, model).search(state)
-        valid_moves = game.get_valid_moves(state)
+        valid_startsquares = game.get_valid_startsquares(state)
+        #get two policies: one for startsquare and one for endsquare
         policy *= valid_moves
         policy /= np.sum(policy)
         action = int(np.argmax(policy))
