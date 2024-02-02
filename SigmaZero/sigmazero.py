@@ -46,14 +46,12 @@ class Chess:
         return np.array([[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
          [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]])
     
-    def get_next_state(self, state, action, player):
+    def get_next_state(self, state, startsquare_action, endsquare_action, player):
         #get y0, x0, y1, x1 by inversing convert_to_action
-        start_position = action // (self.column_count*self.row_count)
-        end_position = action - self.column_count*self.row_count*start_position
-        y0 = start_position // self.column_count
-        x0 = start_position % self.column_count
-        y1 = end_position // self.column_count
-        x1 = end_position % self.column_count
+        y0 = startsquare_action // self.column_count
+        x0 = startsquare_action % self.column_count
+        y1 = endsquare_action // self.column_count
+        x1 = endsquare_action % self.column_count
         
         moved_piece = state[y0, x0]
         if(abs(moved_piece) == 50):
@@ -110,6 +108,7 @@ class Chess:
                     valid_moves[y0*self.column_count+x0] = 1
         return valid_moves
 
+    #update this plz
     def check_win(self, state, action):
         if action == None:
             return False
@@ -301,18 +300,24 @@ class Node:
             q_value = 1 - ((child.value_sum / child.visit_count) + 1) / 2
         return q_value + self.args['C'] * (math.sqrt(self.visit_count) / (child.visit_count + 1)) * child.prior
     
-    #update this plz
-    def expand(self, startsquare_policy, endsquare_policy):
-        for action, prob in enumerate(startsquare_policy):
-            if prob > 0:
-                #check for endsquare policy
-                #for endsquare, endsquare_probability in enumerate...
-                child_state = self.state.copy()
-                child_state = self.game.get_next_state(child_state, action, 1)
-                child_state = self.game.change_perspective(child_state, player=-1)
+    def expand(self, state, startsquare_policy, endsquare_policy):
+        for startsquare_action, startsquare_probability in enumerate(startsquare_policy):
+            if startsquare_probability > 0:
+                for endquare_action, endsquare_probability in enumerate(endsquare_policy):
+                    y0 = startsquare_action // self.game.column_count
+                    x0 = startsquare_action % self.game.column_count
 
-                child = Node(self.game, self.args, child_state, self, action, prob, depth = self.depth + 1)
-                self.children.append(child)
+                    valid_endsquares = self.game.get_valid_endsquares(state, y0, x0)
+                    endsquare_policy *= valid_endsquares
+                    endsquare_policy /= np.sum(endsquare_policy)
+
+                    child_state = self.state.copy()
+                    child_state = self.game.get_next_state(child_state, startsquare_action, endquare_action, 1)
+                    child_state = self.game.change_perspective(child_state, player=-1)
+                    
+                    #update this plz
+                    child = Node(self.game, self.args, child_state, self, action, prob, depth = self.depth + 1)
+                    self.children.append(child)
         return child
             
     def backpropagate(self, value):
@@ -337,8 +342,8 @@ class MCTS:
         startsquare_policy, endsquare_policy, _ = self.model(
             torch.tensor(self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
         )
-        startsquare_policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
-        endsquare_policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
+        startsquare_policy = torch.softmax(startsquare_policy, axis=1).squeeze(0).cpu().numpy()
+        endsquare_policy = torch.softmax(endsquare_policy, axis=1).squeeze(0).cpu().numpy()
         #add randomness
         startsquare_policy = (1 - self.args['dirichlet_epsilon']) * startsquare_policy + self.args['dirichlet_epsilon'] \
             * np.random.dirichlet([self.args['dirichlet_alpha']] * self.game.action_size)
@@ -348,9 +353,8 @@ class MCTS:
         valid_startsquares = self.game.get_valid_startsquares(state)
         startsquare_policy *= valid_startsquares
         startsquare_policy /= np.sum(startsquare_policy)
-        endsquare_policy /= np.sum(endsquare_policy)
 
-        root.expand(startsquare_policy, endsquare_policy)
+        root.expand(state, startsquare_policy, endsquare_policy)
         
         for search in range(self.args['num_searches']):
             node = root
@@ -371,11 +375,10 @@ class MCTS:
                 #get two policies: one for startsquare and one for endsquare
                 startsquare_policy *= valid_startsquares
                 startsquare_policy /= np.sum(startsquare_policy)
-                endsquare_policy /= np.sum(endsquare_policy)
                 
                 value = value.item()
                 
-                node.expand(startsquare_policy, endsquare_policy)
+                node.expand(state, startsquare_policy, endsquare_policy)
                 
             node.backpropagate(value)    
             
@@ -402,6 +405,7 @@ class AlphaZero:
         
         while True:
             neutral_state = self.game.change_perspective(state, player)
+            #update this plz
             action_probs = self.mcts.search(neutral_state)
             
             memory.append((neutral_state, action_probs, player))
@@ -503,6 +507,7 @@ def play(args, game, model_dict):
             y1 = int(input("select row: "))
             x1 = int(input("select column: "))
 
+        #update this plz
         action = game.convert_to_action(y0-1, x0-1, y1-1, x1-1)
 
         state = game.get_next_state(state, action, -1)
