@@ -108,18 +108,17 @@ class Chess:
                     valid_moves[y0*self.column_count+x0] = 1
         return valid_moves
 
-    #update this plz
-    def check_win(self, state, action):
-        if action == None:
+    def check_win(self, state, startsquare_action, endquare_action):
+        #to do: check if this is triggered incorrectly
+        if startsquare_action == None or endquare_action == None:
             return False
         
-        start_position = action // (self.column_count*self.row_count)
-        y0 = start_position // self.column_count
-        x0 = start_position % self.column_count
+        y0 = startsquare_action // self.column_count
+        x0 = startsquare_action % self.column_count
 
         player = np.sign(state[y0, x0])
 
-        new_state = self.get_next_state(np.copy(state), action, player)
+        new_state = self.get_next_state(np.copy(state), startsquare_action, endquare_action, player)
 
         if checkmate(new_state, -player*50, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
             return True
@@ -151,11 +150,10 @@ class Chess:
 
         return evaluation
     
-    
-    def get_value_and_terminated(self, state, action, depth):
-        if self.check_win(state, action):
+    def get_value_and_terminated(self, state, startsquare_action, endquare_action, depth):
+        if self.check_win(state, startsquare_action, endquare_action):
             return 1, True
-        #here we can check the valid startsquares
+        #to do: should we also check for valid endsquares?
         if np.sum(self.get_valid_startsquares(state)) == 0:
             return 0, True
         if depth >= self.max_search_depth:
@@ -189,7 +187,7 @@ class Chess:
         return encoded_state
     
     def convert_to_action(self, y0, x0, y1, x1):
-        return (self.column_count*y0 + x0)*self.column_count*self.row_count + y1*self.column_count + x1
+        return (self.column_count*y0 + x0, + y1*self.column_count + x1)
     
 class ResNet(nn.Module):
     def __init__(self, game, num_resBlocks, num_hidden, device, number_of_input_channels):
@@ -264,12 +262,14 @@ class ResBlock(nn.Module):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Node:
-    def __init__(self, game, args, state, parent=None, action_taken=None, prior=0, visit_count=0, depth = 0):
+    #update this plz: prior -> ???
+    def __init__(self, game, args, state, parent=None, startsquare_action_taken=None, endsquare_action_taken=None, prior=0, visit_count=0, depth = 0):
         self.game = game
         self.args = args
         self.state = state
         self.parent = parent
-        self.action_taken = action_taken
+        self.startsquare_action_taken = startsquare_action_taken
+        self.endsquare_action_taken = endsquare_action_taken
         self.prior = prior
         
         self.children = []
@@ -316,7 +316,7 @@ class Node:
                     child_state = self.game.change_perspective(child_state, player=-1)
                     
                     #update this plz
-                    child = Node(self.game, self.args, child_state, self, action, prob, depth = self.depth + 1)
+                    child = Node(self.game, self.args, child_state, self, startsquare_action, endquare_action, prob, depth = self.depth + 1)
                     self.children.append(child)
         return child
             
@@ -361,8 +361,9 @@ class MCTS:
             
             while node.is_fully_expanded():
                 node = node.select()
-                
-            value, is_terminal = self.game.get_value_and_terminated(node.state, node.action_taken, node.depth)
+            
+            value, is_terminal = self.game.get_value_and_terminated(node.state, node.startsquare_action_taken
+                , node.endsquare_action_taken, node.depth)
             value = self.game.get_opponent_value(value)
             
             if not is_terminal:
@@ -382,7 +383,7 @@ class MCTS:
                 
             node.backpropagate(value)    
             
-            
+        #update this plz
         action_probs = np.zeros(self.game.action_size)
         for child in root.children:
             action_probs[child.action_taken] = child.visit_count
@@ -507,13 +508,12 @@ def play(args, game, model_dict):
             y1 = int(input("select row: "))
             x1 = int(input("select column: "))
 
-        #update this plz
-        action = game.convert_to_action(y0-1, x0-1, y1-1, x1-1)
+        startsquare_action, endsquare_action = game.convert_to_action(y0-1, x0-1, y1-1, x1-1)
 
-        state = game.get_next_state(state, action, -1)
+        state = game.get_next_state(state, startsquare_action, endsquare_action, -1)
         print(state)
-        if game.get_value_and_terminated(state, action, 0)[1]:
-            if game.get_value_and_terminated(state, action, 0)[0] == 1:
+        if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[1]:
+            if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[0] == 1:
                 print("You win!")
             else:
                 print("tie")
@@ -535,8 +535,8 @@ def play(args, game, model_dict):
 
         print(f"{round(time.time()-start_time,2)}s")#print calculation time
 
-        if game.get_value_and_terminated(state, action, 0)[1]:
-            if game.get_value_and_terminated(state, action, 0)[0] == 1:
+        if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[1]:
+            if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[0] == 1:
                 print("You lose")
             else:
                 print("tie")
