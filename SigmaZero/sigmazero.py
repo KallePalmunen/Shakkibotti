@@ -262,15 +262,14 @@ class ResBlock(nn.Module):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Node:
-    #update this plz: prior -> ???
-    def __init__(self, game, args, state, parent=None, startsquare_action_taken=None, endsquare_action_taken=None, prior=0, visit_count=0, depth = 0):
+    def __init__(self, game, args, state, parent=None, startsquare_action_taken=None, endsquare_action_taken=None, probability=0, visit_count=0, depth = 0):
         self.game = game
         self.args = args
         self.state = state
         self.parent = parent
         self.startsquare_action_taken = startsquare_action_taken
         self.endsquare_action_taken = endsquare_action_taken
-        self.prior = prior
+        self.probability = probability
         
         self.children = []
         
@@ -298,7 +297,7 @@ class Node:
             q_value = 0
         else:
             q_value = 1 - ((child.value_sum / child.visit_count) + 1) / 2
-        return q_value + self.args['C'] * (math.sqrt(self.visit_count) / (child.visit_count + 1)) * child.prior
+        return q_value + self.args['C'] * (math.sqrt(self.visit_count) / (child.visit_count + 1)) * child.probability
     
     def expand(self, state, startsquare_policy, endsquare_policy):
         for startsquare_action, startsquare_probability in enumerate(startsquare_policy):
@@ -315,8 +314,9 @@ class Node:
                     child_state = self.game.get_next_state(child_state, startsquare_action, endquare_action, 1)
                     child_state = self.game.change_perspective(child_state, player=-1)
                     
-                    #update this plz
-                    child = Node(self.game, self.args, child_state, self, startsquare_action, endquare_action, prob, depth = self.depth + 1)
+                    probability = startsquare_probability*endsquare_probability
+
+                    child = Node(self.game, self.args, child_state, self, startsquare_action, endquare_action, probability, depth = self.depth + 1)
                     self.children.append(child)
         return child
             
@@ -383,12 +383,14 @@ class MCTS:
                 
             node.backpropagate(value)    
             
-        #update this plz
-        action_probs = np.zeros(self.game.action_size)
+        startsquare_action_probs = np.zeros(self.game.action_size)
+        endsquare_action_probs = np.zeros(self.game.action_size)
         for child in root.children:
-            action_probs[child.action_taken] = child.visit_count
-        action_probs /= np.sum(action_probs)
-        return action_probs
+            startsquare_action_probs[child.startsquare_action_taken] = child.visit_count
+            endsquare_action_probs[child.endsquare_action_taken] = child.visit_count
+        startsquare_action_probs /= np.sum(startsquare_action_probs)
+        endsquare_action_probs /= np.sum(endsquare_action_probs)
+        return startsquare_action_probs, endsquare_action_probs
     
 class AlphaZero:
     def __init__(self, model, optimizer, game, args):
@@ -406,9 +408,9 @@ class AlphaZero:
         
         while True:
             neutral_state = self.game.change_perspective(state, player)
-            #update this plz
-            action_probs = self.mcts.search(neutral_state)
+            startsquare_action_probs, endsquare_action_probs = self.mcts.search(neutral_state)
             
+            #update this plz
             memory.append((neutral_state, action_probs, player))
             
             temperature_action_probs = action_probs ** (1 / self.args['temperature']) # Divide temperature_action_probs with its sum in case of an error
@@ -522,8 +524,8 @@ def play(args, game, model_dict):
         start_time = time.time()
 
         state = game.change_perspective(state, -1)
+        startsquare_policy, endsquare_policy = MCTS(game, args, model).search(state)
         #update this plz
-        policy = MCTS(game, args, model).search(state)
         valid_startsquares = game.get_valid_startsquares(state)
         #get two policies: one for startsquare and one for endsquare
         policy *= valid_moves
