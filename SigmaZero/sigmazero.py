@@ -545,13 +545,20 @@ def play(args, game, model_dict):
 
         state = game.change_perspective(state, -1)
         startsquare_policy, endsquare_policy = MCTS(game, args, model).search(state)
-        #update this plz
         valid_startsquares = game.get_valid_startsquares(state)
-        #get two policies: one for startsquare and one for endsquare
-        policy *= valid_moves
-        policy /= np.sum(policy)
-        action = int(np.argmax(policy))
-        state = game.get_next_state(state, action, 1)
+
+        startsquare_policy *= valid_startsquares
+        startsquare_policy /= np.sum(startsquare_policy)
+        startsquare_action = int(np.argmax(startsquare_policy))
+        y0 = startsquare_action // game.column_count
+        x0 = startsquare_action % game.column_count
+        
+        valid_endsquares = game.get_valid_endsquares(state, y0, x0)
+        endsquare_policy *= valid_endsquares
+        endsquare_policy /= np.sum(endsquare_policy)
+        endsquare_action = int(np.argmax(endsquare_policy))
+
+        state = game.get_next_state(state, startsquare_action, endsquare_action, 1)
         state = game.change_perspective(state, -1)
         print(state)
 
