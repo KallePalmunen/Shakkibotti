@@ -9,8 +9,6 @@ import torch.nn.functional as F
 
 torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
 
-from tqdm.notebook import trange
-
 import random
 import math
 import time
@@ -18,7 +16,6 @@ from Chess import *
 
 def normalize(score):
     return 1 / (1 + np.exp(-0.5*score))
-
 
 class Chess:
     def __init__(self): #run when class is initiated
@@ -150,11 +147,23 @@ class Chess:
 
         return evaluation
     
+    def valid_endsquares_exist(self, state, valid_startsquares):
+        for startsquare, is_valid in enumerate(valid_startsquares):
+            if is_valid == 1:
+                y0 = startsquare // self.column_count
+                x0 = startsquare % self.column_count
+                if np.sum(self.get_valid_endsquares(state, y0, x0)) != 0:
+                    return True
+        return False
+    
     def get_value_and_terminated(self, state, startsquare_action, endquare_action, depth):
         if self.check_win(state, startsquare_action, endquare_action):
             return 1, True
         #to do: should we also check for valid endsquares?
-        if np.sum(self.get_valid_startsquares(state)) == 0:
+        valid_startsquares = self.get_valid_startsquares(state)
+        if np.sum(valid_startsquares) == 0:
+            return 0, True
+        if not self.valid_endsquares_exist(state, valid_startsquares):
             return 0, True
         if depth >= self.max_search_depth:
             return normalize(self.evaluation(state)), True
@@ -302,23 +311,26 @@ class Node:
     def expand(self, state, startsquare_policy, endsquare_policy):
         for startsquare_action, startsquare_probability in enumerate(startsquare_policy):
             if startsquare_probability > 0:
-                for endquare_action, endsquare_probability in enumerate(endsquare_policy):
-                    y0 = startsquare_action // self.game.column_count
-                    x0 = startsquare_action % self.game.column_count
+                y0 = startsquare_action // self.game.column_count
+                x0 = startsquare_action % self.game.column_count
+                valid_endsquares = self.game.get_valid_endsquares(state, y0, x0)
 
-                    valid_endsquares = self.game.get_valid_endsquares(state, y0, x0)
-                    endsquare_policy *= valid_endsquares
-                    endsquare_policy /= np.sum(endsquare_policy)
+                endsquare_policy_for_startsquare = np.copy(endsquare_policy) #create a copy to not affect the original
+                endsquare_policy_for_startsquare *= valid_endsquares
+                if np.sum(endsquare_policy_for_startsquare) > 0:
+                    endsquare_policy_for_startsquare /= np.sum(endsquare_policy_for_startsquare)
+                    for endquare_action, endsquare_probability in enumerate(endsquare_policy_for_startsquare):
+                        if endsquare_probability > 0:
+                            child_state = self.state.copy()
+                            child_state = self.game.get_next_state(child_state, startsquare_action, endquare_action, 1)
+                            child_state = self.game.change_perspective(child_state, player=-1)
+                            
+                            probability = startsquare_probability*endsquare_probability
 
-                    child_state = self.state.copy()
-                    child_state = self.game.get_next_state(child_state, startsquare_action, endquare_action, 1)
-                    child_state = self.game.change_perspective(child_state, player=-1)
-                    
-                    probability = startsquare_probability*endsquare_probability
-
-                    child = Node(self.game, self.args, child_state, self, startsquare_action, endquare_action, probability, depth = self.depth + 1)
-                    self.children.append(child)
+                            child = Node(self.game, self.args, child_state, self, startsquare_action, endquare_action, probability, depth = self.depth + 1)
+                            self.children.append(child)
         return child
+
             
     def backpropagate(self, value):
         self.value_sum += value
@@ -378,16 +390,15 @@ class MCTS:
                 startsquare_policy /= np.sum(startsquare_policy)
                 
                 value = value.item()
-                
-                node.expand(state, startsquare_policy, endsquare_policy)
+                node.expand(node.state, startsquare_policy, endsquare_policy)
                 
             node.backpropagate(value)    
             
         startsquare_action_probs = np.zeros(self.game.action_size)
         endsquare_action_probs = np.zeros(self.game.action_size)
         for child in root.children:
-            startsquare_action_probs[child.startsquare_action_taken] = child.visit_count
-            endsquare_action_probs[child.endsquare_action_taken] = child.visit_count
+            startsquare_action_probs[child.startsquare_action_taken] += child.visit_count
+            endsquare_action_probs[child.endsquare_action_taken] += child.visit_count
         startsquare_action_probs /= np.sum(startsquare_action_probs)
         endsquare_action_probs /= np.sum(endsquare_action_probs)
         return startsquare_action_probs, endsquare_action_probs
@@ -410,27 +421,30 @@ class AlphaZero:
             neutral_state = self.game.change_perspective(state, player)
             startsquare_action_probs, endsquare_action_probs = self.mcts.search(neutral_state)
             
-            #update this plz
-            memory.append((neutral_state, action_probs, player))
+            memory.append((neutral_state, startsquare_action_probs, endsquare_action_probs, player))
             
-            temperature_action_probs = action_probs ** (1 / self.args['temperature']) # Divide temperature_action_probs with its sum in case of an error
-            temperature_action_probs /= np.sum(temperature_action_probs)
-            action = np.random.choice(self.game.action_size, p=temperature_action_probs)
+            temperature_startsquare_action_probs = startsquare_action_probs ** (1 / self.args['temperature']) # Divide temperature_action_probs with its sum in case of an error
+            temperature_endsquare_action_probs = endsquare_action_probs ** (1 / self.args['temperature'])
+            temperature_startsquare_action_probs /= np.sum(temperature_startsquare_action_probs)
+            temperature_endsquare_action_probs /= np.sum(temperature_endsquare_action_probs)
+            startsquare_action = np.random.choice(self.game.action_size, p=temperature_startsquare_action_probs)
+            endsquare_action = np.random.choice(self.game.action_size, p=temperature_endsquare_action_probs)
             
-            state = self.game.get_next_state(state, action, player)
+            state = self.game.get_next_state(state, startsquare_action, endsquare_action, player)
             
             #check if opponent has valid moves
-            value, is_terminal = self.game.get_value_and_terminated(self.game.change_perspective(state, -1), action, 0)
+            value, is_terminal = self.game.get_value_and_terminated(self.game.change_perspective(state, -1), startsquare_action, endsquare_action, 0)
 
             move_count += 1
             
             if is_terminal or move_count >= self.game.max_game_length:
                 returnMemory = []
-                for hist_neutral_state, hist_action_probs, hist_player in memory:
+                for hist_neutral_state, hist_startsquare_action_probs, hist_endsquare_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
                     returnMemory.append((
                         self.game.get_encoded_state(hist_neutral_state),
-                        hist_action_probs,
+                        hist_startsquare_action_probs,
+                        hist_endsquare_action_probs,
                         hist_outcome
                     ))
                 return returnMemory
@@ -439,20 +453,23 @@ class AlphaZero:
                 
     def train(self, memory):
         random.shuffle(memory)
-        #update this plz
         for batchIdx in range(0, len(memory), self.args['batch_size']):
             sample = memory[batchIdx:min(len(memory) - 1, batchIdx + self.args['batch_size'])] # Change to memory[batchIdx:batchIdx+self.args['batch_size']] in case of an error
-            state, policy_targets, value_targets = zip(*sample)
+            state, startsquare_policy_targets, endsquare_policy_targets, value_targets = zip(*sample)
             
-            state, policy_targets, value_targets = np.array(state), np.array(policy_targets), np.array(value_targets).reshape(-1, 1)
+            state, startsquare_policy_targets, endsquare_policy_targets, value_targets = np.array(state), np.array(startsquare_policy_targets)\
+            , np.array(endsquare_policy_targets), np.array(value_targets).reshape(-1, 1)
             
             state = torch.tensor(state, dtype=torch.float32, device=self.model.device)
-            policy_targets = torch.tensor(policy_targets, dtype=torch.float32, device=self.model.device)
+            startsquare_policy_targets = torch.tensor(startsquare_policy_targets, dtype=torch.float32, device=self.model.device)
+            endsquare_policy_targets = torch.tensor(endsquare_policy_targets, dtype=torch.float32, device=self.model.device)
             value_targets = torch.tensor(value_targets, dtype=torch.float32, device=self.model.device)
             
-            out_policy, out_value = self.model(state)
+            out_startsquare_policy, out_endsquare_policy, out_value = self.model(state)
             
-            policy_loss = F.cross_entropy(out_policy, policy_targets)
+            startsquare_policy_loss = F.cross_entropy(out_startsquare_policy, startsquare_policy_targets)
+            endsquare_policy_loss = F.cross_entropy(out_endsquare_policy, endsquare_policy_targets)
+            policy_loss = (startsquare_policy_loss+endsquare_policy_loss)/2 #average loss
             value_loss = F.mse_loss(out_value, value_targets)
             loss = policy_loss + value_loss
             
@@ -462,15 +479,18 @@ class AlphaZero:
     
     def learn(self):
         for iteration in range(self.args['num_iterations']):
+            print(f"{iteration+1}/{self.args['num_iterations']}")
             memory = []
             
             self.model.eval()
-            for selfPlay_iteration in trange(self.args['num_selfPlay_iterations']):
+            for selfPlay_iteration in range(self.args['num_selfPlay_iterations']):
                 memory += self.selfPlay()
+                print(f"{100*(selfPlay_iteration+1)/self.args['num_selfPlay_iterations']}%")
                 
             self.model.train()
-            for epoch in trange(self.args['num_epochs']):
+            for epoch in range(self.args['num_epochs']):
                 self.train(memory)
+                print(f"{100*(epoch+1)/self.args['num_epochs']}%")
             
             torch.save(self.model.state_dict(), f"./SigmaZero/models/model_{iteration}_{self.game}.pt")
             torch.save(self.optimizer.state_dict(), f"./SigmaZero/models/optimizer_{iteration}_{self.game}.pt")
