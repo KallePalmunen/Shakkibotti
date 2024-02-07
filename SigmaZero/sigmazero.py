@@ -7,7 +7,7 @@ print(torch.__version__)
 import torch.nn as nn
 import torch.nn.functional as F
 
-#torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
+torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
 
 import random
 import math
