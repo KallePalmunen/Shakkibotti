@@ -22,6 +22,19 @@ def piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpass
         return False
     return False
 
+def botpiecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
+    if state[y1,x1] > 0:
+        return False
+    if abs(piece) < 10:
+        return pawnmove(state, piece, y0, x0, y1, x1, enpassant)
+    if abs(piece) < 20 and abs(piece) >= 10:
+        return True
+    if abs(piece) < 50 and abs(piece) >= 20:
+        return longmove(state, piece, y0, x0, y1, x1)
+    if abs(piece) >= 50:
+        return kingmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant)
+    return False
+
 def canmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
     if piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant) and not pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
         return True
