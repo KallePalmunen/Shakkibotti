@@ -7,7 +7,7 @@ print(torch.__version__)
 import torch.nn as nn
 import torch.nn.functional as F
 
-#torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
+torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
 
 import random
 import math
@@ -16,6 +16,34 @@ from Chess import *
 
 def normalize(score):
     return 1 / (1 + np.exp(-0.5*score))
+
+def locate_pieces(state):
+    piece_positions = [[],[]]
+    for piece in range(1,51):
+        found = False
+        for y in range(8):
+            for x in range(8):
+                if state[y,x] == piece:
+                    piece_positions[0] += [[y,x]]
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            piece_positions[0] += [[-1,-1]]
+        found = False
+        for y in range(8):
+            for x in range(8):
+                if state[y,x] == -piece:
+                    piece_positions[1] += [[y,x]]
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            piece_positions[1] += [[-1,-1]]
+        found = False
+    return piece_positions
 
 class Chess:
     def __init__(self): #run when class is initiated
@@ -35,7 +63,9 @@ class Chess:
         self.rook_position_eval = [[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.05,0.1,0.1,0.1,0.1,0.1,0.1,0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[0.0,0.0,0.0,0.5,0.5,0.0,0.0,0.0]]
         self.queen_position_eval = [[-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2],[-0.1,0.0,0.0,0.0,0.0,0.0,0.0,-0.1],[-0.1,0.0,0.05,0.05,0.05,0.05,0.0,-0.1],[-0.05,0.0,0.05,0.05,0.05,0.05,0.0,-0.05],[0.0,0.0,0.05,0.05,0.05,0.05,0.0,-0.05],[-0.1,0.05,0.05,0.05,0.05,0.05,0.0,-0.1],[-0.1,0.0,0.05,0.0,0.0,0.0,0.0,-0.1],[-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2]]
         self.king_position_eval = [[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.2,-0.3,-0.3,-0.4,-0.4,-0.3,-0.3,-0.2],[-0.1,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.1],[0.2,0.2,0.0,0.0,0.0,0.0,0.2,0.2],[0.2,0.3,0.1,0.0,0.0,0.1,0.3,0.2]]
-        
+        self.can_move_positions = [np.array([[1,0],[2,0],[1,1],[1,-1]]), np.array([[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]]), np.array([[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[1,-1],[2,-2],[3,-3],[4,-4],[5,-5],[6,-6],[7,-7],[-1,1],[-2,2],[-3,3],[-4,4],[-5,5],[-6,6],[-7,7],[-1,-1],[-2,-2],[-3,-3],[-4,-4],[-5,-5],[-6,-6],[-7,-7]]), np.array([[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,-1],[0,-2],[0,-3],[0,-4],[0,-5],[0,-6],[0,-7],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[-1,0],[-2,0],[-3,0],[-4,0],[-5,0],[-6,0],[-7,0]]),np.array([[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[1,-1],[2,-2],[3,-3],[4,-4],[5,-5],[6,-6],[7,-7],[-1,1],[-2,2],[-3,3],[-4,4],[-5,5],[-6,6],[-7,7],[-1,-1],[-2,-2],[-3,-3],[-4,-4],[-5,-5],[-6,-6],[-7,-7],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,-1],[0,-2],[0,-3],[0,-4],[0,-5],[0,-6],[0,-7],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[-1,0],[-2,0],[-3,0],[-4,0],[-5,0],[-6,0],[-7,0]]), np.array([[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]])]
+        self.can_move_positions_length = [4, 8, 28, 28, 56, 8]
+
     def __repr__(self): #string representation of this class
         return "Chess"
     
@@ -75,32 +105,55 @@ class Chess:
             enpassant = -1
         return state
     
-    #note to self: first get valid start squares, then get valid moves for that start square (and others if necessary)
+    def get_possible_ensquares(self, piece_type, y0, x0):
+        can_move_positions = self.can_move_positions[piece_type]
+        possible_endsquares = can_move_positions + np.array([y0,x0])
+        return possible_endsquares
     
     def get_valid_endsquares(self, state, y0, x0):
         valid_moves = np.zeros(self.action_size)
-        for y1 in range(self.row_count):
-            for x1 in range(self.column_count):
-                if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
-                    valid_moves[y1*self.column_count+x1] = 1
+        piece = state[y0,x0]
+        possible_endsquares = self.get_possible_ensquares(piece//10, y0, x0)
+        number_of_possible_ensquares = self.can_move_positions_length[piece//10]
+        for i in range(number_of_possible_ensquares):
+            y1 = possible_endsquares[i,0]
+            x1 = possible_endsquares[i,1]
+            if canmove(state, piece, y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+                valid_moves[y1*self.column_count+x1] = 1
         
         return (valid_moves.reshape(-1)).astype(np.uint8)
     
     def valid_moves_exist(self, state, y0, x0):
-        if state[y0,x0] <= 0:
+        piece = state[y0,x0]
+        if piece <= 0:
             return False
-
-        for y1 in range(self.row_count):
-            for x1 in range(self.column_count):
-                if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+        for y1 in range(8):
+            for x1 in range(8):
+                if canmove(state, piece, y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
                     return True
         
         return False
     
-    def get_valid_startsquares(self, state):
+    def get_valid_startsquares(self, state, piece_positions):
         valid_moves = np.zeros(self.action_size)
-        for y0 in range(self.row_count):
-            for x0 in range(self.column_count):
+        for piece_type in range(6):
+            for piece_number in range(self.pieces[piece_type][0]):
+                piece = piece_type*10+piece_number+(piece_type == 0)
+                y0 = piece_positions[0][abs(piece)-1][0]
+                x0 = piece_positions[0][abs(piece)-1][1]
+                if(self.valid_moves_exist(state, y0, x0)):
+                    valid_moves[y0*self.column_count+x0] = 1
+        return valid_moves
+    
+    #remove this when it's no longer needed
+    def get_valid_startsquares_2(self, state):
+        piece_positions = locate_pieces(state)
+        valid_moves = np.zeros(self.action_size)
+        for piece_type in range(6):
+            for piece_number in range(self.pieces[piece_type][0]):
+                piece = piece_type*10+piece_number+(piece_type == 0)
+                y0 = piece_positions[0][abs(piece)-1][0]
+                x0 = piece_positions[0][abs(piece)-1][1]
                 if(self.valid_moves_exist(state, y0, x0)):
                     valid_moves[y0*self.column_count+x0] = 1
         return valid_moves
@@ -160,7 +213,7 @@ class Chess:
         if self.check_win(state, startsquare_action, endquare_action):
             return 1, True
         #to do: should we also check for valid endsquares?
-        valid_startsquares = self.get_valid_startsquares(state)
+        valid_startsquares = self.get_valid_startsquares_2(state)
         if np.sum(valid_startsquares) == 0:
             return 0, True
         if not self.valid_endsquares_exist(state, valid_startsquares):
@@ -362,7 +415,8 @@ class MCTS:
         endsquare_policy = (1 - self.args['dirichlet_epsilon']) * endsquare_policy + self.args['dirichlet_epsilon'] \
             * np.random.dirichlet([self.args['dirichlet_alpha']] * self.game.action_size)
         
-        valid_startsquares = self.game.get_valid_startsquares(state)
+        piece_positions = locate_pieces(state)
+        valid_startsquares = self.game.get_valid_startsquares(state, piece_positions)
         startsquare_policy *= valid_startsquares
         startsquare_policy /= np.sum(startsquare_policy)
 
@@ -384,7 +438,8 @@ class MCTS:
                 )
                 startsquare_policy = torch.softmax(startsquare_policy, axis=1).squeeze(0).cpu().numpy()
                 endsquare_policy = torch.softmax(endsquare_policy, axis=1).squeeze(0).cpu().numpy()
-                valid_startsquares = self.game.get_valid_startsquares(node.state)
+                piece_positions = locate_pieces(node.state)
+                valid_startsquares = self.game.get_valid_startsquares(node.state, piece_positions)
                 #get two policies: one for startsquare and one for endsquare
                 startsquare_policy *= valid_startsquares
                 startsquare_policy /= np.sum(startsquare_policy)
@@ -545,7 +600,7 @@ def play(args, game, model_dict):
 
         state = game.change_perspective(state, -1)
         startsquare_policy, endsquare_policy = MCTS(game, args, model).search(state)
-        valid_startsquares = game.get_valid_startsquares(state)
+        valid_startsquares = game.get_valid_startsquares_2(state)
 
         startsquare_policy *= valid_startsquares
         startsquare_policy /= np.sum(startsquare_policy)
