@@ -8,29 +8,17 @@ def piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpass
     #n=unique piece, x0, y0 = starting coordinates, x1, y1 = ending coordinates
     if y1 < 8 and x1 < 8 and x1 >= 0 and y1 >= 0 and y0 >= 0:
         if abs(piece) < 10:
-            if pawnmove(state, piece, y0, x0, y1, x1, enpassant):
-                return True
-            return False
+            return pawnmove(state, piece, y0, x0, y1, x1, enpassant)
         if abs(piece) < 20 and abs(piece) >= 10:
-            if knightmove(state, piece, y0, x0, y1, x1):
-                return True
-            return False
+            return knightmove(state, piece, y0, x0, y1, x1)
         if abs(piece) < 30 and abs(piece) >= 20:
-            if bishopmove(state, piece, y0, x0, y1, x1):
-                return True
-            return False
+            return bishopmove(state, piece, y0, x0, y1, x1)
         if abs(piece) < 40 and abs(piece) >= 30:
-            if rookmove(state, piece, y0, x0, y1, x1):
-                return True
-            return False
+            return rookmove(state, piece, y0, x0, y1, x1)
         if abs(piece) < 50 and abs(piece) >= 40:
-            if queenmove(state, piece, y0, x0, y1, x1):
-                return True
-            return False
+            return queenmove(state, piece, y0, x0, y1, x1)
         if abs(piece) >= 50:
-            if kingmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
-                return True
-            return False
+            return kingmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant)
         return False
     return False
 
@@ -89,16 +77,12 @@ def longmove(state, piece, y0, x0, y1, x1):
 
 def bishopmove(state, piece, y0, x0, y1, x1):
     if(abs(y1-y0) == abs(x1-x0)):
-        if longmove(state, piece, y0, x0, y1, x1):
-            return True
-        return False
+        return longmove(state, piece, y0, x0, y1, x1)
     return False
 
 def rookmove(state, piece, y0, x0, y1, x1):
     if (y1-y0 != 0 and x1-x0 == 0) or (y1-y0 == 0 and x1-x0 != 0):
-        if longmove(state, piece, y0, x0, y1, x1):
-            return True
-        return False
+        return longmove(state, piece, y0, x0, y1, x1)
     return False
 
 def queenmove(state, piece, y0, x0, y1, x1):
