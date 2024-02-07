@@ -35,7 +35,8 @@ class Chess:
         self.rook_position_eval = [[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],[0.05,0.1,0.1,0.1,0.1,0.1,0.1,0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[-0.05,0.0,0.0,0.0,0.0,0.0,0.0,-0.05],[0.0,0.0,0.0,0.5,0.5,0.0,0.0,0.0]]
         self.queen_position_eval = [[-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2],[-0.1,0.0,0.0,0.0,0.0,0.0,0.0,-0.1],[-0.1,0.0,0.05,0.05,0.05,0.05,0.0,-0.1],[-0.05,0.0,0.05,0.05,0.05,0.05,0.0,-0.05],[0.0,0.0,0.05,0.05,0.05,0.05,0.0,-0.05],[-0.1,0.05,0.05,0.05,0.05,0.05,0.0,-0.1],[-0.1,0.0,0.05,0.0,0.0,0.0,0.0,-0.1],[-0.2,-0.1,-0.1,-0.05,-0.05,-0.1,-0.1,-0.2]]
         self.king_position_eval = [[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.3,-0.4,-0.4,-0.5,-0.5,-0.4,-0.4,-0.3],[-0.2,-0.3,-0.3,-0.4,-0.4,-0.3,-0.3,-0.2],[-0.1,-0.2,-0.2,-0.2,-0.2,-0.2,-0.2,-0.1],[0.2,0.2,0.0,0.0,0.0,0.0,0.2,0.2],[0.2,0.3,0.1,0.0,0.0,0.1,0.3,0.2]]
-        
+        self.can_move_positions = [np.array([[1,0],[2,0],[1,1],[1,-1]]), np.array([[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]]), np.array([[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[1,-1],[2,-2],[3,-3],[4,-4],[5,-5],[6,-6],[7,-7],[-1,1],[-2,2],[-3,3],[-4,4],[-5,5],[-6,6],[-7,7],[-1,-1],[-2,-2],[-3,-3],[-4,-4],[-5,-5],[-6,-6],[-7,-7]]), np.array([[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,-1],[0,-2],[0,-3],[0,-4],[0,-5],[0,-6],[0,-7],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[-1,0],[-2,0],[-3,0],[-4,0],[-5,0],[-6,0],[-7,0]]),np.array([[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[1,-1],[2,-2],[3,-3],[4,-4],[5,-5],[6,-6],[7,-7],[-1,1],[-2,2],[-3,3],[-4,4],[-5,5],[-6,6],[-7,7],[-1,-1],[-2,-2],[-3,-3],[-4,-4],[-5,-5],[-6,-6],[-7,-7],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,-1],[0,-2],[0,-3],[0,-4],[0,-5],[0,-6],[0,-7],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[-1,0],[-2,0],[-3,0],[-4,0],[-5,0],[-6,0],[-7,0]]), np.array([[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]])]
+
     def __repr__(self): #string representation of this class
         return "Chess"
     
@@ -75,15 +76,35 @@ class Chess:
             enpassant = -1
         return state
     
-    #note to self: first get valid start squares, then get valid moves for that start square (and others if necessary)
+    def get_possible_ensquares(self, piece_type, y0, x0):
+        can_move_positions = self.can_move_positions[piece_type]
+        possible_endsquares = can_move_positions + np.array([y0,x0])
+        return possible_endsquares[(possible_endsquares[:,0] >= 0) & (possible_endsquares[:,1] >= 0) & (possible_endsquares[:,0] < 8) & (possible_endsquares[:,1] < 8)]
     
     def get_valid_endsquares(self, state, y0, x0):
         valid_moves = np.zeros(self.action_size)
-        for y1 in range(self.row_count):
-            for x1 in range(self.column_count):
-                if canmove(state, state[y0,x0], y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
-                    valid_moves[y1*self.column_count+x1] = 1
-        
+        piece = state[y0,x0]
+        possible_endsquares = self.get_possible_ensquares(piece//10, y0, x0)
+        number_of_possible_ensquares = len(possible_endsquares)
+        for i in range(number_of_possible_ensquares):
+            y1 = possible_endsquares[i,0]
+            x1 = possible_endsquares[i,1]
+            if canmove(state, piece, y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+                valid_moves[y1*self.column_count+x1] = 1
+
+        return (valid_moves.reshape(-1)).astype(np.uint8)
+    
+    def bot_get_valid_endsquares(self, state, y0, x0):
+        valid_moves = np.zeros(self.action_size)
+        piece = state[y0,x0]
+        possible_endsquares = self.get_possible_ensquares(piece//10, y0, x0)
+        number_of_possible_ensquares = len(possible_endsquares)
+        for i in range(number_of_possible_ensquares):
+            y1 = possible_endsquares[i,0]
+            x1 = possible_endsquares[i,1]
+            if botpiecemove(state, piece, y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+                valid_moves[y1*self.column_count+x1] = 1
+
         return (valid_moves.reshape(-1)).astype(np.uint8)
     
     def valid_moves_exist(self, state, y0, x0):
@@ -313,7 +334,7 @@ class Node:
             if startsquare_probability > 0:
                 y0 = startsquare_action // self.game.column_count
                 x0 = startsquare_action % self.game.column_count
-                valid_endsquares = self.game.get_valid_endsquares(state, y0, x0)
+                valid_endsquares = self.game.bot_get_valid_endsquares(state, y0, x0)
 
                 endsquare_policy_for_startsquare = np.copy(endsquare_policy) #create a copy to not affect the original
                 endsquare_policy_for_startsquare *= valid_endsquares
