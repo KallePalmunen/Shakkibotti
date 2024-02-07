@@ -110,35 +110,7 @@ class Chess:
         possible_endsquares = can_move_positions + np.array([y0,x0])
         return possible_endsquares
     
-    def get_all_possible_endsquares(self, state):
-        all_possible_endsquares = [[],[]]
-        piece_positions = locate_pieces(state)
-        for piece in range(1, 51):
-            y0 = piece_positions[0][abs(piece)-1][0]
-            x0 = piece_positions[0][abs(piece)-1][1]
-            all_possible_endsquares[0] += [self.get_possible_ensquares(piece//10, y0, x0)]
-        self.change_perspective(state,-1)
-        piece_positions = locate_pieces(state)
-        for piece in range(1, 51):
-            y0 = piece_positions[0][abs(piece)-1][0]
-            x0 = piece_positions[0][abs(piece)-1][1]
-            all_possible_endsquares[1] += [self.get_possible_ensquares(piece//10, y0, x0)]
-        self.change_perspective(state,-1)
-        return all_possible_endsquares
-
-    def get_valid_endsquares(self, state, y0, x0, possible_endsquares):
-        valid_moves = np.zeros(self.action_size)
-        piece = state[y0,x0]
-        number_of_possible_ensquares = self.can_move_positions_length[piece//10]
-        for i in range(number_of_possible_ensquares):
-            y1 = possible_endsquares[i,0]
-            x1 = possible_endsquares[i,1]
-            if canmove(state, piece, y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
-                valid_moves[y1*self.column_count+x1] = 1
-        
-        return (valid_moves.reshape(-1)).astype(np.uint8)
-    
-    def get_valid_endsquares_2(self, state, y0, x0):
+    def get_valid_endsquares(self, state, y0, x0):
         valid_moves = np.zeros(self.action_size)
         piece = state[y0,x0]
         possible_endsquares = self.get_possible_ensquares(piece//10, y0, x0)
@@ -228,12 +200,23 @@ class Chess:
 
         return evaluation
     
+    def valid_endsquares_exist(self, state, valid_startsquares):
+        for startsquare, is_valid in enumerate(valid_startsquares):
+            if is_valid == 1:
+                y0 = startsquare // self.column_count
+                x0 = startsquare % self.column_count
+                if np.sum(self.get_valid_endsquares(state, y0, x0)) != 0:
+                    return True
+        return False
+    
     def get_value_and_terminated(self, state, startsquare_action, endquare_action, depth):
         if self.check_win(state, startsquare_action, endquare_action):
             return 1, True
         #to do: should we also check for valid endsquares?
         valid_startsquares = self.get_valid_startsquares_2(state)
         if np.sum(valid_startsquares) == 0:
+            return 0, True
+        if not self.valid_endsquares_exist(state, valid_startsquares):
             return 0, True
         if depth >= self.max_search_depth:
             return normalize(self.evaluation(state)), True
@@ -341,7 +324,7 @@ class ResBlock(nn.Module):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Node:
-    def __init__(self, game, args, state, possible_endsquares, parent=None, startsquare_action_taken=None, endsquare_action_taken=None, probability=0, visit_count=0, depth = 0):
+    def __init__(self, game, args, state, parent=None, startsquare_action_taken=None, endsquare_action_taken=None, probability=0, visit_count=0, depth = 0):
         self.game = game
         self.args = args
         self.state = state
@@ -349,7 +332,6 @@ class Node:
         self.startsquare_action_taken = startsquare_action_taken
         self.endsquare_action_taken = endsquare_action_taken
         self.probability = probability
-        self.possible_endsquares = possible_endsquares
         
         self.children = []
         
@@ -384,8 +366,7 @@ class Node:
             if startsquare_probability > 0:
                 y0 = startsquare_action // self.game.column_count
                 x0 = startsquare_action % self.game.column_count
-                piece = state[y0, x0]
-                valid_endsquares = self.game.get_valid_endsquares(state, y0, x0, self.possible_endsquares[(self.depth%2==0)][piece-1])
+                valid_endsquares = self.game.get_valid_endsquares(state, y0, x0)
 
                 endsquare_policy_for_startsquare = np.copy(endsquare_policy) #create a copy to not affect the original
                 endsquare_policy_for_startsquare *= valid_endsquares
@@ -399,13 +380,7 @@ class Node:
                             
                             probability = startsquare_probability*endsquare_probability
 
-                            child = Node(self.game, self.args, child_state, self.possible_endsquares.copy(), self, startsquare_action, endquare_action, probability, depth = self.depth + 1)
-                            y0 = startsquare_action // self.game.column_count
-                            x0 = startsquare_action % self.game.column_count
-                            y1 = endquare_action // self.game.column_count
-                            x1 = endquare_action % self.game.column_count
-                            piece = self.state[y0,x0]
-                            child.possible_endsquares[(child.depth%2==0)][piece-1] = self.game.get_possible_ensquares(piece//10, y1, x1)
+                            child = Node(self.game, self.args, child_state, self, startsquare_action, endquare_action, probability, depth = self.depth + 1)
                             self.children.append(child)
         return child
 
@@ -427,7 +402,7 @@ class MCTS:
         
     @torch.no_grad() #don't track gradients for backpropagation
     def search(self, state):
-        root = Node(self.game, self.args, state, self.game.get_all_possible_endsquares(state), visit_count=1, depth = 0)
+        root = Node(self.game, self.args, state, visit_count=1, depth = 0)
         
         startsquare_policy, endsquare_policy, _ = self.model(
             torch.tensor(self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
@@ -633,7 +608,7 @@ def play(args, game, model_dict):
         y0 = startsquare_action // game.column_count
         x0 = startsquare_action % game.column_count
         
-        valid_endsquares = game.get_valid_endsquares_2(state, y0, x0)
+        valid_endsquares = game.get_valid_endsquares(state, y0, x0)
         endsquare_policy *= valid_endsquares
         endsquare_policy /= np.sum(endsquare_policy)
         endsquare_action = int(np.argmax(endsquare_policy))
