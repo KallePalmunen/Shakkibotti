@@ -118,11 +118,34 @@ class Chess:
         
         return False
     
+    def bot_valid_moves_exist(self, state, y0, x0):
+        piece = state[y0,x0]
+        if piece <= 0 or piece > 50:
+            return False
+        
+        possible_endsquares = self.get_possible_ensquares(piece//10, y0, x0)
+        number_of_possible_ensquares = len(possible_endsquares)
+        for i in range(number_of_possible_ensquares):
+            y1 = possible_endsquares[i,0]
+            x1 = possible_endsquares[i,1]
+            if botpiecemove(state, piece, y0, x0, y1, x1, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+                return True
+
+        return False
+    
     def get_valid_startsquares(self, state):
         valid_moves = np.zeros(self.action_size)
         for y0 in range(self.row_count):
             for x0 in range(self.column_count):
                 if(self.valid_moves_exist(state, y0, x0)):
+                    valid_moves[y0*self.column_count+x0] = 1
+        return valid_moves
+    
+    def bot_get_valid_startsquares(self, state):
+        valid_moves = np.zeros(self.action_size)
+        for y0 in range(self.row_count):
+            for x0 in range(self.column_count):
+                if(self.bot_valid_moves_exist(state, y0, x0)):
                     valid_moves[y0*self.column_count+x0] = 1
         return valid_moves
 
@@ -185,6 +208,17 @@ class Chess:
         if np.sum(valid_startsquares) == 0:
             return 0, True
         if not self.valid_endsquares_exist(state, valid_startsquares):
+            return 0, True
+        if depth >= self.max_search_depth:
+            return normalize(self.evaluation(state)), True
+        return 0, False
+    
+    def bot_get_value_and_terminated(self, state, startsquare_action, endquare_action, depth):
+        if self.check_win(state, startsquare_action, endquare_action):
+            return 1, True
+        #to do: should we also check for valid endsquares?
+        valid_startsquares = self.bot_get_valid_startsquares(state)
+        if np.sum(valid_startsquares) == 0:
             return 0, True
         if depth >= self.max_search_depth:
             return normalize(self.evaluation(state)), True
@@ -395,7 +429,7 @@ class MCTS:
             while node.is_fully_expanded():
                 node = node.select()
             
-            value, is_terminal = self.game.get_value_and_terminated(node.state, node.startsquare_action_taken
+            value, is_terminal = self.game.bot_get_value_and_terminated(node.state, node.startsquare_action_taken
                 , node.endsquare_action_taken, node.depth)
             value = self.game.get_opponent_value(value)
             
@@ -405,7 +439,7 @@ class MCTS:
                 )
                 startsquare_policy = torch.softmax(startsquare_policy, axis=1).squeeze(0).cpu().numpy()
                 endsquare_policy = torch.softmax(endsquare_policy, axis=1).squeeze(0).cpu().numpy()
-                valid_startsquares = self.game.get_valid_startsquares(node.state)
+                valid_startsquares = self.game.bot_get_valid_startsquares(node.state)
                 #get two policies: one for startsquare and one for endsquare
                 startsquare_policy *= valid_startsquares
                 startsquare_policy /= np.sum(startsquare_policy)
