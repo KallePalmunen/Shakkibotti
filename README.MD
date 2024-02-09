@@ -31,7 +31,7 @@ You can change the version you want to use by changing the value of "botlevel" i
 
 **1. Get rid of restrictions**  
 
-Run cmd.exe as administrator    
+Open terminal as administrator    
 
     Set-ExecutionPolicy Unrestricted -Scope Process
 
@@ -55,4 +55,8 @@ or
     
     emcc -O3 -gsource-map chessbot.o -s WASM=1 -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -s EXPORTED_FUNCTIONS='["_movepiece", "_basicbot", "_gameend", "_malloc", "_free"]' -o chessbot.js --source-map-base http://localhost/Shakkibotti/docs/     
 
-**5. Run Shakkibotti in localhost**
+**5. Run Shakkibotti in localhost**    
+
+## Please note that    
+
+- functions with the prefix "bot" are optimized functions for the use of bots and may not always give enterely accurate results (but they are good enough for the bots)
