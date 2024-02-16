@@ -7,7 +7,7 @@ print(torch.__version__)
 import torch.nn as nn
 import torch.nn.functional as F
 
-torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
+#torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
 
 import random
 import math
@@ -26,7 +26,7 @@ class Chess:
         self.rookmoved = [[0,0],[0,0]]
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
         self.enpassant = -1
-        self.max_search_depth = 10
+        self.max_search_depth = 6
         self.max_game_length = 50
         #evaluation arrays
         self.pawn_position_eval = [[80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1],[0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05],[0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0],[0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05],[0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]]
