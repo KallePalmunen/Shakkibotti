@@ -65,7 +65,7 @@ class Chess:
         if promote(moved_piece, y1):
             promoteto = 4
             state[y1,x1] = int(math.copysign(1, moved_piece))*(promoteto*10+self.pieces[promoteto][(moved_piece < 0)])
-            self.pieces[promoteto][(moved_piece < 0)] += 1
+            #self.pieces[promoteto][(moved_piece < 0)] += 1
         else:
             state[y1,x1] = moved_piece
         if self.enpassant >= 0 and x1*8+y1 == self.enpassant:
