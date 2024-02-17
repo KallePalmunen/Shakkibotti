@@ -17,6 +17,11 @@ from Chess import *
 def normalize(score):
     return 1 / (1 + np.exp(-0.5*score))
 
+def print_policy_heatmap(policy):
+    for i in range(0, 64, 8):
+        slice_rounded = np.around(policy[i:i+8], decimals=2)
+        print(" ".join(["{:7.2f}".format(item) for item in slice_rounded]))
+
 class Chess:
     def __init__(self): #run when class is initiated
         self.row_count = 8
