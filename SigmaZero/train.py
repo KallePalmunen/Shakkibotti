@@ -2,7 +2,7 @@ from sigmazero import *
 
 args = {
     'C': 2,
-    'num_searches': 100,
+    'num_searches': 600,
     'num_iterations': 4,
     'num_selfPlay_iterations': 50,
     'num_parallel_games': 100,
