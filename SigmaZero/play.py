@@ -10,6 +10,6 @@ args = {
 }
 
 game = Chess()
-model_dict = "./SigmaZero/models/model_7_Chess.pt"
+model_dict = "./SigmaZero/models/model_3_Chess.pt"
 
 play(args, game, model_dict)
