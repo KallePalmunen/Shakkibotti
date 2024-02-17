@@ -2,9 +2,9 @@ from sigmazero import *
 
 args = {
     'C': 2,
-    'num_searches': 600,
+    'num_searches': 1200,
     'num_iterations': 4,
-    'num_selfPlay_iterations': 50,
+    'num_selfPlay_iterations': 64,
     'num_parallel_games': 100,
     'num_epochs': 4,
     'batch_size': 128,
