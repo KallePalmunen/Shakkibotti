@@ -189,7 +189,7 @@ class Chess:
                 elif(abs(n) > 39 and abs(n) < 50):
                     evaluation += np.sign(n)*(9+0.1*self.queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])
 
-        return evaluation
+        return -evaluation
     
     def valid_endsquares_exist(self, state, valid_startsquares):
         for startsquare, is_valid in enumerate(valid_startsquares):
