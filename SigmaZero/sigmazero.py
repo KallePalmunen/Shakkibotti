@@ -31,7 +31,7 @@ class Chess:
         self.rookmoved = [[0,0],[0,0]]
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
         self.enpassant = -1
-        self.max_search_depth = 4
+        self.max_search_depth = 2
         self.max_game_length = 50
         #evaluation arrays
         self.pawn_position_eval = [[80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1],[0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05],[0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0],[0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05],[0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]]
@@ -539,13 +539,12 @@ class AlphaZero:
     
     def learn(self):
         for iteration in range(self.args['num_iterations']):
-            print(f"{iteration+1}/{self.args['num_iterations']}")
             memory = []
             
             self.model.eval()
             for selfPlay_iteration in range(self.args['num_selfPlay_iterations']):
                 memory += self.selfPlay()
-                print(f"{100*(selfPlay_iteration+1)/self.args['num_selfPlay_iterations']}%")
+                print(f"{iteration+1}/{self.args['num_iterations']}: {100*(selfPlay_iteration+1)/self.args['num_selfPlay_iterations']}%")
                 
             self.model.train()
             for epoch in range(self.args['num_epochs']):
