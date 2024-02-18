@@ -7,7 +7,7 @@ print(torch.__version__)
 import torch.nn as nn
 import torch.nn.functional as F
 
-#torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
+torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
 
 import random
 import math
@@ -153,21 +153,14 @@ class Chess:
                 if(self.bot_valid_moves_exist(state, y0, x0)):
                     valid_moves[y0*self.column_count+x0] = 1
         return valid_moves
-
-    def check_win(self, state, startsquare_action, endquare_action):
-        #to do: check if this is triggered incorrectly
-        if startsquare_action == None or endquare_action == None:
-            return False
         
-        y0 = startsquare_action // self.column_count
-        x0 = startsquare_action % self.column_count
+    def check_win(self, state, startsquare_action, endsquare_action, player):
+        if startsquare_action == None or endsquare_action == None:
+            return False
 
-        player = np.sign(state[y0, x0])
-
-        new_state = self.get_next_state(np.copy(state), startsquare_action, endquare_action, player)
-
-        if checkmate(new_state, -player*50, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
+        if checkmate(state, -player*50, self.kingmoved, self.rookmoved, self.pieces, self.enpassant):
             return True
+        return False
 
     def evaluation(self, state):
         evaluation = 0
@@ -205,8 +198,8 @@ class Chess:
                     return True
         return False
     
-    def get_value_and_terminated(self, state, startsquare_action, endquare_action, depth):
-        if self.check_win(state, startsquare_action, endquare_action):
+    def get_value_and_terminated(self, state, startsquare_action, endquare_action, depth, player):
+        if self.check_win(state, startsquare_action, endquare_action, player):
             return 1, True
         #to do: should we also check for valid endsquares?
         valid_startsquares = self.get_valid_startsquares(state)
@@ -218,8 +211,8 @@ class Chess:
             return normalize(self.evaluation(state)), True
         return 0, False
     
-    def bot_get_value_and_terminated(self, state, startsquare_action, endquare_action, depth):
-        if self.check_win(state, startsquare_action, endquare_action):
+    def bot_get_value_and_terminated(self, state, startsquare_action, endquare_action, depth, player):
+        if self.check_win(state, startsquare_action, endquare_action, player):
             return 1, True
         #to do: should we also check for valid endsquares?
         valid_startsquares = self.bot_get_valid_startsquares(state)
@@ -435,7 +428,7 @@ class MCTS:
                 node = node.select()
             
             value, is_terminal = self.game.bot_get_value_and_terminated(node.state, node.startsquare_action_taken
-                , node.endsquare_action_taken, node.depth)
+                , node.endsquare_action_taken, node.depth, -1)
             value = self.game.get_opponent_value(value)
             
             if not is_terminal:
@@ -478,7 +471,10 @@ class AlphaZero:
         move_count = 0
         
         while True:
-            neutral_state = self.game.change_perspective(state, player)
+            if player == -1:
+                neutral_state = self.game.change_perspective(state, player)
+            else:
+                neutral_state = state
             startsquare_action_probs, endsquare_action_probs = self.mcts.search(neutral_state)
             
             memory.append((neutral_state, startsquare_action_probs, endsquare_action_probs, player))
@@ -493,7 +489,7 @@ class AlphaZero:
             state = self.game.get_next_state(state, startsquare_action, endsquare_action, player)
             
             #check if opponent has valid moves
-            value, is_terminal = self.game.get_value_and_terminated(self.game.change_perspective(state, -1), startsquare_action, endsquare_action, 0)
+            value, is_terminal = self.game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0, player)
 
             move_count += 1
             
@@ -592,9 +588,12 @@ def play(args, game, model_dict):
         startsquare_action, endsquare_action = game.convert_to_action(y0-1, x0-1, y1-1, x1-1)
 
         state = game.get_next_state(state, startsquare_action, endsquare_action, -1)
+
         print(state)
-        if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[1]:
-            if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[0] == 1:
+
+        state = game.change_perspective(state, -1)
+        if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0, -1)[1]:
+            if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0, -1)[0] == 1:
                 print("You win!")
             else:
                 print("tie")
@@ -602,7 +601,6 @@ def play(args, game, model_dict):
 
         start_time = time.time()
 
-        state = game.change_perspective(state, -1)
         startsquare_policy, endsquare_policy = MCTS(game, args, model).search(state)
         valid_startsquares = game.get_valid_startsquares(state)
 
@@ -618,14 +616,15 @@ def play(args, game, model_dict):
         endsquare_action = int(np.argmax(endsquare_policy))
 
         state = game.get_next_state(state, startsquare_action, endsquare_action, 1)
+
         state = game.change_perspective(state, -1)
         print(state)
-
-        print(f"{round(time.time()-start_time,2)}s")#print calculation time
-
-        if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[1]:
-            if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0)[0] == 1:
+        
+        if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0, -1)[1]:
+            if game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0, -1)[0] == 1:
                 print("You lose")
             else:
                 print("tie")
             break
+
+        print(f"{round(time.time()-start_time,2)}s")#print calculation time

@@ -35,8 +35,8 @@ def botpiecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enp
         return kingmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant)
     return False
 
-def canmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
-    if piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant) and not pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
+def canmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant, kingy = -1, kingx = -1):
+    if piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant) and not pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces, kingy, kingx):
         return True
     return False
 
@@ -123,64 +123,40 @@ def promote(piece, y1):
             return True
 
 def checkmate(state, piece, kingmoved, rookmoved, pieces, enpassant):
-    if not check(state, piece, kingmoved, rookmoved, pieces, enpassant):
+    for i in range(8):
+        if piece in state[i]:
+            kingy = i
+            kingx = np.where(state[i] == piece)[0][0]
+            break
+    else:
+        return True
+    if not check(state, piece, kingmoved, rookmoved, pieces, enpassant, kingy, kingx):
         return False
     if piece > 0:
-        for n1 in range(6):
-            for n2 in range(pieces[n1][0]):
-                i = n1*10+n2
-                for ii in range(8):
-                    if i in state[ii]:
-                        piecey0 = ii
-                        piecex0 = np.where(state[ii] == i)[0][0]
-                        for j in range(8):
-                            for jj in range(8):
-                                if piecemove(state, i, piecey0, piecex0, j, jj, kingmoved, rookmoved, pieces, enpassant):
-                                    state[piecey0,piecex0] = 0
-                                    movetosquare = state[j,jj]
-                                    state[j,jj] = i
-                                    enpassanted = ""
-                                    if enpassant >= 0 and jj*8+j == enpassant:
-                                        enpassanted = state[j-int(math.copysign(1, j - piecey0)), jj]
-                                        state[j-int(math.copysign(1, j - piecey0)), jj] = 0
-                                    if not check(state, piece, kingmoved, rookmoved, pieces, enpassant):
-                                        state[piecey0,piecex0] = i
-                                        state[j,jj] = movetosquare
-                                        if enpassanted != "":
-                                            state[j-int(math.copysign(1, j - piecey0)),jj] = enpassanted
-                                        return False
-                                    state[piecey0,piecex0] = i
-                                    state[j,jj] = movetosquare
-                                    if enpassanted != "":
-                                        state[j-int(math.copysign(1, j - piecey0)), jj] = enpassanted
-                        break
+        for y0 in range(8):
+            for x0 in range(8):
+                tested_piece = state[y0,x0]
+                if tested_piece > 0:
+                    for y1 in range(8):
+                        for x1 in range(8):
+                            if canmove(state, tested_piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
+                                return False
         return True
     if piece < 0:
-        for n1 in range(6):
-            for n2 in range(pieces[n1][1]):
-                i = n1*10+n2
-                for ii in range(8):
-                    if -i in state[ii]:
-                        piecey0 = ii
-                        piecex0 = np.where(state[ii] == -i)[0][0]
-                        for j in range(8):
-                            for jj in range(8):
-                                if piecemove(state, -i, piecey0, piecex0, j, jj, kingmoved, rookmoved, pieces, enpassant):
-                                    state[piecey0,piecex0] = 0
-                                    movetosquare = state[j,jj]
-                                    state[j,jj] = -i
-                                    if not check(state, piece, kingmoved, rookmoved, pieces, enpassant):
-                                        state[piecey0,piecex0] = -i
-                                        state[j,jj] = movetosquare
-                                        return False
-                                    state[piecey0,piecex0] = -i
-                                    state[j,jj] = movetosquare
-                        break
+        for y0 in range(8):
+            for x0 in range(8):
+                tested_piece = state[y0,x0]
+                if tested_piece < 0:
+                    for y1 in range(8):
+                        for x1 in range(8):
+                            if piecemove(state, tested_piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant)\
+                            and not pin(state, tested_piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
+                                return False
         return True
 
 
-def check(state, piece, kingmoved, rookmoved, pieces, enpassant, testing = False):
-    if piece > 0:
+def check(state, piece, kingmoved, rookmoved, pieces, enpassant, kingy = -1, kingx = -1):
+    if kingy == -1:
         for i in range(8):
             if piece in state[i]:
                 kingy = i
@@ -188,37 +164,27 @@ def check(state, piece, kingmoved, rookmoved, pieces, enpassant, testing = False
                 break
         else:
             return True
-        for n1 in range(6):
-            for n2 in range(pieces[n1][1]):
-                i = n1*10+n2
-                for ii in range(8):
-                    if -i in state[ii]:
-                        if testing and i == 20:
-                            print(ii, np.where(state[ii] == -i)[0][0])
-                        if piecemove(state, -i, ii, np.where(state[ii] == -i)[0][0], kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
-                            return True
-                        break
+    if piece > 0:
+        for y0 in range(8):
+            for x0 in range(8):
+                tested_piece = state[y0,x0]
+                if tested_piece < 0:
+                    if piecemove(state, tested_piece, y0, x0, kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
+                        return True
+                    break
         return False
     if piece < 0:
-        for i in range(8):
-            if piece in state[i]:
-                kingy = i
-                kingx = np.where(state[i] == piece)[0][0]
-                break
-        else:
-            return True
-        for n1 in range(6):
-            for n2 in range(pieces[n1][0]):
-                i = n1*10+n2
-                for ii in range(8):
-                    if i in state[ii]:
-                        if piecemove(state, i, ii, np.where(state[ii] == i)[0][0], kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
-                            return True
-                        break
+        for y0 in range(8):
+            for x0 in range(8):
+                tested_piece = state[y0,x0]
+                if tested_piece > 0:
+                    if piecemove(state, tested_piece, y0, x0, kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
+                        return True
+                    break
         return False
     return False
 
-def pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
+def pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces, kingy = -1, kingx = -1):
     state[y0,x0] = 0
     movetosquare = state[y1,x1]
     state[y1,x1] = piece
@@ -227,7 +193,7 @@ def pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
     if enpassant >= 0 and x1*8+y1 == enpassant:
         enpassanted = state[y1-int(math.copysign(1, y1 - y0)), x1]
         state[y1-int(math.copysign(1, y1 - y0)), y1] = 0
-    if not check(state, np.sign(piece)*50, kingmoved, rookmoved, pieces, enpassant):
+    if not check(state, np.sign(piece)*50, kingmoved, rookmoved, pieces, enpassant, kingy, kingx):
         state[y0,x0] = piece
         state[y1,x1] = movetosquare
         if enpassanted != "":
