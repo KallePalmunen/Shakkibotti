@@ -32,7 +32,7 @@ class Chess:
         self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
         self.enpassant = -1
         self.max_search_depth = 2
-        self.max_game_length = 50
+        self.max_game_length = 100
         #evaluation arrays
         self.pawn_position_eval = [[80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1],[0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05],[0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0],[0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05],[0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]]
         self.knight_position_eval = [[-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5],[-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4],[-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3],[-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3],[-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3],[-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3],[-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4],[-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5]]
@@ -198,7 +198,7 @@ class Chess:
                     return True
         return False
     
-    def get_value_and_terminated(self, state, startsquare_action, endquare_action, depth, player):
+    def get_value_and_terminated(self, state, startsquare_action, endquare_action, depth, player, move_count = 0):
         if self.check_win(state, startsquare_action, endquare_action, player):
             return 1, True
         #to do: should we also check for valid endsquares?
@@ -208,6 +208,9 @@ class Chess:
         if not self.valid_endsquares_exist(state, valid_startsquares):
             return 0, True
         if depth >= self.max_search_depth:
+            return normalize(self.evaluation(state)), True
+        if move_count >= self.max_game_length:
+            print(move_count, normalize(self.evaluation(state)))
             return normalize(self.evaluation(state)), True
         return 0, False
     
@@ -486,14 +489,19 @@ class AlphaZero:
             startsquare_action = np.random.choice(self.game.action_size, p=temperature_startsquare_action_probs)
             endsquare_action = np.random.choice(self.game.action_size, p=temperature_endsquare_action_probs)
             
+            if player == -1:
+                state = self.game.change_perspective(state,-1)
             state = self.game.get_next_state(state, startsquare_action, endsquare_action, player)
+            if player == -1:
+                state = self.game.change_perspective(state, -1)
             
             #check if opponent has valid moves
-            value, is_terminal = self.game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0, player)
 
             move_count += 1
             
-            if is_terminal or move_count >= self.game.max_game_length:
+            value, is_terminal = self.game.get_value_and_terminated(state, startsquare_action, endsquare_action, 0, player, move_count)
+            
+            if is_terminal:
                 returnMemory = []
                 for hist_neutral_state, hist_startsquare_action_probs, hist_endsquare_action_probs, hist_player in memory:
                     hist_outcome = value if hist_player == player else self.game.get_opponent_value(value)
