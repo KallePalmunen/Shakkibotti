@@ -7,7 +7,7 @@ print(torch.__version__)
 import torch.nn as nn
 import torch.nn.functional as F
 
-torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
+#torch.manual_seed(0) #set the same seed for pytorch every time to ensure reproducibility
 
 import random
 import math
@@ -534,13 +534,14 @@ class AlphaZero:
             self.optimizer.step()
     
     def learn(self):
+        start = time.time()
         for iteration in range(self.args['num_iterations']):
             memory = []
             
             self.model.eval()
             for selfPlay_iteration in range(self.args['num_selfPlay_iterations']):
                 memory += self.selfPlay()
-                print(f"{iteration+1}/{self.args['num_iterations']}: {100*(selfPlay_iteration+1)/self.args['num_selfPlay_iterations']}%")
+                print(f"{iteration+1}/{self.args['num_iterations']}: {100*(selfPlay_iteration+1)/self.args['num_selfPlay_iterations']}%, estimated time left: {round((time.time()-start)*(self.args['num_iterations']*self.args['num_selfPlay_iterations']-iteration*self.args['num_selfPlay_iterations']-selfPlay_iteration-1+0.01)/(iteration*self.args['num_selfPlay_iterations']+selfPlay_iteration+1+0.01),2)}s")
                 
             self.model.train()
             for epoch in range(self.args['num_epochs']):
@@ -551,7 +552,7 @@ class AlphaZero:
             torch.save(self.optimizer.state_dict(), f"./SigmaZero/models/optimizer_{iteration}_{self.game}.pt")
 
 def learn(args, game):
-    model = ResNet(game, 4, 64, device=device, number_of_input_channels=13)
+    model = ResNet(game, 4, 256, device=device, number_of_input_channels=13)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     model.train() #training mode
     alphaZero = AlphaZero(model, optimizer, game, args)
@@ -560,7 +561,7 @@ def learn(args, game):
     print(f"learning time: {time.time()-start_time}s")
 
 def play(args, game, model_dict):
-    model = ResNet(game, 4, 64, device=device, number_of_input_channels=13)
+    model = ResNet(game, 4, 256, device=device, number_of_input_channels=13)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     #load previously learned values
     model.load_state_dict(torch.load(model_dict, map_location=device))
