@@ -171,7 +171,6 @@ def check(state, piece, kingmoved, rookmoved, pieces, enpassant, kingy = -1, kin
                 if tested_piece < 0:
                     if piecemove(state, tested_piece, y0, x0, kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
                         return True
-                    break
         return False
     if piece < 0:
         for y0 in range(8):
@@ -180,7 +179,6 @@ def check(state, piece, kingmoved, rookmoved, pieces, enpassant, kingy = -1, kin
                 if tested_piece > 0:
                     if piecemove(state, tested_piece, y0, x0, kingy, kingx, kingmoved, rookmoved, pieces, enpassant):
                         return True
-                    break
         return False
     return False
 
