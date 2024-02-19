@@ -210,7 +210,6 @@ class Chess:
         if depth >= self.max_search_depth:
             return normalize(self.evaluation(state)), True
         if move_count >= self.max_game_length:
-            print(move_count, normalize(self.evaluation(state)))
             return normalize(self.evaluation(state)), True
         return 0, False
     
