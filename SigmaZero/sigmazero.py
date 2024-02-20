@@ -559,7 +559,7 @@ class AlphaZero:
             torch.save(self.optimizer.state_dict(), f"./SigmaZero/models/optimizer_{iteration}_{self.game}.pt")
 
 def learn(args, game):
-    model = ResNet(game, 4, 256, device=device, number_of_input_channels=13)
+    model = ResNet(game, 4, 512, device=device, number_of_input_channels=13)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     model.train() #training mode
     alphaZero = AlphaZero(model, optimizer, game, args)
@@ -568,7 +568,7 @@ def learn(args, game):
     print(f"learning time: {time.time()-start_time}s")
 
 def play(args, game, model_dict):
-    model = ResNet(game, 4, 256, device=device, number_of_input_channels=13)
+    model = ResNet(game, 4, 512, device=device, number_of_input_channels=13)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     #load previously learned values
     model.load_state_dict(torch.load(model_dict, map_location=device))
