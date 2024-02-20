@@ -1,2 +1,11 @@
 docs/* linguist-documentation=false
 docs/chessbot.js linguist-generated
+*.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_6_Chess.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_7_Chess.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_0_Chess.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_1_Chess.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_2_Chess.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_3_Chess.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_4_Chess.pt filter=lfs diff=lfs merge=lfs -text
+SigmaZero/models/optimizer_5_Chess.pt filter=lfs diff=lfs merge=lfs -text
