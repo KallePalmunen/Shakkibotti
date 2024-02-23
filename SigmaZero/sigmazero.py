@@ -15,7 +15,7 @@ import time
 from Chess import *
 
 def normalize(score):
-    return 1 / (1 + np.exp(-0.5*score))
+    return 1.95 / (1 + np.exp(-0.5*score)) - 1
 
 def print_policy_heatmap(policy):
     for i in range(0, 64, 8):
@@ -33,6 +33,7 @@ class Chess:
         self.enpassant = -1
         self.max_search_depth = 2
         self.max_game_length = 100
+        self.start_eval = 0.0
         #evaluation arrays
         self.pawn_position_eval = [[80.0,80.0,80.0,80.0,80.0,80.0,80.0,80.0],[0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5],[0.1,0.1,0.2,0.3,0.3,0.2,0.1,0.1],[0.05,0.05,0.1,0.25,0.25,0.1,0.05,0.05],[0.0,0.0,0.0,0.2,0.2,0.0,0.0,0.0],[0.05,-0.05,-0.1,0.0,0.0,-0.1,-0.05,0.05],[0.05,0.1,0.1,-0.2,-0.2,0.1,0.1,0.05],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]]
         self.knight_position_eval = [[-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5],[-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4],[-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3],[-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3],[-0.3,0.05,0.15,0.2,0.2,0.15,0.05,-0.3],[-0.3,0.0,0.1,0.15,0.15,0.1,0.0,-0.3],[-0.4,-0.2,0.0,0.0,0.0,0.0,-0.2,-0.4],[-0.5,-0.4,-0.3,-0.3,-0.3,-0.3,-0.4,-0.5]]
@@ -186,8 +187,7 @@ class Chess:
                 #queens
                 elif(abs(n) > 39 and abs(n) < 50):
                     evaluation += np.sign(n)*(9+0.1*self.queen_position_eval[(n<0)*y+(n>0)*(7-y)][(n<0)*x+(n>0)*(7-x)])
-
-        return -evaluation
+        return -(evaluation-self.start_eval)
     
     def valid_endsquares_exist(self, state, valid_startsquares):
         for startsquare, is_valid in enumerate(valid_startsquares):
@@ -406,6 +406,8 @@ class MCTS:
     def search(self, state):
         root = Node(self.game, self.args, state, visit_count=1, depth = 0)
         
+        self.game.start_eval = 0.0
+        self.game.start_eval = -self.game.evaluation(state)
         startsquare_policy, endsquare_policy, _ = self.model(
             torch.tensor(self.game.get_encoded_state(state), device=self.model.device).unsqueeze(0)
         )
