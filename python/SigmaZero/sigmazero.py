@@ -460,7 +460,7 @@ class MCTS:
         endsquare_action_probs /= np.sum(endsquare_action_probs)
         return startsquare_action_probs, endsquare_action_probs
     
-class AlphaZero:
+class SigmaZero:
     def __init__(self, model, optimizer, game, args):
         self.model = model
         self.optimizer = optimizer
@@ -532,8 +532,6 @@ class AlphaZero:
             
             out_startsquare_policy, out_endsquare_policy, out_value = self.model(state)
             
-            print(out_startsquare_policy)
-            print(startsquare_policy_targets)
             startsquare_policy_loss = F.cross_entropy(out_startsquare_policy, startsquare_policy_targets)
             endsquare_policy_loss = F.cross_entropy(out_endsquare_policy, endsquare_policy_targets)
             policy_loss = (startsquare_policy_loss+endsquare_policy_loss)/2 #average loss
@@ -566,9 +564,9 @@ def learn(args, game):
     model = ResNet(game, 4, 512, device=device, number_of_input_channels=13)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     model.train() #training mode
-    alphaZero = AlphaZero(model, optimizer, game, args)
+    sigmaZero = SigmaZero(model, optimizer, game, args)
     start_time = time.time()
-    alphaZero.learn()
+    sigmaZero.learn()
     print(f"learning time: {time.time()-start_time}s")
 
 def play(args, game, model_dict):
