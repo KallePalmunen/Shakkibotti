@@ -6,6 +6,8 @@ import Chessbot1
 import basicbot
 import magnusfanboy.magnusfanboy as magnusfanboy
 import math
+import numpy as np
+import SigmaZero.sigmazero as sigmazero
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
@@ -22,8 +24,8 @@ y=600
 click = 0
 pselectx = -1
 pselecty = -1
-#botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy
-botlevel = 1
+#botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy, 3 == sigmazero
+botlevel = 3
 promoteto = 0
 evalon = False
 #clock1 == bot's time clock2 == player's time
@@ -277,6 +279,11 @@ while running:
                 basicbot.basicbot()
             elif botlevel == 2 and Chessbot1.bot == 0:
                 magnusfanboy.move()
+            elif botlevel == 3:
+                state = np.array(Chessbot1.board)
+                state = sigmazero.make_move(state, Chessbot1.bot)
+                Chessbot1.turn = (Chessbot1.turn == 0)
+                Chessbot1.board = state.tolist()
             else:
                 Chessbot1.randommove()
             if clockon:

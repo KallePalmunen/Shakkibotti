@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import random
 import math
 import time
-from Chess import *
+from SigmaZero.Chess import *
 
 def normalize(score):
     return 1.95 / (1 + np.exp(-0.5*score)) - 1
@@ -532,6 +532,8 @@ class AlphaZero:
             
             out_startsquare_policy, out_endsquare_policy, out_value = self.model(state)
             
+            print(out_startsquare_policy)
+            print(startsquare_policy_targets)
             startsquare_policy_loss = F.cross_entropy(out_startsquare_policy, startsquare_policy_targets)
             endsquare_policy_loss = F.cross_entropy(out_endsquare_policy, endsquare_policy_targets)
             policy_loss = (startsquare_policy_loss+endsquare_policy_loss)/2 #average loss
@@ -557,8 +559,8 @@ class AlphaZero:
                 self.train(memory)
                 print(f"{100*(epoch+1)/self.args['num_epochs']}%")
             
-            torch.save(self.model.state_dict(), f"./SigmaZero/models/model_{iteration}_{self.game}.pt")
-            torch.save(self.optimizer.state_dict(), f"./SigmaZero/models/optimizer_{iteration}_{self.game}.pt")
+            torch.save(self.model.state_dict(), f"./python/SigmaZero/models/model_{iteration}_{self.game}.pt")
+            torch.save(self.optimizer.state_dict(), f"./python/SigmaZero/models/optimizer_{iteration}_{self.game}.pt")
 
 def learn(args, game):
     model = ResNet(game, 4, 512, device=device, number_of_input_channels=13)
@@ -638,3 +640,48 @@ def play(args, game, model_dict):
             break
 
         print(f"{round(time.time()-start_time,2)}s")#print calculation time
+
+def make_move(state, botcolor):
+    args = {
+        'C': 2,
+        'num_searches': 5000,
+        'dirichlet_epsilon': 0.1,
+        'dirichlet_alpha': 0.3,
+        'search': True,
+        'temperature': 0,
+    }
+    game = Chess()
+    model_dict = "./python/SigmaZero/models/model_3_Chess.pt"
+    model = ResNet(game, 4, 512, device=device, number_of_input_channels=13)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    #load previously learned values
+    model.load_state_dict(torch.load(model_dict, map_location=device))
+    model.eval() #playing mode
+
+    if botcolor == 1:
+        state = game.change_perspective(state, -1)
+
+    start_time = time.time()
+
+    startsquare_policy, endsquare_policy = MCTS(game, args, model).search(state)
+    valid_startsquares = game.get_valid_startsquares(state)
+
+    startsquare_policy *= valid_startsquares
+    startsquare_policy /= np.sum(startsquare_policy)
+    startsquare_action = int(np.argmax(startsquare_policy))
+    y0 = startsquare_action // game.column_count
+    x0 = startsquare_action % game.column_count
+    
+    valid_endsquares = game.get_valid_endsquares(state, y0, x0)
+    endsquare_policy *= valid_endsquares
+    endsquare_policy /= np.sum(endsquare_policy)
+    endsquare_action = int(np.argmax(endsquare_policy))
+
+    state = game.get_next_state(state, startsquare_action, endsquare_action, 1)
+
+    if botcolor == 1:
+        state = game.change_perspective(state, -1)
+
+    print(f"{round(time.time()-start_time,2)}s")#print calculation time
+
+    return state

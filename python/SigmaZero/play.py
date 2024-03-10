@@ -1,3 +1,4 @@
+from Chess import *
 from sigmazero import *
 
 args = {
@@ -10,6 +11,5 @@ args = {
 }
 
 game = Chess()
-model_dict = "./SigmaZero/models/model_3_Chess.pt"
-
+model_dict = "./python/SigmaZero/models/model_3_Chess.pt"
 play(args, game, model_dict)

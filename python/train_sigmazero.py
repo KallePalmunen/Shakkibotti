@@ -1,4 +1,4 @@
-from sigmazero import *
+from SigmaZero.sigmazero import *
 
 args = {
     'C': 2,
