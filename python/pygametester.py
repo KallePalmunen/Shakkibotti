@@ -24,7 +24,7 @@ y=600
 click = 0
 pselectx = -1
 pselecty = -1
-#botlevel 0 == randommover, 1 == basicbot, 2 == stockfishfanboy, 3 == sigmazero
+#botlevel 0 == randommover, 1 == basicbot, 2 == magnusfanboy, 3 == sigmazero
 botlevel = 3
 promoteto = 0
 evalon = False
