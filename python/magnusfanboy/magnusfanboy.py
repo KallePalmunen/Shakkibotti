@@ -2,7 +2,7 @@
 import math
 
 import random
-import Chessbot1
+import rules_old
 import json
 
 #Neural networks contains values of the nodes, 1 is the piece you want to move and 2 is the square you want to move it to
