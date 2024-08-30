@@ -1,0 +1,10 @@
+Set-ExecutionPolicy Unrestricted -Scope Process
+cd C:\Users\mikae\emsdk
+.\emsdk install latest
+.\emsdk activate latest
+cd "C:\Users\mikae\Documents\GitHub\Shakkibotti\docs\"
+
+emcc -O3 -gsource-map -s WASM=1 -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -s EXPORTED_FUNCTIONS='["_movepiece", "_basicbot", "_gameend", "_malloc", "_free"]' -o chessbot.js "C:\Users\mikae\Documents\GitHub\Shakkibotti\docs\Chess.cpp"
+//or
+emcc -O3 -gsource-map -c "C:\Users\mikae\Documents\GitHub\Shakkibotti\docs\Chess.cpp" -o chessbot.o
+emcc -O3 -gsource-map chessbot.o -s WASM=1 -s EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' -s EXPORTED_FUNCTIONS='["_movepiece", "_basicbot", "_gameend", "_malloc", "_free"]' -o chessbot.js --source-map-base http://localhost/Shakkibotti/docs/
