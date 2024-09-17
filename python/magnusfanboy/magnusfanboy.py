@@ -2,7 +2,7 @@
 import math
 
 import random
-import Chessbot1
+import rules_old
 import json
 
 #Neural networks contains values of the nodes, 1 is the piece you want to move and 2 is the square you want to move it to
@@ -204,8 +204,8 @@ def convertposition():
         for n2 in range((n1 == 0),9):
             n = n1*10+n2
             for x in range(8):
-                if n in Chessbot1.board[x]:
-                    y = Chessbot1.board[x].index(n)
+                if n in rules_old.board[x]:
+                    y = rules_old.board[x].index(n)
                     piecepositions[(n-n1-1)*3] = x/7
                     piecepositions[(n-n1-1)*3+1] = y/7
                     piecepositions[(n-n1-1)*3+2] = 1
@@ -217,8 +217,8 @@ def convertposition():
                 piecepositions[(n-n1-1)*3+2] = 0
     n = 50
     for x in range(8):
-        if n in Chessbot1.board[x]:
-            y = Chessbot1.board[x].index(n)
+        if n in rules_old.board[x]:
+            y = rules_old.board[x].index(n)
             piecepositions[(n-6)*3] = x/7
             piecepositions[(n-6)*3+1] = y/7
             piecepositions[(n-6)*3+2] = 1
@@ -233,8 +233,8 @@ def convertposition():
         for n2 in range((n1 == 0),9):
             n = -n1*10-n2
             for x in range(8):
-                if n in Chessbot1.board[x]:
-                    y = Chessbot1.board[x].index(n)
+                if n in rules_old.board[x]:
+                    y = rules_old.board[x].index(n)
                     piecepositions[(-n-n1-1)*3+135] = x/7
                     piecepositions[(-n-n1-1)*3+136] = y/7
                     piecepositions[(-n-n1-1)*3+137] = 1
@@ -246,8 +246,8 @@ def convertposition():
                 piecepositions[(-n-n1-1)*3+137] = 0
     n = -50
     for x in range(8):
-        if n in Chessbot1.board[x]:
-            y = Chessbot1.board[x].index(n)
+        if n in rules_old.board[x]:
+            y = rules_old.board[x].index(n)
             piecepositions[(-n-6)*3+135] = x/7
             piecepositions[(-n-6)*3+136] = y/7
             piecepositions[(-n-6)*3+137] = 1
@@ -278,16 +278,16 @@ def move():
         for i in range(64):
             n = neural_network1[nhiddenlayers1+1].index(max(neural_network1[nhiddenlayers1+1]))+1
             for j in range(8):
-                if n in Chessbot1.board[j]:
+                if n in rules_old.board[j]:
                     x0 = j
-                    y0 = Chessbot1.board[j].index(n)
+                    y0 = rules_old.board[j].index(n)
                     break
             else:
                 x0 = -1
                 y0 = -1
             x1 = int(i/8)
             y1 = i-x1*8
-            if (not Chessbot1.piecemove(n, x0, y0, x1, y1)) or Chessbot1.pin(n, x0, y0, x1, y1):
+            if (not rules_old.piecemove(n, x0, y0, x1, y1)) or rules_old.pin(n, x0, y0, x1, y1):
                 neural_network2[nhiddenlayers2+1][i] = -1000000
         move = neural_network1[nhiddenlayers1+1].index(max(neural_network1[nhiddenlayers1+1]))+1
         if max(neural_network2[nhiddenlayers2+1]) <= -1000000:
@@ -299,9 +299,9 @@ def move():
     movetox = int(neural_network2[nhiddenlayers2+1].index(max(neural_network2[nhiddenlayers2+1]))/8)
     movetoy = neural_network2[nhiddenlayers2+1].index(max(neural_network2[nhiddenlayers2+1]))-movetox*8
     for i in range(8):
-        if move in Chessbot1.board[i]:
-            if Chessbot1.piecemove(move, i, Chessbot1.board[i].index(move), movetox, movetoy) and not \
-                Chessbot1.pin(move, i, Chessbot1.board[i].index(move), movetox, movetoy):
-                Chessbot1.movepieceto(move, i, Chessbot1.board[i].index(move), movetox, movetoy)
-                Chessbot1.turn = (Chessbot1.bot == 0)
+        if move in rules_old.board[i]:
+            if rules_old.piecemove(move, i, rules_old.board[i].index(move), movetox, movetoy) and not \
+                rules_old.pin(move, i, rules_old.board[i].index(move), movetox, movetoy):
+                rules_old.movepieceto(move, i, rules_old.board[i].index(move), movetox, movetoy)
+                rules_old.turn = (rules_old.bot == 0)
             break
