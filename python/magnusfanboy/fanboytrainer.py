@@ -1,6 +1,6 @@
 import math
-import python.magnusfanboy.magnusfanboy as fan
-import Chessbot1
+import Magnusfanboy.magnusfanboy as fan
+import rules_old
 import random
 import json
 import time

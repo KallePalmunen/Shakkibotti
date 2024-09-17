@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import random
 import math
 import time
-from SigmaZero.Chess import *
+from SigmaZero.rules import *
 
 def normalize(score):
     return 1.95 / (1 + np.exp(-0.5*score)) - 1

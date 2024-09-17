@@ -2,9 +2,9 @@ import pygame
 from pygame.locals import *
 import time
 from copy import copy, deepcopy
-import Chessbot1
-import basicbot
-import magnusfanboy.magnusfanboy as magnusfanboy
+import rules_old
+import Basicbot.basicbot as basicbot
+import Magnusfanboy.magnusfanboy as magnusfanboy
 import math
 import numpy as np
 import SigmaZero.sigmazero as sigmazero
@@ -24,10 +24,12 @@ y=600
 click = 0
 pselectx = -1
 pselecty = -1
+
 #botlevel 0 == randommover, 1 == basicbot, 2 == magnusfanboy, 3 == sigmazero
 botlevel = 3
 promoteto = 0
 evalon = False
+
 #clock1 == bot's time clock2 == player's time
 clock1 = 180
 clock2 = 180
@@ -70,29 +72,29 @@ bkingimg.set_colorkey((123, 0, 0))
 def drawpieces():
     for i in range(8):
         for ii in range(8):
-            if Chessbot1.board[i][ii] > 0 and Chessbot1.board[i][ii] < 10:
+            if rules_old.board[i][ii] > 0 and rules_old.board[i][ii] < 10:
                 screen.blit(wpawnimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] < 0 and Chessbot1.board[i][ii] > -10:
+            elif rules_old.board[i][ii] < 0 and rules_old.board[i][ii] > -10:
                 screen.blit(bpawnimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] > 9 and Chessbot1.board[i][ii] < 20:
+            elif rules_old.board[i][ii] > 9 and rules_old.board[i][ii] < 20:
                 screen.blit(wknightimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] > 19 and Chessbot1.board[i][ii] < 30:
+            elif rules_old.board[i][ii] > 19 and rules_old.board[i][ii] < 30:
                 screen.blit(wbishopimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] > 29 and Chessbot1.board[i][ii] < 40:
+            elif rules_old.board[i][ii] > 29 and rules_old.board[i][ii] < 40:
                 screen.blit(wrookimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] > 39 and Chessbot1.board[i][ii] < 50:
+            elif rules_old.board[i][ii] > 39 and rules_old.board[i][ii] < 50:
                 screen.blit(wqueenimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] > 49:
+            elif rules_old.board[i][ii] > 49:
                 screen.blit(wkingimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] < -9 and Chessbot1.board[i][ii] > -20:
+            elif rules_old.board[i][ii] < -9 and rules_old.board[i][ii] > -20:
                 screen.blit(bknightimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] < -19 and Chessbot1.board[i][ii] > -30:
+            elif rules_old.board[i][ii] < -19 and rules_old.board[i][ii] > -30:
                 screen.blit(bbishopimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] < -29 and Chessbot1.board[i][ii] > -40:
+            elif rules_old.board[i][ii] < -29 and rules_old.board[i][ii] > -40:
                 screen.blit(brookimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] < -39 and Chessbot1.board[i][ii] > -50:
+            elif rules_old.board[i][ii] < -39 and rules_old.board[i][ii] > -50:
                 screen.blit(bqueenimg, (ii*75, i*75))
-            elif Chessbot1.board[i][ii] < -49:
+            elif rules_old.board[i][ii] < -49:
                 screen.blit(bkingimg, (ii*75, i*75))
 
 def promotegui():
@@ -122,23 +124,23 @@ def promotegui():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                Chessbot1.promotemenu = False
+                rules_old.promotemenu = False
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and queenrect.collidepoint(pygame.mouse.get_pos()):
                 promoteto=4
-                Chessbot1.promotemenu = False
+                rules_old.promotemenu = False
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and knightrect.collidepoint(pygame.mouse.get_pos()):
                 promoteto=1
-                Chessbot1.promotemenu = False
+                rules_old.promotemenu = False
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and rookrect.collidepoint(pygame.mouse.get_pos()):
                 promoteto=3
-                Chessbot1.promotemenu = False
+                rules_old.promotemenu = False
                 return
             if event.type == pygame.MOUSEBUTTONDOWN and bishoprect.collidepoint(pygame.mouse.get_pos()):
                 promoteto=2
-                Chessbot1.promotemenu = False
+                rules_old.promotemenu = False
                 return
 
         pygame.display.flip()
@@ -152,7 +154,7 @@ evalrect.center = (0.8  *x, y/10)
 
 def recap():
     global running
-    moment = Chessbot1.moves
+    moment = rules_old.moves
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -161,16 +163,16 @@ def recap():
             if event.type == pygame.KEYDOWN:
                 if event.key == K_LEFT:
                     moment = max(0, moment-1)
-                    Chessbot1.board = Chessbot1.positions[moment]
+                    rules_old.board = rules_old.positions[moment]
                 if event.key == K_RIGHT:
-                    moment = min(Chessbot1.moves, moment+1)
-                    Chessbot1.board = Chessbot1.positions[moment]
+                    moment = min(rules_old.moves, moment+1)
+                    rules_old.board = rules_old.positions[moment]
                 if event.key == K_UP:
                     moment = 0
-                    Chessbot1.board = Chessbot1.positions[moment]
+                    rules_old.board = rules_old.positions[moment]
                 if event.key == K_DOWN:
-                    moment = Chessbot1.moves
-                    Chessbot1.board = Chessbot1.positions[moment]
+                    moment = rules_old.moves
+                    rules_old.board = rules_old.positions[moment]
         screen.blit(boardimg,(0,0))
         drawpieces()
         pygame.display.flip()
@@ -218,7 +220,7 @@ while running:
                 running = False
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and whiterect.collidepoint(pygame.mouse.get_pos()):
-                Chessbot1.bot=1
+                rules_old.bot=1
                 firstmenu = False
                 if evalon:
                     screen = pygame.display.set_mode([1.1*x, y])
@@ -226,7 +228,7 @@ while running:
                     screen = pygame.display.set_mode([x, 1.2*y])
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and blackrect.collidepoint(pygame.mouse.get_pos()):
-                Chessbot1.bot=0
+                rules_old.bot=0
                 firstmenu = False
                 if evalon:
                     screen = pygame.display.set_mode([1.1*x, y])
@@ -234,7 +236,7 @@ while running:
                     screen = pygame.display.set_mode([x, 1.2*y])
                 break
             if event.type == pygame.MOUSEBUTTONDOWN and h2hrect.collidepoint(pygame.mouse.get_pos()):
-                Chessbot1.bot=2
+                rules_old.bot=2
                 firstmenu = False
                 if evalon:
                     screen = pygame.display.set_mode([1.1*x, y])
@@ -260,13 +262,13 @@ while running:
         time.sleep(1)
         start = False
 
-    if Chessbot1.turn >= 0:
-        if Chessbot1.turn == Chessbot1.bot:
-            if clockon and Chessbot1.moves != 0:
+    if rules_old.turn >= 0:
+        if rules_old.turn == rules_old.bot:
+            if clockon and rules_old.moves != 0:
                 time1 = time.time()
                 clock2 -= (time1-time0)
                 if clock2 <= 0:
-                    Chessbot1.turn = -1
+                    rules_old.turn = -1
                     print("White won")
                     drawclock(clock1, 0)
                 else:
@@ -275,29 +277,29 @@ while running:
                 pygame.display.flip()
                 seconds = 0
             time0 = time.time()
-            if botlevel == 1 and Chessbot1.bot == 0:
+            if botlevel == 1 and rules_old.bot == 0:
                 basicbot.basicbot()
-            elif botlevel == 2 and Chessbot1.bot == 0:
+            elif botlevel == 2 and rules_old.bot == 0:
                 magnusfanboy.move()
             elif botlevel == 3:
-                state = np.array(Chessbot1.board)
-                state = sigmazero.make_move(state, Chessbot1.bot)
-                Chessbot1.turn = (Chessbot1.turn == 0)
-                Chessbot1.board = state.tolist()
+                state = np.array(rules_old.board)
+                state = sigmazero.make_move(state, rules_old.bot)
+                rules_old.turn = (rules_old.turn == 0)
+                rules_old.board = state.tolist()
             else:
-                Chessbot1.randommove()
+                rules_old.randommove()
             if clockon:
                 time1 = time.time()
                 clock1 -= (time1-time0)
                 if clock1 <= 0:
-                    Chessbot1.turn = -1
+                    rules_old.turn = -1
                     print("Black won")
                     drawclock(0, clock2)
                 else:
                     clock1 += increment
                 drawclock(clock1, clock2)
                 time0 = time.time()
-        Chessbot1.gameend()
+        rules_old.gameend()
             
 
     #Event handlers
@@ -305,34 +307,34 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if click == 1 and Chessbot1.turn != Chessbot1.bot:
+            if click == 1 and rules_old.turn != rules_old.bot:
                 x1=int(pygame.mouse.get_pos()[1]/75)
                 y1=int(pygame.mouse.get_pos()[0]/75)
-                n=Chessbot1.board[pselectx][pselecty]
-                if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
-                    if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, x1,
-                        y1) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
+                n=rules_old.board[pselectx][pselecty]
+                if (rules_old.board[pselectx][pselecty] > 0 and rules_old.turn == 0) or (rules_old.board[pselectx][pselecty] < 0 and rules_old.turn == 1):
+                    if rules_old.piecemove(rules_old.board[pselectx][pselecty], pselectx, pselecty, x1,
+                        y1) and not rules_old.pin(rules_old.board[pselectx][pselecty], pselectx, pselecty,
                         x1, y1):
-                        if Chessbot1.turn == 0:
+                        if rules_old.turn == 0:
                             magnusfanboy.convertposition()
-                        Chessbot1.movepieceto(n, pselectx, pselecty, x1, y1)
-                        if Chessbot1.promotemenu:
+                        rules_old.movepieceto(n, pselectx, pselecty, x1, y1)
+                        if rules_old.promotemenu:
                             promotegui()
-                            Chessbot1.board[x1][y1] = int(math.copysign(1, n))\
-                                *(promoteto*10+Chessbot1.pieces[promoteto][(n < 0)])
-                            Chessbot1.pieces[promoteto][(n < 0)] += 1
-                        if Chessbot1.turn == 0:
-                            Chessbot1.turn = 1
+                            rules_old.board[x1][y1] = int(math.copysign(1, n))\
+                                *(promoteto*10+rules_old.pieces[promoteto][(n < 0)])
+                            rules_old.pieces[promoteto][(n < 0)] += 1
+                        if rules_old.turn == 0:
+                            rules_old.turn = 1
                         else:
-                            Chessbot1.turn = 0
-                        Chessbot1.gameend()
+                            rules_old.turn = 0
+                        rules_old.gameend()
             if click == 0:
                 pselectx = int(pygame.mouse.get_pos()[1]/75)
                 pselecty = int(pygame.mouse.get_pos()[0]/75)
                 if (pygame.mouse.get_pos()[0] > x):
                     pass
                 else:
-                    if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
+                    if (rules_old.board[pselectx][pselecty] > 0 and rules_old.turn == 0) or (rules_old.board[pselectx][pselecty] < 0 and rules_old.turn == 1):
                         click = 1
             else:
                 click = 0
@@ -340,31 +342,31 @@ while running:
             x1=int(pygame.mouse.get_pos()[1]/75)
             y1=int(pygame.mouse.get_pos()[0]/75)
             if not(x1 == pselectx and y1 == pselecty):
-                n=Chessbot1.board[pselectx][pselecty]
-                if (Chessbot1.board[pselectx][pselecty] > 0 and Chessbot1.turn == 0) or (Chessbot1.board[pselectx][pselecty] < 0 and Chessbot1.turn == 1):
-                    if Chessbot1.piecemove(Chessbot1.board[pselectx][pselecty], pselectx, pselecty, x1,
-                        y1) and not Chessbot1.pin(Chessbot1.board[pselectx][pselecty], pselectx, pselecty,
+                n=rules_old.board[pselectx][pselecty]
+                if (rules_old.board[pselectx][pselecty] > 0 and rules_old.turn == 0) or (rules_old.board[pselectx][pselecty] < 0 and rules_old.turn == 1):
+                    if rules_old.piecemove(rules_old.board[pselectx][pselecty], pselectx, pselecty, x1,
+                        y1) and not rules_old.pin(rules_old.board[pselectx][pselecty], pselectx, pselecty,
                         x1, y1):
-                        if Chessbot1.turn == 0:
+                        if rules_old.turn == 0:
                             magnusfanboy.convertposition()
-                        Chessbot1.movepieceto(n, pselectx, pselecty, x1, y1)
-                        if Chessbot1.promotemenu:
+                        rules_old.movepieceto(n, pselectx, pselecty, x1, y1)
+                        if rules_old.promotemenu:
                             promotegui()
-                            Chessbot1.board[x1][y1] = int(math.copysign(1, n))\
-                                *(promoteto*10+Chessbot1.pieces[promoteto][(n < 0)])
-                            Chessbot1.pieces[promoteto][(n < 0)] += 1
-                        if Chessbot1.turn == 0:
-                            Chessbot1.turn = 1
+                            rules_old.board[x1][y1] = int(math.copysign(1, n))\
+                                *(promoteto*10+rules_old.pieces[promoteto][(n < 0)])
+                            rules_old.pieces[promoteto][(n < 0)] += 1
+                        if rules_old.turn == 0:
+                            rules_old.turn = 1
                         else:
-                            Chessbot1.turn = 0
-                        Chessbot1.gameend()
+                            rules_old.turn = 0
+                        rules_old.gameend()
                 click = 0
     # Drawing the board
     screen.blit(boardimg,(0,0))
     if evalon:
-        pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, 0, 0.1*x, (1+math.copysign(1-1/math.exp(abs(Chessbot1.evalscore/5)), Chessbot1.evalscore))*y/2))
-        pygame.draw.rect(screen, (0,0,0), pygame.Rect(x, (1+math.copysign(1-1/math.exp(abs(Chessbot1.evalscore/5)), Chessbot1.evalscore))*y/2, 0.1*x, y))
-        evaltxt = evalselectfont.render(Chessbot1.evaltext, 1, (100,100,100))
+        pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, 0, 0.1*x, (1+math.copysign(1-1/math.exp(abs(rules_old.evalscore/5)), rules_old.evalscore))*y/2))
+        pygame.draw.rect(screen, (0,0,0), pygame.Rect(x, (1+math.copysign(1-1/math.exp(abs(rules_old.evalscore/5)), rules_old.evalscore))*y/2, 0.1*x, y))
+        evaltxt = evalselectfont.render(rules_old.evaltext, 1, (100,100,100))
         evalrect = evaltxt.get_rect()
         evalrect.center = (1.05*x, y/3)
 
@@ -372,7 +374,7 @@ while running:
     drawpieces()
 
     if clockon and clock2 - (time.time()-time0) <= 0:
-        Chessbot1.turn = -1
+        rules_old.turn = -1
         print("White won")
         drawclock(clock1, 0)
     
@@ -383,7 +385,7 @@ while running:
     # Flip the display
     pygame.display.flip()
     
-    if Chessbot1.turn == -1:
+    if rules_old.turn == -1:
         recap()
 
 # Done! Time to quit.

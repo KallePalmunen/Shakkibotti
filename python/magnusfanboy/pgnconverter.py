@@ -1,9 +1,9 @@
-import Chessbot1
+import rules_old
 import math
 import time
 from copy import copy, deepcopy
 import json
-import python.magnusfanboy.magnusfanboy as fan
+import Magnusfanboy.magnusfanboy as fan
 
 with open("carlsen, magnus.pgn", 'r') as f:
     games = f.readlines()
@@ -37,7 +37,7 @@ def piece_to_number(v, h, startv, starth, p="p"):
     #(its actually the other way around but we have it this way here :D)
     if p == 'O':
         pn = 50
-        if Chessbot1.turn == 1:
+        if rules_old.turn == 1:
             x = 7
         else:
             x = 0
@@ -49,7 +49,7 @@ def piece_to_number(v, h, startv, starth, p="p"):
             y = 1
         promoteto = ""
     elif h == '=':
-        x = (Chessbot1.turn == 0)*7
+        x = (rules_old.turn == 0)*7
         y = letter_to_number(v)
         pn = 1
         if p == 'Q':
@@ -86,20 +86,20 @@ def piece_to_number(v, h, startv, starth, p="p"):
         if p == "K":
             pn = 50
 
-    if Chessbot1.turn == 1:
+    if rules_old.turn == 1:
         pn *= -1
 
-    for n1 in range(Chessbot1.pieces[int(abs(pn)/10)][Chessbot1.turn]):
-        n = pn + int(math.copysign(n1, (Chessbot1.turn == 0)-0.5))
+    for n1 in range(rules_old.pieces[int(abs(pn)/10)][rules_old.turn]):
+        n = pn + int(math.copysign(n1, (rules_old.turn == 0)-0.5))
         #found is True if piece has been found
         found = False
         for i in range(8):
-            if n in Chessbot1.board[i]:
-                square = [i, Chessbot1.board[i].index(n)]
+            if n in rules_old.board[i]:
+                square = [i, rules_old.board[i].index(n)]
                 found = True
                 break
         if found and (startx == square[0] or startx == -1) and (starty == square[1] or starty == -1):
-            if Chessbot1.piecemove(n, square[0], square[1], x, y) and not Chessbot1.pin(n, square[0], square[1], x, y):
+            if rules_old.piecemove(n, square[0], square[1], x, y) and not rules_old.pin(n, square[0], square[1], x, y):
                 pn = n
                 break
     else:
@@ -118,16 +118,16 @@ def translator(v, h, startv, starth, p="p"):
 for g in range(len(games)):
 
     #reset the backend
-    Chessbot1.board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+    rules_old.board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
          [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
-    Chessbot1.moves = 0
-    Chessbot1.positions = [[[]]]
-    Chessbot1.positions[0] = deepcopy(Chessbot1.board)
-    Chessbot1.turn = 0
-    Chessbot1.enpassant = -1
-    Chessbot1.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
-    Chessbot1.kingmoved = [0, 0]
-    Chessbot1.rookmoved = [[0, 0], [0, 0]]
+    rules_old.moves = 0
+    rules_old.positions = [[[]]]
+    rules_old.positions[0] = deepcopy(rules_old.board)
+    rules_old.turn = 0
+    rules_old.enpassant = -1
+    rules_old.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
+    rules_old.kingmoved = [0, 0]
+    rules_old.rookmoved = [[0, 0], [0, 0]]
 
     #n1 is where we find 1.
     n1 = 0
@@ -159,16 +159,16 @@ for g in range(len(games)):
         if games[g][i] == ' ' or games[g][i] == '\n':
             if v != "" and h != "":
                 translated = translator(v,h,startv,starth,p)
-                if Chessbot1.piecemove(*translated) and not Chessbot1.pin(*translated):
+                if rules_old.piecemove(*translated) and not rules_old.pin(*translated):
                     fan.convertposition()
-                    if Chessbot1.turn == 0:
+                    if rules_old.turn == 0:
                         converted += [[translated[0], fan.piecepositions, translated[3], translated[4]]]
-                    Chessbot1.movepieceto(*translated)
-                    Chessbot1.turn = (Chessbot1.turn == 0)
+                    rules_old.movepieceto(*translated)
+                    rules_old.turn = (rules_old.turn == 0)
                 else:
                     print(games[g], games[g+1], games[g-2])
                     print(v, h, p, startv, starth)
-                    Chessbot1.printboard()
+                    rules_old.printboard()
                     with open("pgndata.txt", 'w') as f:
                         f.write(str(converted))
                     raise Exception("lol")
