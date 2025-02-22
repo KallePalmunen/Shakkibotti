@@ -884,7 +884,7 @@ extern "C" {
 
     bool repetition(int this_moment, Chess& game, std::vector<std::array<std::array<int, 8>, 8>> positions){
         int repetitions = 0;
-        for(int moment = 0; moment < this_moment; moment ++){
+        for(int moment = 0; moment < this_moment; moment++){
             if(compareposition(moment, game, positions)){
                 repetitions++;
                 if(repetitions >= 2){
@@ -1229,7 +1229,7 @@ extern "C" {
         std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
 
         //create vectors
-        std::vector<float> movescore;
+        std::vector<float> moveScore;
         std::vector<std::vector<int>> starting_order;
 
         //loop through pieces
@@ -1246,17 +1246,17 @@ extern "C" {
                             movepieceto(piece, y0, x0, y1, x1, game);
                             positions.push_back(game.board);
                             if(repetition(moves+1, game, positions) || stalemate(50, game) || stalemate(-50, game)){
-                                movescore.push_back(-fulleval(game));
+                                moveScore.push_back(-fulleval(game));
                             }else if(partialrepetition(moves+1, game, positions)){
                                 if(bot == 0){
-                                    movescore.push_back(std::min(evaluate_move(piece, y0, x0, y1, x1, game) 
+                                    moveScore.push_back(std::min(evaluate_move(piece, y0, x0, y1, x1, game) 
                                     + evaluation_minus, -fulleval(game)));
                                 }else{
-                                    movescore.push_back(std::max(evaluate_move(piece, y0, x0, y1, x1, game) 
+                                    moveScore.push_back(std::max(evaluate_move(piece, y0, x0, y1, x1, game) 
                                     + evaluation_minus, -fulleval(game)));
                                 }    
                             }else{
-                                movescore.push_back(
+                                moveScore.push_back(
                                     evaluate_move(piece, y0, x0, y1, x1, game) 
                                     + evaluation_minus);
                             }
@@ -1273,19 +1273,19 @@ extern "C" {
         }
         std::vector<std::vector<int>> return_vector;
         int index;
-        for(int i = 0; i < movescore.size(); i++){
+        for(int i = 0; i < moveScore.size(); i++){
             if(bot==0){
-                int maxindex = std::distance(&movescore[0],
-                    std::max_element(&movescore[0], &movescore[0]+movescore.size()));
+                int maxindex = std::distance(&moveScore[0],
+                    std::max_element(&moveScore[0], &moveScore[0]+moveScore.size()));
                 return_vector.push_back(starting_order[maxindex]);
                 index = maxindex;
             }else{
-                int minindex = std::distance(&movescore[0],
-                    std::min_element(&movescore[0], &movescore[0]+movescore.size()));
+                int minindex = std::distance(&moveScore[0],
+                    std::min_element(&moveScore[0], &moveScore[0]+moveScore.size()));
                 return_vector.push_back(starting_order[minindex]);
                 index = minindex;
             }
-            movescore[index] = -1000000*intsign(bot==0);
+            moveScore[index] = -1000000*intsign(bot==0);
         }
         return return_vector;
     }
@@ -1303,8 +1303,8 @@ extern "C" {
             return -piece_sign*500000/(ntimes+1.0);
         }
         //get evaluation change for previous move
-        float previous_movescore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
-        float best_movescore = -piece_sign*1000000.0f;
+        float previous_moveScore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
+        float best_moveScore = -piece_sign*1000000.0f;
         
         for(int i = 0; i < 6; i++){
             //Goes through the piece types in peculiar order
@@ -1322,16 +1322,16 @@ extern "C" {
                             int x1 = can_move_positions[abs(piece)-1][i][j+1];
                             if(botcanmove(piece, y0, x0, y1, x1, pinnable, pinners, game, kingy, kingx)){
                                 //change to evaluation
-                                float total_movescore = evaluate_move(piece, y0, x0, y1, x1, game)
+                                float total_moveScore = evaluate_move(piece, y0, x0, y1, x1, game)
                                     + evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f
-                                    + previous_movescore;
-                                if((total_movescore <= best && bot == 0)
-                                    || (total_movescore >= best && bot == 1)){
-                                    return total_movescore;
+                                    + previous_moveScore;
+                                if((total_moveScore <= best && bot == 0)
+                                    || (total_moveScore >= best && bot == 1)){
+                                    return total_moveScore;
                                 }
-                                if((total_movescore < best_movescore && bot == 0)
-                                    || (total_movescore > best_movescore && bot == 1)){
-                                    best_movescore = total_movescore;
+                                if((total_moveScore < best_moveScore && bot == 0)
+                                    || (total_moveScore > best_moveScore && bot == 1)){
+                                    best_moveScore = total_moveScore;
                                 }
                                 //if the piece is a bishop, a rook or a queen, break if a piece is in the way
                                 if(abs(piece) > 19 && abs(piece) < 50 && game.board[y1][x1] != 0){
@@ -1346,10 +1346,10 @@ extern "C" {
                 }
             }
         }
-        if(best_movescore == -piece_sign*1000000){ //no legal moves
+        if(best_moveScore == -piece_sign*1000000){ //no legal moves
             return 0.0;
         }else{
-            return best_movescore; 
+            return best_moveScore; 
         }
     }
 
@@ -1370,9 +1370,9 @@ extern "C" {
         Chess game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
         , game.rookmoved, game.pieces);
 
-        float best_movescore = -piece_sign*1000000.0f;
+        float best_moveScore = -piece_sign*1000000.0f;
         //get evaluation change for previous move
-        float previous_movescore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
+        float previous_moveScore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
 
         for(int i = 0; i < 6; i++){
             int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
@@ -1389,7 +1389,7 @@ extern "C" {
                                     update_can_move_positions(color, abs(piece), y1, x1, can_move_positions);
                                 }
                                 float evaluation_minus = evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0;
-                                float current_movescore;
+                                float current_moveScore;
                                 movepieceto(piece, y0, x0, y1, x1, game);
                                 if(nmoremoves%2 == 0 && abs(piece) < 10 && ((color == 0 && y1 == 7) 
                                 || (color == 1 && y1 == 0))){
@@ -1402,14 +1402,14 @@ extern "C" {
                                     , game.piece_positions[31-1][color][1], can_move_positions);
                                 }
                                 if(nmoremoves == 1){
-                                    current_movescore = last_move(piece, y0, x0, y1, x1, best_movescore-evaluation_minus
+                                    current_moveScore = last_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus
                                     , can_move_positions, game, bot, ntimes) + evaluation_minus;
                                 }else{
-                                    current_movescore = nth_move(piece, y0, x0, y1, x1, 
-                                        best_movescore-evaluation_minus, nmoremoves-1, can_move_positions
+                                    current_moveScore = nth_move(piece, y0, x0, y1, x1, 
+                                        best_moveScore-evaluation_minus, nmoremoves-1, can_move_positions
                                         , game, bot, ntimes) + evaluation_minus;
                                 }
-                                float total_movescore = current_movescore + previous_movescore;
+                                float total_moveScore = current_moveScore + previous_moveScore;
                                 //restore can_move_positions
                                 if(nmoremoves%2 == 0){
                                     update_can_move_positions(color, abs(piece), y0, x0, can_move_positions);
@@ -1428,14 +1428,14 @@ extern "C" {
                                     , game.piece_positions[31-1][color][1], can_move_positions);
                                 }
                                 //prune if worse than previously found branch
-                                if((total_movescore <= best && (piece_sign!=1))
-                                    || (total_movescore >= best && (piece_sign==1))){
-                                    return total_movescore;
+                                if((total_moveScore <= best && (piece_sign!=1))
+                                    || (total_moveScore >= best && (piece_sign==1))){
+                                    return total_moveScore;
                                 }
-                                //check for new best movescore
-                                if((total_movescore < best_movescore && (piece_sign!=1))
-                                    || (total_movescore > best_movescore && (piece_sign==1))){
-                                    best_movescore = total_movescore;
+                                //check for new best moveScore
+                                if((total_moveScore < best_moveScore && (piece_sign!=1))
+                                    || (total_moveScore > best_moveScore && (piece_sign==1))){
+                                    best_moveScore = total_moveScore;
                                 }
                             }
                         }
@@ -1443,10 +1443,10 @@ extern "C" {
                 }
             }
         }
-        if(best_movescore == -piece_sign*1000000){ //no legal moves
+        if(best_moveScore == -piece_sign*1000000){ //no legal moves
             return 0.0;
         }else{
-            return best_movescore; 
+            return best_moveScore; 
         }
     }
 
@@ -1458,8 +1458,8 @@ extern "C" {
         , game.rookmoved, game.pieces);
         std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
 
-        std::vector<float> movescore;
-        float best_movescore = -intsign(bot == 0)*1000000.0f;
+        std::vector<float> moveScore;
+        float best_moveScore = -intsign(bot == 0)*1000000.0f;
         std::vector<std::vector<int>> order;
         int opponent_piece_sign = int(bot == 1)-int(bot == 0);
         if(all){
@@ -1488,24 +1488,24 @@ extern "C" {
             positions.push_back(game.board);
             if(repetition(moves+1, game, positions) || stalemate(opponent_piece_sign*50, game)){
                 std::cout << "repetition" << '\n';
-                movescore.push_back(-fulleval(game));
+                moveScore.push_back(-fulleval(game));
             }
             else if(partialrepetition(moves+1, game, positions)){
                 std::cout << "partialrepetition" << '\n';
                 if(bot == 0){
-                    movescore.push_back(std::min(nth_move(piece, y0, x0, y1, x1, best_movescore-evaluation_minus
+                    moveScore.push_back(std::min(nth_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus
                     , ntimes, can_move_positions, game, bot, ntimes) + evaluation_minus, -fulleval(game)));
                 }else{
-                    movescore.push_back(std::max(nth_move(piece, y0, x0, y1, x1, best_movescore-evaluation_minus
+                    moveScore.push_back(std::max(nth_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus
                     , ntimes, can_move_positions, game, bot, ntimes) + evaluation_minus, -fulleval(game)));
                 } 
             }
             else{
-                float current_movescore = nth_move(piece, y0, x0, y1, x1, best_movescore-evaluation_minus
+                float current_moveScore = nth_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus
                     , ntimes, can_move_positions, game, bot, ntimes) + evaluation_minus;
-                movescore.push_back(current_movescore);
-                if((current_movescore > best_movescore && bot == 0) || (current_movescore < best_movescore && bot == 1)){
-                    best_movescore = current_movescore;
+                moveScore.push_back(current_moveScore);
+                if((current_moveScore > best_moveScore && bot == 0) || (current_moveScore < best_moveScore && bot == 1)){
+                    best_moveScore = current_moveScore;
                 }
             }
 
@@ -1517,26 +1517,26 @@ extern "C" {
         bestmove.resize(0);
         if(bot == 0){
             for(int i = 0; i < plusamount; i++){
-                bestindex = std::distance(std::begin(movescore),
-                std::max_element(std::begin(movescore), std::end(movescore)));
+                bestindex = std::distance(std::begin(moveScore),
+                std::max_element(std::begin(moveScore), std::end(moveScore)));
                 
                 bestmove.push_back({});
                 for(int j = 0; j < 5; j++){
                     bestmove[i].push_back(order[bestindex][j]);
                 }
-                bestmove[i].push_back(movescore[bestindex]);
-                movescore[bestindex] = -1000000;
+                bestmove[i].push_back(moveScore[bestindex]);
+                moveScore[bestindex] = -1000000;
             }
         }else{
             for(int i = 0; i < plusamount; i++){
-                bestindex = std::distance(std::begin(movescore),
-                std::min_element(std::begin(movescore), std::end(movescore)));
+                bestindex = std::distance(std::begin(moveScore),
+                std::min_element(std::begin(moveScore), std::end(moveScore)));
                 bestmove.push_back({});
                 for(int j = 0; j < 5; j++){
                     bestmove[i].push_back(order[bestindex][j]);
                 }
-                bestmove[i].push_back(movescore[bestindex]);
-                movescore[bestindex] = 1000000;
+                bestmove[i].push_back(moveScore[bestindex]);
+                moveScore[bestindex] = 1000000;
             }
         }
     }

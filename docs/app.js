@@ -56,13 +56,14 @@ function startGame(botcolor){
   let move = "", turn = 0, click = 0, x0, y0, x1, y1, moves = 0, arrows = [],
   board = [[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]], 
-  positions = [[[30,10,20,50,40,21,11,31],[1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]],
+  positions = [JSON.parse(JSON.stringify(board))],
   enpassant = -1, piece_positions = [];
   //false if bot is calculating a move
   let botready = true
   //moment that is displayed
   let current_moment = 0;
+  //moves before last capture, pawn push, or castling cannot be repeated
+  let lastRepeatableMove = 0;
   //value of turn before navigating game
   let previous_turn = 0;
   //pawns, knights, bishops, rooks, queens and kings (W,B)
@@ -311,9 +312,15 @@ function startGame(botcolor){
   function update_position(move){
     let n = move[0], y0 = move[1], x0 = move[2], y1 = move[3], x1 = move[4];
     let promoteto;
+    if(Math.abs(n) < 10){
+      lastRepeatableMove = moves;
+    }
+
     if(board[y1][x1] != 0){
       piece_positions[Math.abs(board[y1][x1])-1][Number(n>0)][0] = -1;
+      lastRepeatableMove = moves;
     }
+
     if(Math.abs(n) == 50){
       if(Math.abs(x1-x0) > 1){
         //castle
@@ -324,6 +331,7 @@ function startGame(botcolor){
         castled *= (2*(n > 0) + 3*(n < 0));
         piece_positions[Math.abs(whichrook)-1][Number(n<0)][0] = y1;
         piece_positions[Math.abs(whichrook)-1][Number(n<0)][1] = x1 + Math.sign(4-x1);
+        lastRepeatableMove = moves;
       }
       kingmoved *= ((n>0)*2 + (n<0)*3);
     }
@@ -354,21 +362,6 @@ function startGame(botcolor){
     board[y0][x0] = 0;
     positions.push(JSON.parse(JSON.stringify(board)));
   }
-
-  function get_repeated_positions(){
-    let repeated_positions = [];
-    for(let i = moves%2; i < positions.length; i += 2){
-      for(let j = moves%2; j < i; j += 2){
-        if(JSON.stringify(positions[i]) == JSON.stringify(positions[j])){
-          if(i%2 == 0){
-            repeated_positions.push(JSON.parse(JSON.stringify(positions[i])));
-          }
-          break;
-        }
-      }
-    }
-    return repeated_positions;
-  }
   
   async function make_move(y0, x0, y1, x1){
     if(!movepiece(y0, x0, y1, x1, turn, JSON.stringify(board), castled
@@ -386,8 +379,7 @@ function startGame(botcolor){
       await drawBoard();
       // wait for next animation frame
       await new Promise(resolve => setTimeout(resolve, 0));
-      let repeated_positions = get_repeated_positions();
-      let winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
+      let winner = gameend(turn, positions.length-lastRepeatableMove-1, JSON.stringify(board), JSON.stringify(positions.slice(lastRepeatableMove))
       , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
       if(winner >= 0){
         if(winner == 2){
@@ -409,10 +401,9 @@ function startGame(botcolor){
   async function bot_move(){
     botready = false;
     let move;
-    let repeated_positions = get_repeated_positions();
     try{
-      move = basicbot(openingbook[0], openingbook[1], repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
-      , castled, JSON.stringify(piece_positions), JSON.stringify(pieces)
+      move = basicbot(openingbook[0], openingbook[1], positions.length-lastRepeatableMove-1, JSON.stringify(board)
+      , JSON.stringify(positions.slice(lastRepeatableMove)), castled, JSON.stringify(piece_positions), JSON.stringify(pieces)
       , kingmoved, enpassant, JSON.stringify(rookmoved), botcolor);
       console.log(move);
     }catch(error){
@@ -432,9 +423,8 @@ function startGame(botcolor){
     await drawBoard();
     // wait for next animation frame
     await new Promise(resolve => setTimeout(resolve, 0));
-    repeated_positions = get_repeated_positions();
     current_moment = moves;
-    let winner = gameend(turn, repeated_positions.length - 1, JSON.stringify(board), JSON.stringify(repeated_positions)
+    let winner = gameend(turn, positions.length-lastRepeatableMove-1, JSON.stringify(board), JSON.stringify(positions.slice(lastRepeatableMove))
     , JSON.stringify(piece_positions), JSON.stringify(pieces), kingmoved, enpassant, JSON.stringify(rookmoved))
     if(winner >= 0){
       if(winner == 2){
