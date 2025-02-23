@@ -773,7 +773,7 @@ extern "C" {
         }
         for(int piece_type = 0; piece_type < 6; piece_type++){
             for(int piece_number = 0; piece_number < game.pieces[piece_type][(piece < 0)]; piece_number++){
-                int piecen = intsign(piece)*(piece_type*10+piece_number);
+                int piecen = intsign(piece)*(piece_type*10+piece_number+(piece_type == 0));
                 if(piecen != 0){
                     if(game.piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = game.piece_positions[abs(piecen)-1][int(piecen<0)][0];
@@ -794,7 +794,7 @@ extern "C" {
         }
         for(int piece_type = 0; piece_type < 6; piece_type++){
             for(int piece_number = 0; piece_number < game.pieces[piece_type][(piece < 0)]; piece_number++){
-                int piecen = intsign(piece)*(piece_type*10+piece_number);
+                int piecen = intsign(piece)*(piece_type*10+piece_number+(piece_type == 0));
                 if(piecen != 0){
                     if(game.piece_positions[abs(piecen)-1][int(piecen<0)][0] != -1){
                         int y0 = game.piece_positions[abs(piecen)-1][int(piecen<0)][0];
