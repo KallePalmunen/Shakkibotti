@@ -5,6 +5,8 @@ import random
 import rules_old
 import json
 
+#Magnus fanboy is based on the underground chess player Mangus Carlsen
+
 #Neural networks contains values of the nodes, 1 is the piece you want to move and 2 is the square you want to move it to
 neural_network1 = [[]]
 multiplier1 = [[[]]]
