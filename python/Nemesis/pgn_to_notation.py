@@ -5,6 +5,8 @@ from copy import copy, deepcopy
 import json
 import Magnusfanboy.magnusfanboy as fan
 
+#Should be approximately ready with small errors/problems that need to be fixed
+
 with open("carlsen, magnus.pgn", 'r') as f:
     games = f.readlines()
 
