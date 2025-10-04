@@ -89,7 +89,6 @@ def material_gain(state, piece, y0, x0, y1, x1, color):
             taken_piece = state[y1-1,x1]
     else: 
         taken_piece = state[y1,x1]
-    ### TODO: add enpassant material gain
     
     gain = -color*piece_value(taken_piece)
     if promote(piece, y1):
@@ -109,6 +108,7 @@ def piece_position_eval(piece, color, y, x):
     transformed_y = (piece<0)*y+(piece>0)*(7-y)
     transformed_x = (piece<0)*x+(piece>0)*(7-x)
 
+    ### TODO: add rook position gain from castling
     if piece == 0:
         return 0
     if abs(piece) < 10:

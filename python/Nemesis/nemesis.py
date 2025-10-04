@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import random
 import math
 import time
+from Nemesis.move_selection import *
 
 class neuralNetwork(nn.Module):
     def __init__(self, game, numBlocks, num_hidden, device, number_of_inputs):
@@ -58,3 +59,20 @@ class Nemesis:
     def __init__(self, game, state):
         self.game = game
         self.state = state
+
+    def make_move(self, state):
+        ### TODO: get move vector from neural network output
+        move_vector = [np.random.rand(), np.random.rand()]
+        move_vector /= np.linalg.norm(move_vector)
+        ### TODO: select move based on move vector
+        kingmoved = [0,0]
+        rookmoved = [[0,0],[0,0]]
+        pieces = []
+        enpassant = -1
+        color = 1
+        move = [7,3,6,4,7]
+
+        print(select_move(move_vector, state, move, color, kingmoved, rookmoved, pieces, enpassant))
+        ### TODO: make the move
+
+        return state

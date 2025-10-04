@@ -8,6 +8,7 @@ import Magnusfanboy.magnusfanboy as magnusfanboy
 import math
 import numpy as np
 import SigmaZero.sigmazero as sigmazero
+import Nemesis.nemesis as nemesis
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
@@ -25,8 +26,9 @@ click = 0
 pselectx = -1
 pselecty = -1
 
-#botlevel 0 == randommover, 1 == basicbot, 2 == magnusfanboy, 3 == sigmazero
-botlevel = 3
+### TODO: bot chosen in UI and botlevel is string instead of number
+#botlevel 0 == randommover, 1 == basicbot, 2 == magnusfanboy, 3 == sigmazero, 4 == nemesis
+botlevel = 4
 promoteto = 0
 evalon = False
 
@@ -66,6 +68,11 @@ bbishopimg.set_colorkey((123, 0, 0))
 brookimg.set_colorkey((123, 0, 0))
 bqueenimg.set_colorkey((123, 0, 0))
 bkingimg.set_colorkey((123, 0, 0))
+
+botObject = []
+
+if botlevel == 4:
+    botObject = nemesis.Nemesis([], np.array(rules_old.board))
 
 # Draws pieces to their coordinates
 
@@ -286,6 +293,13 @@ while running:
                 state = sigmazero.make_move(state, rules_old.bot)
                 rules_old.turn = (rules_old.turn == 0)
                 rules_old.board = state.tolist()
+            elif botlevel == 4:
+                # Nemesis the destroyer
+                state = np.array(rules_old.board)
+                state = botObject.make_move(state)
+                #rules_old.turn = (rules_old.turn == 0)
+                rules_old.board = state.tolist()
+                rules_old.randommove()
             else:
                 rules_old.randommove()
             if clockon:
