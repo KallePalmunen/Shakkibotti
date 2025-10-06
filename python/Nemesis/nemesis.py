@@ -56,11 +56,12 @@ class block(nn.Module):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Nemesis:
-    def __init__(self, game, state):
+    def __init__(self, game):
         self.game = game
-        self.state = state
+        self.state = game.get_initial_state()
 
     def make_move(self, state):
+        self.state = state
         ### TODO: get move vector from neural network output
         move_vector = [np.random.rand(), np.random.rand()]
         move_vector /= np.linalg.norm(move_vector)
@@ -70,9 +71,9 @@ class Nemesis:
         pieces = []
         enpassant = -1
         color = 1
-        move = [7,3,6,4,7]
 
-        print(select_move(move_vector, state, move, color, kingmoved, rookmoved, pieces, enpassant))
-        ### TODO: make the move
+        move = select_move(move_vector, self.state, color, kingmoved, rookmoved, pieces, enpassant)
 
-        return state
+        self.state = self.game.get_next_state(self.state, move)
+
+        return self.state

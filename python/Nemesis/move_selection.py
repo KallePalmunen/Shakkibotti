@@ -3,7 +3,15 @@ from SigmaZero.rules import *
 from Nemesis.notation_to_move_vector import *
 import numpy as np
 
-def select_move(move_vector_n, state, move, color, kingmoved, rookmoved, pieces, enpassant):
+def normalize(vector):
+    norm = np.linalg.norm(vector)
+
+    if norm == 0:
+        return vector
+    
+    return vector/norm
+
+def select_move(move_vector_n, state, color, kingmoved, rookmoved, pieces, enpassant):
     moves = []
     move_vector_results = {}
     unnormalized_parameter=np.random.rand() #fetch these parameters from file created after training process (they are defined there)
@@ -18,9 +26,12 @@ def select_move(move_vector_n, state, move, color, kingmoved, rookmoved, pieces,
                     if canmove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
                         move = [piece, y0, x0, y1, x1]
                         moves.append(move)
+
     for move in moves:
-            move_vector = create_move_vector(state, move, color, kingmoved, rookmoved, pieces, enpassant)
-            move_vector_normalized = move_vector/np.linalg.norm(move_vector)
-            move_vector_results[tuple(move)]=unnormalized_parameter*(np.dot(move_vector_n, move_vector))+normalized_parameter*(np.dot(move_vector_n, move_vector_normalized))
+        move_vector = create_move_vector(state, move, color, kingmoved, rookmoved, pieces, enpassant)
+        move_vector_normalized = normalize(move_vector)
+        move_vector_results[tuple(move)]=unnormalized_parameter*(np.dot(move_vector_n, move_vector))+normalized_parameter*(np.dot(move_vector_n, move_vector_normalized))
+    
     selected_move = max(move_vector_results, key=move_vector_results.get)
+
     return list(selected_move)

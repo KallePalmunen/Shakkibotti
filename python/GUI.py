@@ -9,6 +9,7 @@ import math
 import numpy as np
 import SigmaZero.sigmazero as sigmazero
 import Nemesis.nemesis as nemesis
+from SigmaZero.rules import Chess
 
 pygame.init()
 pygame.display.set_caption('LGG Chessbot')
@@ -70,9 +71,10 @@ bqueenimg.set_colorkey((123, 0, 0))
 bkingimg.set_colorkey((123, 0, 0))
 
 botObject = []
+game = Chess()
 
 if botlevel == 4:
-    botObject = nemesis.Nemesis([], np.array(rules_old.board))
+    botObject = nemesis.Nemesis(game)
 
 # Draws pieces to their coordinates
 
@@ -297,9 +299,8 @@ while running:
                 # Nemesis the destroyer
                 state = np.array(rules_old.board)
                 state = botObject.make_move(state)
-                #rules_old.turn = (rules_old.turn == 0)
+                rules_old.turn = (rules_old.turn == 0)
                 rules_old.board = state.tolist()
-                rules_old.randommove()
             else:
                 rules_old.randommove()
             if clockon:

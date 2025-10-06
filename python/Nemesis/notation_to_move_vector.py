@@ -171,4 +171,5 @@ def test():
     print(move_vector)
     print(normalized_move_vector)
 
-test()
+if __name__ == "__main__":
+    test()

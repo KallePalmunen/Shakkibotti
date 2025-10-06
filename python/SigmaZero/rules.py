@@ -3,6 +3,53 @@ import random
 from copy import copy, deepcopy
 import numpy as np
 
+class Chess:
+    def __init__(self):
+        self.row_count = 8
+        self.column_count = 8
+        self.kingmoved = [0, 0]
+        self.rookmoved = [[0,0],[0,0]]
+        self.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
+        self.enpassant = -1
+    
+    def get_initial_state(self):
+        return np.array([[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+         [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]])
+    
+    def get_next_state(self, state, move):
+        moved_piece, y0, x0, y1, x1 = move
+
+        if(abs(moved_piece) == 50):
+            if abs(x1 - x0) > 1:
+                whichrook = int(math.copysign(30 + (x1 > 4), moved_piece))
+                whichrook_y = np.where(state[y1] == whichrook)[0]
+                state[y1, whichrook_y] = 0
+                state[y1, x1 + int(math.copysign(1, 4-x1))] = whichrook
+            self.kingmoved[(moved_piece > 0)] = 1
+
+        state[y0,x0] = 0
+
+        if(abs(moved_piece) == 30 or abs(moved_piece) == 31):
+            self.rookmoved[(moved_piece >0)][abs(moved_piece)-30] = 1
+
+        if promote(moved_piece, y1):
+            promoteto = 4
+            state[y1,x1] = int(math.copysign(1, moved_piece))*(promoteto*10+self.pieces[promoteto][(moved_piece < 0)])
+            #self.pieces[promoteto][(moved_piece < 0)] += 1
+        else:
+            state[y1,x1] = moved_piece
+
+        if self.enpassant >= 0 and x1*8+y1 == self.enpassant:
+            state[y1-int(math.copysign(1, y1 - y0)),y1] = 0
+
+        if abs(moved_piece) < 10 and abs(y1 - y0) > 1:
+            self.enpassant = x1*8+y0+int(math.copysign(1, y1 - y0))
+        else:
+            self.enpassant = -1
+
+        return state
+
+
 def piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
     #checks if a certain piece can move (also there is specific functions for each piece like pawnmove, knightmove etc.)
     #n=unique piece, x0, y0 = starting coordinates, x1, y1 = ending coordinates

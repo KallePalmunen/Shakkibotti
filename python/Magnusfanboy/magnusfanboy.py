@@ -263,7 +263,7 @@ def convertposition():
 randomize()
 
 if mode == "play":
-    with open("./python/magnusfanboy/fanboydata.txt", 'r') as f:
+    with open("./python/Magnusfanboy/fanboydata.txt", 'r') as f:
         data = json.loads(f.read())
     bias1 = data[0]
     multiplier1 = data[1]
