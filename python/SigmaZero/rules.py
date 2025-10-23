@@ -25,12 +25,12 @@ class Chess:
                 whichrook_y = np.where(state[y1] == whichrook)[0]
                 state[y1, whichrook_y] = 0
                 state[y1, x1 + int(math.copysign(1, 4-x1))] = whichrook
-            self.kingmoved[(moved_piece > 0)] = 1
+            self.kingmoved[int(moved_piece > 0)] = 1
 
         state[y0,x0] = 0
 
         if(abs(moved_piece) == 30 or abs(moved_piece) == 31):
-            self.rookmoved[(moved_piece >0)][abs(moved_piece)-30] = 1
+            self.rookmoved[int(moved_piece >0)][abs(moved_piece)-30] = 1
 
         if promote(moved_piece, y1):
             promoteto = 4
@@ -251,7 +251,7 @@ def pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces, k
     return True
 
 def castle(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
-    if(kingmoved[(piece > 0)] == 1) or rookmoved[int(piece > 0)][int(x1 > 4)]:
+    if(kingmoved[int(piece > 0)] == 1) or rookmoved[int(piece > 0)][int(x1 > 4)]:
         return False
     if(y1 == y0 and (x1 == 1 or x1 == 5) and not check(state, piece, kingmoved, rookmoved, pieces, enpassant)) and state[y0, (x1 > 4)*7] == int(math.copysign(30 + (x1 > 4), piece)):
         for i in range(1, 3 + (x1 > 4)):
