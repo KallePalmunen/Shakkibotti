@@ -1,3 +1,6 @@
+import sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+
 import rules_old
 import math
 import time
@@ -6,13 +9,6 @@ import json
 import Magnusfanboy.magnusfanboy as fan
 
 #Should be approximately ready with small errors/problems that need to be fixed
-
-with open("carlsen, magnus.pgn", 'r') as f:
-    games = f.readlines()
-
-print(games[0])
-
-converted = []
 
 def letter_to_number(s):
     if s == "a":
@@ -116,101 +112,125 @@ def translator(v, h, startv, starth, p="p"):
     list += piece_to_number(v, h, startv, starth, p)
     return list
 
-#g i the game we're converting
-for g in range(len(games)):
+def get_converted_games(games, max_game_index=0):
+    game_index = 0
+    converted = [[]]
 
-    #reset the backend
-    rules_old.board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-         [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
-    rules_old.moves = 0
-    rules_old.positions = [[[]]]
-    rules_old.positions[0] = deepcopy(rules_old.board)
-    rules_old.turn = 0
-    rules_old.enpassant = -1
-    rules_old.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
-    rules_old.kingmoved = [0, 0]
-    rules_old.rookmoved = [[0, 0], [0, 0]]
+    if max_game_index == 0:
+        max_game_index = len(games)
 
-    #n1 is where we find 1.
-    n1 = 0
-    #s1 tells if the previous symbol was 1, s2 if it was .
-    s1 = False
-    s2 = False
-    for i in range(len(games[g])):
-        if games[g][i] == "1":
-            s1 = True
-        elif s1 == True and games[g][i] == ".":
-            s2 = True
-            s1 = False
-        elif s2 == True and games[g][i] == " ":
-            n1 = i
-            break
-        elif games[g][i] == "\n":
-            pass
+    for row in range(min(len(games), max_game_index)):
+
+        #reset the backend
+        rules_old.board = [[30,10,20,50,40,21,11,31], [1,2,3,4,5,6,7,8],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],[-1,-2,-3,-4,-5,-6,-7,-8],[-30,-10,-20,-50,-40,-21,-11,-31]]
+        rules_old.moves = 0
+        rules_old.positions = [[[]]]
+        rules_old.positions[0] = deepcopy(rules_old.board)
+        rules_old.turn = 0
+        rules_old.enpassant = -1
+        rules_old.pieces = [[8,8],[2,2],[2,2],[2,2],[1,1],[1,1]]
+        rules_old.kingmoved = [0, 0]
+        rules_old.rookmoved = [[0, 0], [0, 0]]
+
+        #n1 is where we find 1.
+        n1 = 0
+        #s1 tells if the previous symbol was 1, s2 if it was .
+        s1 = False
+        s2 = False
+        for i in range(len(games[row])):
+            if games[row][i] == "1":
+                s1 = True
+            elif s1 == True and games[row][i] == ".":
+                s2 = True
+                s1 = False
+            elif s2 == True and games[row][i] == " ":
+                n1 = i
+                break
+            elif games[row][i] == "\n":
+                pass
+            else:
+                s1 = False
+                s2 = False
         else:
-            s1 = False
-            s2 = False
-    else:
-        n1 = len(games[g])
-    p = ""
-    v = ""
-    h = ""
-    startv = ""
-    starth = ""
-    for i in range(n1+1, len(games[g])):
-        if games[g][i] == ' ' or games[g][i] == '\n':
-            if v != "" and h != "":
-                translated = translator(v,h,startv,starth,p)
-                if rules_old.piecemove(*translated) and not rules_old.pin(*translated):
-                    fan.convertposition()
-                    if rules_old.turn == 0:
-                        converted += [[translated[0], fan.piecepositions, translated[3], translated[4]]]
-                    rules_old.movepieceto(*translated)
-                    rules_old.turn = (rules_old.turn == 0)
-                else:
-                    print(games[g], games[g+1], games[g-2])
-                    print(v, h, p, startv, starth)
-                    rules_old.printboard()
-                    with open("pgndata.txt", 'w') as f:
-                        f.write(str(converted))
-                    raise Exception("lol")
-            p = ""
-            v = ""
-            h = ""
-            startv = ""
-            starth = ""
-        elif games[g][i] == ".":
-            p = ""
-            v = ""
-            h = ""
-            startv = ""
-            starth = ""
-        elif games[g][i] == "x" or games[g][i] == '+':
-            pass
-        elif games[g][i] == '=':
-            h = '='
-        elif games[g][i] == "O":
-            if p == "":
-                if games[g][i+3] == '-':
-                    #long castle
-                    p = 'O'
-                    v = '-'
-                    h = '-'
-                else:
-                    #short castle
-                    p = 'O'
-                    v = '-'
-                    h = 'O'
-        elif games[g][i].isnumeric():
-            if h != "":
-                starth = h
-            h = games[g][i]
-        elif games[g][i].isupper():
-            p = games[g][i]
-        elif games[g][i].isalpha():
-            if v != "":
-                startv = v
-            v = games[g][i]
+            n1 = len(games[row])
+        p = ""
+        v = ""
+        h = ""
+        startv = ""
+        starth = ""
+        for i in range(n1+1, len(games[row])):
+            if games[row][i] == ' ' or games[row][i] == '\n':
+                if v != "" and h != "":
+                    translated = translator(v,h,startv,starth,p)
+                    if rules_old.piecemove(*translated) and not rules_old.pin(*translated):
+                        fan.convertposition()
+                        converted[game_index] += [translated]
+                        rules_old.movepieceto(*translated)
+                        rules_old.turn = (rules_old.turn == 0)
+                    else:
+                        print(games[row], games[row+1], games[row-2])
+                        print(v, h, p, startv, starth)
+                        rules_old.printboard()
+                        with open("./python/Nemesis/pgndata.txt", 'w') as f:
+                            f.write(str(converted))
+                        raise Exception("lol")
 
-with open("pgndata.txt", 'w') as f:
-    f.write(str(converted))
+                p = ""
+                v = ""
+                h = ""
+                startv = ""
+                starth = ""
+            elif games[row][i] == ".":
+                p = ""
+                v = ""
+                h = ""
+                startv = ""
+                starth = ""
+            elif games[row][i] == "x" or games[row][i] == '+':
+                pass
+            elif games[row][i] == '=':
+                h = '='
+            elif games[row][i] == "O":
+                if p == "":
+                    if games[row][i+3] == '-':
+                        #long castle
+                        p = 'O'
+                        v = '-'
+                        h = '-'
+                    else:
+                        #short castle
+                        p = 'O'
+                        v = '-'
+                        h = 'O'
+            elif games[row][i].isnumeric():
+                if h != "":
+                    starth = h
+                h = games[row][i]
+            elif games[row][i].isupper():
+                p = games[row][i]
+            elif games[row][i].isalpha():
+                if v != "":
+                    startv = v
+                v = games[row][i]
+
+        if n1 != len(games[row]):
+            converted += [[]]
+            game_index += 1
+    
+    return converted
+
+def convert_games():
+    with open("./python/Magnusfanboy/carlsen, magnus.pgn", 'r') as f:
+        games = f.readlines()
+
+    print(games[0])
+
+    converted = get_converted_games(games, max_game_index=100)
+
+    with open("./python/Nemesis/pgndata.txt", "w") as f:
+        for group in converted:
+            f.write(str(group) + "\n")
+
+if __name__ == "__main__":
+    convert_games()
