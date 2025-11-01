@@ -12,7 +12,6 @@ import random
 import math
 import time
 from Nemesis.move_selection import *
-from move_selection import select_move
 
 class neuralNetwork(nn.Module):
     def __init__(self, game, numBlocks, num_hidden, device, number_of_inputs, output_size):
@@ -66,7 +65,9 @@ class Nemesis:
     def __init__(self, game, number_of_move_vector_components):
         self.game = game
         self.state = game.get_initial_state()
+        self.number_of_input_moves = 1
         self.model = neuralNetwork(self.game, 2, 16, device=device, number_of_inputs=number_of_move_vector_components, output_size=2)
+        self.previous_move = [0,0]
 
     def make_move(self, state, botcolor, prev_move):
         self.state = state
@@ -75,7 +76,9 @@ class Nemesis:
         input_vector = torch.tensor(prev_move, dtype=torch.float32, device=self.model.device)
         out_policy = self.model(input_vector)
         move_vector = out_policy.squeeze(0).detach().cpu().numpy()
-        
+
+        self.previous_move = move_vector
+
         ### TODO: select move based on move vector
         kingmoved = [0,0]
         rookmoved = [[0,0],[0,0]]
