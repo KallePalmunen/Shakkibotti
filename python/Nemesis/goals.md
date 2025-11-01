@@ -1,7 +1,21 @@
 Main goals (I guess):
-- generoi oikeiden siirtojen data treenaukseen (aluksi esim. vaan input+ouput Magnuksen peleistä)
-- laita oikeiden siirtojen data oikeaan formaattiin
-- luo treenausfunktiot (lataa data, generoi arvaus, backpropagate, repeat, yms.)
+- generoi oikeiden siirtojen data treenaukseen move vector formaatissa
+- luo treenausfunktiot
+    - nemesis.train
+        - sekoita muisti
+        - generoi move vector neural networkilla
+        - laske loss
+        - backpropagate
+    - nemesis.learn
+        - lataa data
+        - looppaa learnia
+        - tallenna parametrit
+    - learn
+        - initalisoi model, optimizer ja nemesis
+        - learn
+- luo treenaustiedosto
+    - aseta parametrit
+    - learn
 - treenaa
 
 Future (sulut):
