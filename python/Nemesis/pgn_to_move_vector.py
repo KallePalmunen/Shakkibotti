@@ -3,10 +3,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 import rules_old
 import math
-import time
 from copy import copy, deepcopy
-import json
 import Magnusfanboy.magnusfanboy as fan
+from notation_to_move_vector import create_move_vector
+import numpy as np
 
 #Should be approximately ready with small errors/problems that need to be fixed
 
@@ -165,7 +165,8 @@ def get_converted_games(games, max_game_index=0):
                     translated = translator(v,h,startv,starth,p)
                     if rules_old.piecemove(*translated) and not rules_old.pin(*translated):
                         fan.convertposition()
-                        converted[game_index] += [translated]
+                        color = int(rules_old.turn == 0) - int(rules_old.turn == 1)
+                        converted[game_index] += [create_move_vector(np.array(rules_old.board), translated[:5], color, rules_old.kingmoved, rules_old.rookmoved, rules_old.pieces, rules_old.enpassant)]
                         rules_old.movepieceto(*translated)
                         rules_old.turn = (rules_old.turn == 0)
                     else:
@@ -220,11 +221,30 @@ def get_converted_games(games, max_game_index=0):
     
     return converted
 
+def read_pgn(path):
+    games = []
+    current = []
+
+    with open(path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                current.append(line)
+            else:
+                if current:
+                    games.append(" ".join(current))
+                    current = []
+
+    if current:
+        games.append(" ".join(current))
+
+    return games
+
 def convert_games():
-    with open("./python/Magnusfanboy/carlsen, magnus.pgn", 'r') as f:
-        games = f.readlines()
+    games = read_pgn("./python/Nemesis/CCRL-404.[1794327].pgn")
 
     print(games[0])
+    print(games[1])
 
     converted = get_converted_games(games, max_game_index=100)
 

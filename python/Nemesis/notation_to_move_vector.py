@@ -62,7 +62,7 @@ def maximum_material_gain(state, color, kingmoved, rookmoved, pieces, enpassant)
     return result
 
 def maximum_position_gain(state, color, kingmoved, rookmoved, pieces, enpassant):
-    result = 0
+    result = -1000
 
     for y0 in range(8):
         for x0 in range(8):
@@ -74,6 +74,22 @@ def maximum_position_gain(state, color, kingmoved, rookmoved, pieces, enpassant)
                 for x1 in range(8):
                     if piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant) and not pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
                         result = max(position_gain(piece, color, y0, x0, y1, x1), result)
+    
+    return result
+
+def minimum_position_gain(state, color, kingmoved, rookmoved, pieces, enpassant):
+    result = 1000
+
+    for y0 in range(8):
+        for x0 in range(8):
+            piece = state[y0,x0]
+            if piece == 0 or np.sign(piece) != color:
+                continue
+
+            for y1 in range(8):
+                for x1 in range(8):
+                    if piecemove(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant) and not pin(state, piece, y0, x0, y1, x1, kingmoved, rookmoved, enpassant, pieces):
+                        result = min(position_gain(piece, color, y0, x0, y1, x1), result)
     
     return result
 
@@ -131,11 +147,20 @@ def position_gain(piece, color, y0, x0, y1, x1):
 
 def normalized_position_gain(state, piece, color, y0, x0, y1, x1, kingmoved, rookmoved, pieces, enpassant):
     maximum_gain = maximum_position_gain(state, color, kingmoved, rookmoved, pieces, enpassant)
+    minimum_gain = minimum_position_gain(state, color, kingmoved, rookmoved, pieces, enpassant)
 
-    if maximum_gain == 0:
+    gain = position_gain(piece, color, y0, x0, y1, x1)
+
+    if maximum_gain == minimum_gain or gain == maximum_gain:
         return 1
+    
+    if gain == minimum_gain:
+        return -1
+    
+    if gain < 0:
+        return gain/abs(minimum_gain)
 
-    return position_gain(piece, color, y0, x0, y1, x1)/maximum_gain
+    return gain/maximum_gain
 
 def create_move_vector(state, move, color, kingmoved, rookmoved, pieces, enpassant):
     move_vector = []
