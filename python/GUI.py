@@ -298,7 +298,7 @@ while running:
             elif botlevel == 4:
                 # Nemesis the destroyer
                 state = np.array(rules_old.board)
-                state = botObject.make_move(state)
+                state = botObject.make_move(state, rules_old.bot)
                 rules_old.turn = (rules_old.turn == 0)
                 rules_old.board = state.tolist()
             else:

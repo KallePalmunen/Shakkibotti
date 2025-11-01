@@ -60,8 +60,9 @@ class Nemesis:
         self.game = game
         self.state = game.get_initial_state()
 
-    def make_move(self, state):
+    def make_move(self, state, botcolor):
         self.state = state
+        color = int(botcolor == 0) - int(botcolor == 1)
         ### TODO: get move vector from neural network output
         move_vector = [np.random.rand(), np.random.rand()]
         move_vector /= np.linalg.norm(move_vector)
@@ -70,7 +71,6 @@ class Nemesis:
         rookmoved = [[0,0],[0,0]]
         pieces = []
         enpassant = -1
-        color = 1
 
         move = select_move(move_vector, self.state, color, kingmoved, rookmoved, pieces, enpassant)
 

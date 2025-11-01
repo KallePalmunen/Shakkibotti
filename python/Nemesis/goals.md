@@ -11,4 +11,4 @@ Future (sulut):
 - treenaa "a" ja "b" parametrit (pelitestaus?)
 
 Side goal(s):
-- pelaa mustalla
+- käytä oikeita arvoja muille muuttujille (kingmoved etc)
