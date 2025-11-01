@@ -1,3 +1,6 @@
+import sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+
 from SigmaZero.rules import *
 import numpy as np
 print(np.__version__)
@@ -61,12 +64,19 @@ class Nemesis:
         self.state = game.get_initial_state()
         self.model = neuralNetwork(self.game, 2, 16, device=device, number_of_inputs=number_of_move_vector_components, output_size=2) #TODO: Kalle set output size properly
 
-    def make_move(self, state, botcolor):
+    def make_move(self, state, prev_move, botcolor):
         self.state = state
         color = int(botcolor == 0) - int(botcolor == 1)
+
+        input_vector = torch.tensor(prev_move, dtypy=torch.float32, device=self.model.device)
+        out_policy = self.model(input_vector)
+        move_vector = out_policy.squeeze(0).cpu().numpy()
+        
         ### TODO: get move vector from neural network output
-        move_vector = [np.random.rand(), np.random.rand()]
-        move_vector /= np.linalg.norm(move_vector)
+        #move_vector = [np.random.rand(), np.random.rand()]
+        if np.linalg.norm(move_vector) != 0:
+            move_vector /= np.linalg.norm(move_vector)
+        
         ### TODO: select move based on move vector
         kingmoved = [0,0]
         rookmoved = [[0,0],[0,0]]
