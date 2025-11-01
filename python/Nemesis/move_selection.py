@@ -1,4 +1,3 @@
-import Nemesis.nemesis as nms
 from SigmaZero.rules import *
 from Nemesis.notation_to_move_vector import *
 import numpy as np

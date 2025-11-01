@@ -12,6 +12,7 @@ import random
 import math
 import time
 from Nemesis.move_selection import *
+from move_selection import select_move
 
 class neuralNetwork(nn.Module):
     def __init__(self, game, numBlocks, num_hidden, device, number_of_inputs, output_size):
@@ -64,16 +65,14 @@ class Nemesis:
         self.state = game.get_initial_state()
         self.model = neuralNetwork(self.game, 2, 16, device=device, number_of_inputs=number_of_move_vector_components, output_size=2) #TODO: Kalle set output size properly
 
-    def make_move(self, state, prev_move, botcolor):
+    def make_move(self, state, botcolor, prev_move):
         self.state = state
         color = int(botcolor == 0) - int(botcolor == 1)
 
-        input_vector = torch.tensor(prev_move, dtypy=torch.float32, device=self.model.device)
+        input_vector = torch.tensor(prev_move, dtype=torch.float32, device=self.model.device)
         out_policy = self.model(input_vector)
-        move_vector = out_policy.squeeze(0).cpu().numpy()
+        move_vector = out_policy.squeeze(0).detach().cpu().numpy()
         
-        ### TODO: get move vector from neural network output
-        #move_vector = [np.random.rand(), np.random.rand()]
         if np.linalg.norm(move_vector) != 0:
             move_vector /= np.linalg.norm(move_vector)
         
