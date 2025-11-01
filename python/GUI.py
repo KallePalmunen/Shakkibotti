@@ -74,7 +74,7 @@ botObject = []
 game = Chess()
 
 if botlevel == 4:
-    botObject = nemesis.Nemesis(game)
+    botObject = nemesis.Nemesis(game, number_of_move_vector_components=2)
 
 # Draws pieces to their coordinates
 

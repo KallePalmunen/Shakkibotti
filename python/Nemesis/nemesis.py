@@ -11,7 +11,7 @@ import time
 from Nemesis.move_selection import *
 
 class neuralNetwork(nn.Module):
-    def __init__(self, game, numBlocks, num_hidden, device, number_of_inputs):
+    def __init__(self, game, numBlocks, num_hidden, device, number_of_inputs, output_size):
         super().__init__() #initiates the parent class
         
         self.device = device
@@ -28,7 +28,7 @@ class neuralNetwork(nn.Module):
         self.policyHead = nn.Sequential(
             nn.Linear(num_hidden, int(num_hidden/2)),
             nn.PReLU(),
-            nn.Linear(int(num_hidden/2), game.action_size) #linear transformation(input size, output size)
+            nn.Linear(int(num_hidden/2), output_size) #linear transformation(input size, output size)
         )
         
         self.to(device) #move to the device where you want to run the operations
@@ -56,9 +56,10 @@ class block(nn.Module):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Nemesis:
-    def __init__(self, game):
+    def __init__(self, game, number_of_move_vector_components):
         self.game = game
         self.state = game.get_initial_state()
+        self.model = neuralNetwork(self.game, 2, 16, device=device, number_of_inputs=number_of_move_vector_components, output_size=2) #TODO: Kalle set output size properly
 
     def make_move(self, state, botcolor):
         self.state = state
