@@ -43,6 +43,9 @@ class neuralNetwork(nn.Module):
         for block in self.backBone:
             x = block(x)
         policy = self.policyHead(x)
+        if policy.dim() == 1:
+            policy = policy.unsqueeze(0)
+        policy = F.normalize(policy, p=2, dim=1)
         return policy
 
 class block(nn.Module):
@@ -63,7 +66,7 @@ class Nemesis:
     def __init__(self, game, number_of_move_vector_components):
         self.game = game
         self.state = game.get_initial_state()
-        self.model = neuralNetwork(self.game, 2, 16, device=device, number_of_inputs=number_of_move_vector_components, output_size=2) #TODO: Kalle set output size properly
+        self.model = neuralNetwork(self.game, 2, 16, device=device, number_of_inputs=number_of_move_vector_components, output_size=2)
 
     def make_move(self, state, botcolor, prev_move):
         self.state = state
@@ -72,9 +75,6 @@ class Nemesis:
         input_vector = torch.tensor(prev_move, dtype=torch.float32, device=self.model.device)
         out_policy = self.model(input_vector)
         move_vector = out_policy.squeeze(0).detach().cpu().numpy()
-        
-        if np.linalg.norm(move_vector) != 0:
-            move_vector /= np.linalg.norm(move_vector)
         
         ### TODO: select move based on move vector
         kingmoved = [0,0]
@@ -87,3 +87,19 @@ class Nemesis:
         self.state = self.game.get_next_state(self.state, move)
 
         return self.state
+    
+def test():
+    from SigmaZero.rules import Chess
+    import rules_old
+    game = Chess()
+
+    botObject = Nemesis(game, number_of_move_vector_components=2)
+    state = np.array(rules_old.board)
+    state = botObject.make_move(state, 1, [1,0])
+
+    rules_old.turn = (rules_old.turn == 0)
+    rules_old.board = state.tolist()
+    print(rules_old.board)
+
+if __name__=="__main__":
+    test()
