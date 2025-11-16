@@ -7,6 +7,10 @@
 #include <string>
 #include <sstream>
 
+#define WHITE 0
+#define BLACK 1
+#define POSITION_EVAL_SCALE 0.1
+
 extern "C" {
     class Chess{
     public:
@@ -1168,37 +1172,46 @@ extern "C" {
         return pinners;
     }
 
-    float evaluate_change(int y, int x, int changesign, int& pieceAt_yx, Chess& game, int piece = -100){
+    inline float evaluate_change(int y, int x, int changesign, int& pieceAt_yx, Chess& game, int piece = -100){
         if(piece == -100){
             piece = pieceAt_yx;
         }
         if(piece == 0){
             return 0.0f;
         }
-        //pawns
-        if(piece != 0 && abs(piece) < 9){
-            return changesign*intsign(piece)*(1+0.1*game.pawn_position_eval[(piece<0)*y+(piece>0)*(7-y)][(piece<0)*x+(piece>0)*(7-x)]);
+
+        int pieceSign = intsign(piece);
+        piece = abs(piece)/10;
+        int isWhite = (pieceSign == 1);
+        int isBlack = !isWhite;
+
+        switch(piece){
+            //pawns
+            case 0:
+                return changesign*pieceSign*(1+POSITION_EVAL_SCALE*game.pawn_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                break;
+            //knights
+            case 1:
+                return changesign*pieceSign*(3+POSITION_EVAL_SCALE*game.knight_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                break;
+            //bishops
+            case 2:
+                return changesign*pieceSign*(3+POSITION_EVAL_SCALE*game.bishop_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                break;
+            //rooks
+            case 3:
+                return changesign*pieceSign*(5+POSITION_EVAL_SCALE*game.rook_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                break;
+            //queens
+            case 4:
+                return changesign*pieceSign*(9+POSITION_EVAL_SCALE*game.queen_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                break;
+            default:
+                return 0.0f;
         }
-        //knights and bishops
-        if(abs(piece) > 9 && abs(piece) < 20){
-            return changesign*intsign(piece)*(3+0.1*game.knight_position_eval[(piece<0)*y+(piece>0)*(7-y)][(piece<0)*x+(piece>0)*(7-x)]);
-        }
-        //bishops
-        if(abs(piece) > 19 && abs(piece) < 30){
-            return changesign*intsign(piece)*(3+0.1*game.bishop_position_eval[(piece<0)*y+(piece>0)*(7-y)][(piece<0)*x+(piece>0)*(7-x)]);
-        }
-        //rooks
-        if(abs(piece) > 29 && abs(piece) < 40){
-            return changesign*intsign(piece)*(5+0.1*game.rook_position_eval[(piece<0)*y+(piece>0)*(7-y)][(piece<0)*x+(piece>0)*(7-x)]);
-        }
-        //queens
-        if(abs(piece) > 39 && abs(piece) < 50){
-            return changesign*intsign(piece)*(9+0.1*game.queen_position_eval[(piece<0)*y+(piece>0)*(7-y)][(piece<0)*x+(piece>0)*(7-x)]);
-        }
-        return 0.0f;
     }
 
-    float evaluate_move(int piece, int y0, int x0, int y1, int x1, Chess& game){
+    inline float evaluate_move(int piece, int y0, int x0, int y1, int x1, Chess& game){
         return evaluate_change(y1, x1, 1, game.board[y1][x1], game, piece) + 
             evaluate_change(y0, x0, -1, game.board[y0][x0], game, piece) + (game.castled % 2 == 0)*0.1f - (game.castled % 3 == 0)*0.1f;
     }
@@ -1601,7 +1614,7 @@ extern "C" {
     const char* basicbot(const char* openingbook_data, int size, int moves, const char* board_string, const char* positions_string
     , int castled, const char* piece_positions_str
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
-        std::cout << "updated0" << '\n';
+        std::cout << "updated" << '\n';
         //define vectors
         std::array<std::array<int, 8>, 8> board = convert_board(board_string);
         std::vector<std::array<std::array<int, 8>, 8>> positions = convert_positions(positions_string, moves);
@@ -1617,6 +1630,9 @@ extern "C" {
         int ntimes = ntimesmin;
         //amount of moves calculated one full move deeper
         int plusamount = 2;
+        //time limits for continuing to calculate deeper
+        double fullMoveLimit = 0.2;
+        double plusSearchLimit = 0.4;
         
         std::vector<std::vector<int>> bestmove;
         std::vector<std::vector<std::vector<int>>> can_move_positions = set_can_move_positions(game, bot);
@@ -1632,7 +1648,7 @@ extern "C" {
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast
             <std::chrono::milliseconds>(stop - start);
-        while(duration.count()/1000.0 < 0.2){
+        while(duration.count()/1000.0 < fullMoveLimit){
             if(abs(bestmove[0][5]) > 10000 || bestmove.size() <= 1){
                 break;
             }
@@ -1643,7 +1659,7 @@ extern "C" {
                 <std::chrono::milliseconds>(stop - start);
         }
         std::cout << "depth = " << ntimes/2+1;
-        if(duration.count()/1000.0 < 0.4 && abs(bestmove[0][5]) <= 10000 && bestmove.size() > 1){
+        if(duration.count()/1000.0 < plusSearchLimit && abs(bestmove[0][5]) <= 10000 && bestmove.size() > 1){
             ntimes += 2;
             firstmove(moves, positions, can_move_positions, bestmove, game, bot, ntimes, plusamount, false);
             std::cout << '+';
