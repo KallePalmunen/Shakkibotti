@@ -1463,9 +1463,34 @@ extern "C" {
         }
     }
 
-    void firstmove(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
-    , std::vector<std::vector<std::vector<int>>> can_move_positions, std::vector<std::vector<int>>& bestmove
-    , Chess& game, int bot, int ntimes, int plusamount, bool all = true){
+    void sortMoves(std::vector<std::vector<int>>& bestMoves, int bot, std::vector<float>& moveScore, std::vector<std::vector<int>>& order) {
+        int numberOfMoves = moveScore.size();
+        std::vector<int> indices(numberOfMoves);
+        for(int i = 0; i < numberOfMoves; i++){
+            indices[i] = i;
+        }
+
+        if(bot == 0) {
+            std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) { return moveScore[a] > moveScore[b]; });
+        } else {
+            std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) { return moveScore[a] < moveScore[b]; });
+        }
+        
+
+        bestMoves.clear();
+        for(int i = 0; i < numberOfMoves; i++) {
+            int index = indices[i];
+            bestMoves.push_back({});
+            bestMoves.back().insert(bestMoves.back().end(), order[index].begin(), order[index].begin() + 5);
+            bestMoves.back().push_back(moveScore[index]);
+        }
+    }
+
+    std::vector<std::vector<int>> firstmove(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
+    , std::vector<std::vector<std::vector<int>>> can_move_positions, std::vector<std::vector<int>> bestMoves
+    , Chess& game, int bot, int ntimes, double maxSearchTime, bool allowBailout, int& calculatedMoves, bool& bailedOut){
+
+        auto start = std::chrono::high_resolution_clock::now();
         //save current state
         Chess game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
         , game.rookmoved, game.pieces);
@@ -1475,20 +1500,21 @@ extern "C" {
         float best_moveScore = -intsign(bot == 0)*1000000.0f;
         std::vector<std::vector<int>> order;
         int opponent_piece_sign = int(bot == 1)-int(bot == 0);
-        if(all){
+
+        if(calculatedMoves == 0){
             order = reorder(moves, positions, game, bot);
-        }else{
-            for(int i = 0; i < plusamount; i++){
-                order.push_back({bestmove[i][0],bestmove[i][1],bestmove[i][2],bestmove[i][3],bestmove[i][4]});
-            }
+        }else {
+            order = bestMoves;
         }
+        
         if(order.size() == 1){
-            bestmove.resize(0);
-            bestmove.push_back({});
+            bestMoves.resize(0);
+            bestMoves.push_back({});
             for(int i = 0; i < 5; i++){
-                bestmove[0].push_back(order[0][i]);
+                bestMoves[0].push_back(order[0][i]);
             }
-            return;
+            calculatedMoves = 1;
+            return bestMoves;
         }
         for(int i = 0; i < order.size(); i++){
             int piece = order[i][0];
@@ -1525,33 +1551,21 @@ extern "C" {
             //return to saved state
             game.Copy_game(game_previous_state);
             positions = temp_positions;
-        }
-        int bestindex;
-        bestmove.resize(0);
-        if(bot == 0){
-            for(int i = 0; i < plusamount; i++){
-                bestindex = std::distance(std::begin(moveScore),
-                std::max_element(std::begin(moveScore), std::end(moveScore)));
-                
-                bestmove.push_back({});
-                for(int j = 0; j < 5; j++){
-                    bestmove[i].push_back(order[bestindex][j]);
-                }
-                bestmove[i].push_back(moveScore[bestindex]);
-                moveScore[bestindex] = -1000000;
-            }
-        }else{
-            for(int i = 0; i < plusamount; i++){
-                bestindex = std::distance(std::begin(moveScore),
-                std::min_element(std::begin(moveScore), std::end(moveScore)));
-                bestmove.push_back({});
-                for(int j = 0; j < 5; j++){
-                    bestmove[i].push_back(order[bestindex][j]);
-                }
-                bestmove[i].push_back(moveScore[bestindex]);
-                moveScore[bestindex] = 1000000;
+
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+            if(static_cast<double>(i+2)/static_cast<double>(i+1)*duration.count()/1000.0 >= maxSearchTime && allowBailout){
+                calculatedMoves = i+1;
+                bailedOut = true;
+                sortMoves(bestMoves, bot, moveScore, order);
+                return bestMoves;
             }
         }
+
+        calculatedMoves = order.size();
+        bailedOut = false;
+        sortMoves(bestMoves, bot, moveScore, order);
+        return bestMoves;
     }
 
     std::vector<std::vector<std::vector<std::vector<int>>>> open_openingbook(const char* openingbook, int size) {
@@ -1628,13 +1642,12 @@ extern "C" {
         int ntimesmin = 4;
         //ntimes == (amount of half moves that basicbot searches forward) - 2
         int ntimes = ntimesmin;
-        //amount of moves calculated one full move deeper
-        int plusamount = 2;
-        //time limits for continuing to calculate deeper
-        double fullMoveLimit = 0.2;
-        double plusSearchLimit = 0.4;
+        double maxSearchTime = 3.0;
+
+        int calculatedMoves = 0;
+        bool bailedOut = false;
         
-        std::vector<std::vector<int>> bestmove;
+        std::vector<std::vector<int>> bestMoves;
         std::vector<std::vector<std::vector<int>>> can_move_positions = set_can_move_positions(game, bot);
 
         if(read_openingbook(bot, openingbook_data, size, game)[0]){
@@ -1644,36 +1657,40 @@ extern "C" {
         }
         float score = fulleval(game);
         auto start = std::chrono::high_resolution_clock::now();
-        firstmove(moves, positions, can_move_positions, bestmove, game, bot, ntimes, plusamount);
+        bestMoves = firstmove(moves, positions, can_move_positions, bestMoves, game, bot, ntimes, maxSearchTime, false, calculatedMoves, bailedOut);
         auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast
-            <std::chrono::milliseconds>(stop - start);
-        while(duration.count()/1000.0 < fullMoveLimit){
-            if(abs(bestmove[0][5]) > 10000 || bestmove.size() <= 1){
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+
+        while(true){
+            if(abs(bestMoves[0][5]) > 10000 || calculatedMoves <= 1){
+                std::cout << "depth = " << (ntimes)/2+1 << '\n';
                 break;
             }
-            ntimes += 2;
-            firstmove(moves, positions, can_move_positions, bestmove, game, bot, ntimes, plusamount);
-            stop = std::chrono::high_resolution_clock::now();
-            duration = std::chrono::duration_cast
-                <std::chrono::milliseconds>(stop - start);
+            ntimes++;
+            
+            if(ntimes%2 == 0){
+                bestMoves = firstmove(moves, positions, can_move_positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
+            }else{
+                std::vector<std::vector<int>> temp = firstmove(moves, positions, can_move_positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
+            }
+
+            if(bailedOut){
+                std::cout << "depth = " << (ntimes-1)/2+1;
+                if(calculatedMoves > 1 && ntimes%2 == 0){
+                    std::cout << "+\n";
+                }else {
+                    std::cout << "\n";
+                }
+                break;
+            }
         }
-        std::cout << "depth = " << ntimes/2+1;
-        if(duration.count()/1000.0 < plusSearchLimit && abs(bestmove[0][5]) <= 10000 && bestmove.size() > 1){
-            ntimes += 2;
-            firstmove(moves, positions, can_move_positions, bestmove, game, bot, ntimes, plusamount, false);
-            std::cout << '+';
-        }
-        std::cout << '\n';
-        if(ntimes > ntimesmin){
-            ntimes = ntimesmin;
-        }
-        score += bestmove[0][5];
-        int piece = bestmove[0][0];
-        int y0 = bestmove[0][1];
-        int x0 = bestmove[0][2];
-        int y1 = bestmove[0][3];
-        int x1 = bestmove[0][4];
+
+        score += bestMoves[0][5];
+        int piece = bestMoves[0][0];
+        int y0 = bestMoves[0][1];
+        int x0 = bestMoves[0][2];
+        int y1 = bestMoves[0][3];
+        int x1 = bestMoves[0][4];
         movepieceto(piece, y0, x0, y1, x1, game);
         stop = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast
