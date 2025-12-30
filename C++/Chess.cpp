@@ -1662,7 +1662,9 @@ extern "C" {
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
         while(true){
-            if(abs(bestMoves[0][5]) > 10000 || calculatedMoves <= 1){
+            stop = std::chrono::high_resolution_clock::now();
+            duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+            if(abs(bestMoves[0][5]) > 10000 || calculatedMoves <= 1 || duration.count()/1000.0 > 0.5*maxSearchTime){
                 std::cout << "depth = " << (ntimes)/2+1 << '\n';
                 break;
             }
