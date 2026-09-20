@@ -111,7 +111,7 @@ extern "C" {
             }
             if(piece == 0){
                 can_move_positions_index.push_back({});
-                if(color == WHITE){
+                if(color == WHITE && y < 7){
                     can_move_positions_index[0] = {y+1, x};
                     if(x < 7){
                         can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y+1, x+1});
@@ -122,9 +122,7 @@ extern "C" {
                     if(y == 1){
                         can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y+2, x});
                     }
-                    can_move_positions[CAN_MOVE_POSITION_INDEX(piece, color, y, x)] = can_move_positions_index;
-                    return;
-                } else {
+                } else if (color == BLACK && y > 0){
                     can_move_positions_index[0] = {y-1, x};
                     if(x < 7){
                         can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y-1, x+1});
@@ -135,9 +133,9 @@ extern "C" {
                     if(y == 6){
                         can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y-2, x});
                     }
-                    can_move_positions[CAN_MOVE_POSITION_INDEX(piece, color, y, x)] = can_move_positions_index;
-                    return;
                 }
+                can_move_positions[CAN_MOVE_POSITION_INDEX(piece, color, y, x)] = can_move_positions_index;
+                return;
             }
             if(piece == 2){
                 can_move_positions_index.push_back({});
@@ -228,10 +226,6 @@ extern "C" {
                 }
                 if(x > 0){
                     can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x-1});
-                    if(x == 3){
-                        can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x-2});
-                        can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x+2});
-                    }
                 }
                 if(x < 7){
                     can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x+1});
@@ -244,6 +238,10 @@ extern "C" {
                     if(x < 7){
                     can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y+1, x+1}); 
                     }
+                }
+                if((color == WHITE && y == 0 && x == 4) || (color == BLACK && y == 7 && x == 3)){
+                    can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x-2});
+                    can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x+2});
                 }
                 can_move_positions[CAN_MOVE_POSITION_INDEX(piece, color, y, x)] = can_move_positions_index;
                 return;
@@ -1379,8 +1377,8 @@ extern "C" {
                                 if(abs(piece) > 19 && abs(piece) < 50 && game.board[y1][x1] != 0){
                                     break;
                                 }
-                            //if the piece is a bishop, a rook or a queen, break if a piece is in the way
-                            }else if(abs(piece) > 19 && abs(piece) < 50 && game.board[y1][x1] != 0){
+                            }else if(piece_type > 2 && piece_type < 5 && game.board[y1][x1] != 0){
+                                //if the piece is a bishop, a rook or a queen, break if a piece is in the way
                                 break;
                             }
                         }
@@ -1425,8 +1423,10 @@ extern "C" {
                 if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
                     int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
                     int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
-                    for(int y1 = 0; y1 < 8; y1++){
-                        for(int x1 = 0; x1 < 8; x1++){
+                    for(int i = 0; i < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)].size(); i++){
+                        for(int j = 0; j+1 < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i].size(); j+=2){
+                            int y1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j];
+                            int x1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j+1];
                             if(canmove(piece, y0, x0, y1, x1, game, kingy, kingx)){
                                 float evaluation_minus = evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0;
                                 float current_moveScore;
@@ -1452,6 +1452,9 @@ extern "C" {
                                     || (total_moveScore > best_moveScore && (piece_sign==1))){
                                     best_moveScore = total_moveScore;
                                 }
+                            }else if(piece_type > 2 && piece_type < 5 && game.board[y1][x1] != 0){
+                                //if the piece is a bishop, a rook or a queen, break if a piece is in the way
+                                break;
                             }
                         }
                     }
