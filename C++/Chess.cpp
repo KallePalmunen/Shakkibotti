@@ -10,6 +10,7 @@
 #define WHITE 0
 #define BLACK 1
 #define POSITION_EVAL_SCALE 0.1
+#define PAWN_CHAIN_EVAL_SCALE 0.0
 #define CAN_MOVE_POSITION_INDEX(piece, color, y, x) (piece*128+color*64+y*8+x)
 
 extern "C" {
@@ -22,11 +23,12 @@ extern "C" {
         std::array<std::array<std::array<int, 2>,2>, 50> piece_positions;
         std::array<std::array<int, 2>,2> rookmoved; //black left, right - white left, right
         std::array<std::array<int, 2>,6> pieces; //number of pawns, knights, bishops, rooks, queens and kings (W,B)
+        std::array<std::array<int, 8>,2> pawns_on_rank; //number of pawns on a given rank for each color
 
         //constructor
         GameState(int kingmoved_input, int enpassant_input, int castled_input, std::array<std::array<int, 8>, 8> board_input
         , std::array<std::array<std::array<int, 2>,2>, 50> piece_positions_input, std::array<std::array<int, 2>,2> rookmoved_input
-        , std::array<std::array<int, 2>,6> pieces_input){
+        , std::array<std::array<int, 2>,6> pieces_input, std::array<std::array<int, 8>,2> pawns_on_rank_input){
             kingmoved = kingmoved_input;
             enpassant = enpassant_input;
             castled = castled_input;
@@ -34,6 +36,7 @@ extern "C" {
             piece_positions = piece_positions_input;
             rookmoved = rookmoved_input;
             pieces = pieces_input;
+            pawns_on_rank = pawns_on_rank_input;
         }
     };
 
@@ -67,6 +70,7 @@ extern "C" {
         std::array<std::array<int, 2>,2> rookmoved; //black left, right - white left, right
         std::array<std::array<int, 2>,6> pieces; //number of pawns, knights, bishops, rooks, queens and kings (W,B)
         std::array<std::vector<std::vector<int>>,768> can_move_positions;
+        std::array<std::array<int, 8>,2> pawns_on_rank; //number of pawns on a given rank for each color
 
 
         void update_can_move_positions(int color, int piece, int y, int x) {
@@ -239,7 +243,7 @@ extern "C" {
                     can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y+1, x+1}); 
                     }
                 }
-                if((color == WHITE && y == 0 && x == 4) || (color == BLACK && y == 7 && x == 3)){
+                if((color == WHITE && y == 0 && x == 3) || (color == BLACK && y == 7 && x == 3)){
                     can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x-2});
                     can_move_positions_index[0].insert(can_move_positions_index[0].end(),{y, x+2});
                 }
@@ -263,7 +267,7 @@ extern "C" {
         //constructor
         Chess(int kingmoved_input, int enpassant_input, int castled_input, std::array<std::array<int, 8>, 8> board_input
         , std::array<std::array<std::array<int, 2>,2>, 50> piece_positions_input, std::array<std::array<int, 2>,2> rookmoved_input
-        , std::array<std::array<int, 2>,6> pieces_input){
+        , std::array<std::array<int, 2>,6> pieces_input, std::array<std::array<int, 8>, 2> pawns_on_rank_input){
             kingmoved = kingmoved_input;
             enpassant = enpassant_input;
             castled = castled_input;
@@ -271,6 +275,7 @@ extern "C" {
             piece_positions = piece_positions_input;
             rookmoved = rookmoved_input;
             pieces = pieces_input;
+            pawns_on_rank = pawns_on_rank_input;
             set_can_move_positions();
         }
 
@@ -283,6 +288,7 @@ extern "C" {
             piece_positions = gameState.piece_positions;
             rookmoved = gameState.rookmoved;
             pieces = gameState.pieces;
+            pawns_on_rank = gameState.pawns_on_rank;
         }
     };
 
@@ -585,6 +591,23 @@ extern "C" {
             }
             std::cout << "\n";
         };
+    }
+
+    std::array<std::array<int, 8>, 2> get_pawns_on_rank (std::array<std::array<int, 8>, 8>& board) {
+        std::array<int, 8> pawns_on_rank_white = {0,0,0,0,0,0,0,0};
+        std::array<int, 8> pawns_on_rank_black = {0,0,0,0,0,0,0,0};
+        for(int y = 0; y < 8; y++){
+            for(int x = 0; x < 8; x++){
+                if(board[y][x] > 0 && board[y][x] < 10){
+                    pawns_on_rank_white[x] += 1;
+                }
+                if(board[y][x] < 0 && board[y][x] > -10){
+                    pawns_on_rank_black[x] += 1;
+                }
+            }
+        }
+        std::array<std::array<int, 8>, 2> pawns_on_rank = {pawns_on_rank_white, pawns_on_rank_black};
+        return pawns_on_rank;
     }
 
     //intsign tells the sign of an integer
@@ -1034,8 +1057,13 @@ extern "C" {
 
     void movepieceto(int piece, int y0, int x0, int y1, int x1, Chess& game){
         int promoteto;
+        int color = int(piece<0);
+        int opponent_color = int(piece>0);
         if(game.board[y1][x1] != 0){
-            game.piece_positions[abs(game.board[y1][x1])-1][int(piece>0)][0] = -1;
+            game.piece_positions[abs(game.board[y1][x1])-1][opponent_color][0] = -1;
+            if(abs(game.board[y1][x1]) < 10) {
+                game.pawns_on_rank[opponent_color][x1] -= 1;
+            }
         }
         if(abs(piece) == 50){
             if(abs(x1-x0) > 1){
@@ -1045,8 +1073,8 @@ extern "C" {
                 game.board[y1][rookx] = 0;
                 game.board[y1][x1 + intsign(4-x1)] = whichrook;
                 game.castled *= (2*(piece > 0) + 3*(piece < 0));
-                game.piece_positions[abs(whichrook)-1][int(piece<0)][0] = y1;
-                game.piece_positions[abs(whichrook)-1][int(piece<0)][1] = x1 + intsign(4-x1);
+                game.piece_positions[abs(whichrook)-1][color][0] = y1;
+                game.piece_positions[abs(whichrook)-1][color][1] = x1 + intsign(4-x1);
             }
             game.kingmoved *= ((piece>0)*2 + (piece<0)*3);
         }
@@ -1059,20 +1087,25 @@ extern "C" {
             game.pieces[promoteto][(piece < 0)]++;
             game.piece_positions[abs(game.board[y1][x1])-1][int(game.board[y1][x1]<0)][0] = y1;
             game.piece_positions[abs(game.board[y1][x1])-1][int(game.board[y1][x1]<0)][1] = x1;
-            game.piece_positions[abs(piece)-1][int(piece<0)][0] = -1;
+            game.piece_positions[abs(piece)-1][color][0] = -1;
         }else{
             game.board[y1][x1] = piece;
-            game.piece_positions[abs(piece)-1][int(piece<0)][0] = y1;
-            game.piece_positions[abs(piece)-1][int(piece<0)][1] = x1;
+            game.piece_positions[abs(piece)-1][color][0] = y1;
+            game.piece_positions[abs(piece)-1][color][1] = x1;
         }
         if(game.enpassant >= 0 && x1*8+y1 == game.enpassant && abs(piece) < 10){
-            game.piece_positions[abs(game.board[y1-intsign(y1 - y0)][x1])-1][int(piece>0)][0] = -1;
+            game.piece_positions[abs(game.board[y1-intsign(y1 - y0)][x1])-1][opponent_color][0] = -1;
             game.board[y1-intsign(y1 - y0)][x1] = 0;
+            game.pawns_on_rank[opponent_color][x1] -= 1;
         }
         if(abs(piece) < 10 && abs(y1-y0) > 1){
             game.enpassant = x1*8+y0+intsign(y1 - y0);
         }else{
             game.enpassant = -1;
+        }
+        if(abs(piece) < 10){
+            game.pawns_on_rank[color][x1] += 1;
+            game.pawns_on_rank[color][x0] -= 1;
         }
         game.board[y0][x0] = 0;
     }
@@ -1126,10 +1159,11 @@ extern "C" {
         std::array<std::array<std::array<int, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
         std::array<std::array<int, 2>,6> pieces = pieces_to_array(string_to_vector_2d(pieces_str));
         std::array<std::array<int, 2>,2> rookmoved = rookmoved_to_array(string_to_vector_2d(rookmoved_str));
+        std::array<std::array<int, 8>, 2> pawns_on_rank = get_pawns_on_rank(board);
 
         int castled = 0; //set a value for castled, this value does not matter here
 
-        Chess game(kingmoved, enpassant, castled, board, piece_positions, rookmoved, pieces);
+        Chess game(kingmoved, enpassant, castled, board, piece_positions, rookmoved, pieces, pawns_on_rank);
 
         if(checkmate(-50, game)){
             std::cout << "White won" << '\n';
@@ -1154,10 +1188,11 @@ extern "C" {
         std::array<std::array<std::array<int, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
         std::array<std::array<int, 2>,6> pieces = pieces_to_array(string_to_vector_2d(pieces_str));
         std::array<std::array<int, 2>,2> rookmoved = rookmoved_to_array(string_to_vector_2d(rookmoved_str));
+        std::array<std::array<int, 8>, 2> pawns_on_rank = get_pawns_on_rank(board);
         int piece = board[y0][x0];
         std::cout << piece << ',' << y0 << ',' << x0 << ',' << movetoy << ',' << movetox << '\n'; 
 
-        Chess game(kingmoved, enpassant, castled, board, piece_positions, rookmoved, pieces);
+        Chess game(kingmoved, enpassant, castled, board, piece_positions, rookmoved, pieces, pawns_on_rank);
 
         if((piece > 0 && turn == 0) || (piece < 0 && turn == 1)){
             if(movetoy < 8 && movetox < 8 && movetox >= 0 && movetoy >= 0 && y0>=0 
@@ -1197,48 +1232,91 @@ extern "C" {
         return pinners;
     }
 
-    inline float evaluate_change(int y, int x, int changesign, int& pieceAt_yx, Chess& game, int piece = -100){
-        if(piece == -100){
-            piece = pieceAt_yx;
-        }
+    inline float evaluate_change(int y, int x, int changesign, Chess& game, int piece, int piece_sign){
         if(piece == 0){
             return 0.0f;
         }
 
-        int pieceSign = intsign(piece);
         piece = abs(piece)/10;
-        int isWhite = (pieceSign == 1);
+        int isWhite = (piece_sign == 1);
         int isBlack = !isWhite;
+        int color = isBlack;
 
         switch(piece){
             //pawns
-            case 0:
-                return changesign*pieceSign*(1+POSITION_EVAL_SCALE*game.pawn_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+            case 0: {
+                float value = changesign*(1.0f+POSITION_EVAL_SCALE*game.pawn_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                if(changesign == 1) {
+                    if(game.pawns_on_rank[color][x] > 0) {
+                        value -= PAWN_CHAIN_EVAL_SCALE;
+                    } else {
+                        if(x > 0){
+                            if(game.pawns_on_rank[color][x-1] > 0){
+                                value += PAWN_CHAIN_EVAL_SCALE;
+                            }
+                        }
+                        if(x < 7){
+                            if(game.pawns_on_rank[color][x+1] > 0){
+                                value += PAWN_CHAIN_EVAL_SCALE;
+                            }
+                        }
+                    }
+                } else {
+                    if(game.pawns_on_rank[color][x] > 1) {
+                        value += PAWN_CHAIN_EVAL_SCALE;
+                    } else {
+                        if(x > 0){
+                            if(game.pawns_on_rank[color][x-1] > 0){
+                                value -= PAWN_CHAIN_EVAL_SCALE;
+                            }
+                        }
+                        if(x < 7){
+                            if(game.pawns_on_rank[color][x+1] > 0){
+                                value -= PAWN_CHAIN_EVAL_SCALE;
+                            }
+                        }
+                    }
+                }
+                return piece_sign*value;
                 break;
+            }
             //knights
             case 1:
-                return changesign*pieceSign*(3+POSITION_EVAL_SCALE*game.knight_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                return changesign*piece_sign*(3+POSITION_EVAL_SCALE*game.knight_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
                 break;
             //bishops
             case 2:
-                return changesign*pieceSign*(3+POSITION_EVAL_SCALE*game.bishop_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                return changesign*piece_sign*(3+POSITION_EVAL_SCALE*game.bishop_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
                 break;
             //rooks
             case 3:
-                return changesign*pieceSign*(5+POSITION_EVAL_SCALE*game.rook_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                return changesign*piece_sign*(5+POSITION_EVAL_SCALE*game.rook_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
                 break;
             //queens
             case 4:
-                return changesign*pieceSign*(9+POSITION_EVAL_SCALE*game.queen_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
+                return changesign*piece_sign*(9+POSITION_EVAL_SCALE*game.queen_position_eval[isBlack*y+isWhite*(7-y)][isBlack*x+isWhite*(7-x)]);
                 break;
             default:
                 return 0.0f;
         }
     }
 
-    inline float evaluate_move(int piece, int y0, int x0, int y1, int x1, Chess& game){
-        return evaluate_change(y1, x1, 1, game.board[y1][x1], game, piece) + 
-            evaluate_change(y0, x0, -1, game.board[y0][x0], game, piece) + (game.castled % 2 == 0)*0.1f - (game.castled % 3 == 0)*0.1f;
+    inline float evaluate_move(int piece, int y0, int x0, int y1, int x1, Chess& game, bool moved){
+        int piece_sign = intsign(piece);
+        int color = int(piece_sign == -1);
+        if(moved){
+            game.pawns_on_rank[color][x0] += 1;
+            game.pawns_on_rank[color][x1] -= 1;
+        }
+        float value = evaluate_change(y0, x0, -1, game, piece, piece_sign);
+        game.pawns_on_rank[color][x0] -= 1;
+        value += evaluate_change(y1, x1, 1, game, piece, piece_sign);
+        if(moved){
+            game.pawns_on_rank[color][x1] += 1;
+        } else {
+            game.pawns_on_rank[color][x0] += 1;
+        }
+        return value + (game.castled % 2 == 0)*0.1f - (game.castled % 3 == 0)*0.1f;
     }
 
     float fulleval(Chess& game){
@@ -1247,12 +1325,12 @@ extern "C" {
             if(game.piece_positions[piece-1][0][0] != -1){
                 int y0 = game.piece_positions[piece-1][0][0];
                 int x0 = game.piece_positions[piece-1][0][1];
-                evaluation += evaluate_change(y0, x0, 1, game.board[y0][x0], game, piece);
+                evaluation += evaluate_change(y0, x0, 1, game, piece, 1);
             }
             if(game.piece_positions[piece-1][1][0] != -1){
                 int y0 = game.piece_positions[piece-1][1][0];
                 int x0 = game.piece_positions[piece-1][1][1];
-                evaluation += evaluate_change(y0, x0, 1, game.board[y0][x0], game, -piece);
+                evaluation += evaluate_change(y0, x0, 1, game, piece, -1);
             }
         }
         evaluation -= 0.1f*((game.castled%2 == 0) + (game.castled%3 == 0));
@@ -1263,7 +1341,7 @@ extern "C" {
     , Chess& game, int bot){
         //save current state
         GameState game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
-        , game.rookmoved, game.pieces);
+        , game.rookmoved, game.pieces, game.pawns_on_rank);
         std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
 
         //create vectors
@@ -1280,22 +1358,22 @@ extern "C" {
                 for(int y1 = 0; y1 < 8; y1++){
                     for(int x1 = 0; x1 < 8; x1++){
                         if(canmove(piece, y0, x0, y1, x1, game)){
-                            float evaluation_minus = evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
+                            float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
                             movepieceto(piece, y0, x0, y1, x1, game);
                             positions.push_back(game.board);
                             if(repetition(moves+1, game, positions) || stalemate(50, game) || stalemate(-50, game)){
                                 moveScore.push_back(-fulleval(game));
                             }else if(partialrepetition(moves+1, game, positions)){
                                 if(bot == 0){
-                                    moveScore.push_back(std::min(evaluate_move(piece, y0, x0, y1, x1, game) 
+                                    moveScore.push_back(std::min(evaluate_move(piece, y0, x0, y1, x1, game, true) 
                                     + evaluation_minus, -fulleval(game)));
                                 }else{
-                                    moveScore.push_back(std::max(evaluate_move(piece, y0, x0, y1, x1, game) 
+                                    moveScore.push_back(std::max(evaluate_move(piece, y0, x0, y1, x1, game, true) 
                                     + evaluation_minus, -fulleval(game)));
                                 }    
                             }else{
                                 moveScore.push_back(
-                                    evaluate_move(piece, y0, x0, y1, x1, game) 
+                                    evaluate_move(piece, y0, x0, y1, x1, game, true) 
                                     + evaluation_minus);
                             }
                             starting_order.insert(starting_order.end(),
@@ -1343,7 +1421,7 @@ extern "C" {
             return -piece_sign*500000/(ntimes+1.0);
         }
         //get evaluation change for previous move
-        float previous_moveScore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
+        float previous_moveScore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game, true);
         float best_moveScore = -piece_sign*1000000.0f;
         
         for(int i = 0; i < 6; i++){
@@ -1352,9 +1430,9 @@ extern "C" {
             + 5*(i == 5));
             for(int piece_number = 0; piece_number < game.pieces[piece_type][piece_sign!=1]; piece_number++){
                 int piece = piece_sign*(10*piece_type+piece_number+int(piece_type == 0));
-                if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
-                    int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
-                    int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
+                if(game.piece_positions[abs(piece)-1][color][0] != -1){
+                    int y0 = game.piece_positions[abs(piece)-1][color][0];
+                    int x0 = game.piece_positions[abs(piece)-1][color][1];
                     bool pinnable = ispinnable(piece, y0, x0, kingy, kingx, pinners, game);
                     for(int i = 0; i < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)].size(); i++){
                         for(int j = 0; j+1 < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i].size(); j+=2){
@@ -1362,8 +1440,8 @@ extern "C" {
                             int x1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j+1];
                             if(botcanmove(piece, y0, x0, y1, x1, pinnable, pinners, game, kingy, kingx)){
                                 //change to evaluation
-                                float total_moveScore = evaluate_move(piece, y0, x0, y1, x1, game)
-                                    + evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f
+                                float total_moveScore = evaluate_move(piece, y0, x0, y1, x1, game, false)
+                                    + evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f
                                     + previous_moveScore;
                                 if((total_moveScore <= best && bot == 0)
                                     || (total_moveScore >= best && bot == 1)){
@@ -1409,26 +1487,26 @@ extern "C" {
         }
         //save current state
         GameState game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
-        , game.rookmoved, game.pieces);
+        , game.rookmoved, game.pieces, game.pawns_on_rank);
 
         float best_moveScore = -piece_sign*1000000.0f;
         //get evaluation change for previous move
-        float previous_moveScore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game);
+        float previous_moveScore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game, true);
 
         for(int i = 0; i < 6; i++){
             int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
             + 5*(i == 5));
             for(int piece_number = 0; piece_number < game.pieces[piece_type][(piece_sign!=1)]; piece_number++){
                 int piece = piece_sign*(10*piece_type+piece_number+int(piece_type == 0));
-                if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
-                    int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
-                    int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
+                if(game.piece_positions[abs(piece)-1][color][0] != -1){
+                    int y0 = game.piece_positions[abs(piece)-1][color][0];
+                    int x0 = game.piece_positions[abs(piece)-1][color][1];
                     for(int i = 0; i < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)].size(); i++){
                         for(int j = 0; j+1 < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i].size(); j+=2){
                             int y1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j];
                             int x1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j+1];
                             if(canmove(piece, y0, x0, y1, x1, game, kingy, kingx)){
-                                float evaluation_minus = evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0;
+                                float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0;
                                 float current_moveScore;
                                 movepieceto(piece, y0, x0, y1, x1, game);
                                 if(nmoremoves == 1){
@@ -1499,7 +1577,7 @@ extern "C" {
         auto start = std::chrono::high_resolution_clock::now();
         //save current state
         GameState game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
-        , game.rookmoved, game.pieces);
+        , game.rookmoved, game.pieces, game.pawns_on_rank);
         std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
 
         std::vector<float> moveScore;
@@ -1528,7 +1606,7 @@ extern "C" {
             int x0 = order[i][2];
             int y1 = order[i][3];
             int x1 = order[i][4];
-            float evaluation_minus = evaluate_change(y1, x1, -1, game.board[y1][x1], game)+(piece < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
+            float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece < 9) && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
             movepieceto(piece, y0, x0, y1, x1, game);
             positions.push_back(game.board);
             if(repetition(moves+1, game, positions) || stalemate(opponent_piece_sign*50, game)){
@@ -1641,9 +1719,10 @@ extern "C" {
         std::array<std::array<std::array<int, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
         std::array<std::array<int, 2>,6> pieces = pieces_to_array(string_to_vector_2d(pieces_str));
         std::array<std::array<int, 2>,2> rookmoved = rookmoved_to_array(string_to_vector_2d(rookmoved_str));
+        std::array<std::array<int, 8>, 2> pawns_on_rank = get_pawns_on_rank(board);
 
         //Create Chess object
-        Chess game(kingmoved, enpassant, castled, board, piece_positions, rookmoved, pieces);
+        Chess game(kingmoved, enpassant, castled, board, piece_positions, rookmoved, pieces, pawns_on_rank);
         
         int ntimesmin = 4;
         //ntimes == (amount of half moves that basicbot searches forward) - 2
