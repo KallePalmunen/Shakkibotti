@@ -292,6 +292,11 @@ extern "C" {
         }
     };
 
+    struct Move {
+        std::array<int, 5> move;
+        float score;
+    };
+
     //Converts a piece to the corresponding PGN letter
     std::string piece_to_letter(int piece){
         if(abs(piece) > 9 && abs(piece) < 20){
@@ -1337,73 +1342,135 @@ extern "C" {
         return evaluation;
     }
 
-    std::vector<std::vector<int>> reorder(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
-    , Chess& game, int bot){
+    std::vector<Move> reorder(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
+    , Chess& game, int piece_sign){
         //save current state
         GameState game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
         , game.rookmoved, game.pieces, game.pawns_on_rank);
-        std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
 
         //create vectors
-        std::vector<float> moveScore;
-        std::vector<std::vector<int>> starting_order;
+        std::vector<Move> order;
+        int color = int(piece_sign == -1);
+        int kingy = game.piece_positions[49][color][0];
+        int kingx = game.piece_positions[49][color][1];
+        std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
 
         //loop through pieces
-        for(int n1 = 1; n1 < 51; n1++){
-            int piece = n1; 
-            if(bot == 1){piece=-n1;}
-            if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
-                int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
-                int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
-                for(int y1 = 0; y1 < 8; y1++){
-                    for(int x1 = 0; x1 < 8; x1++){
-                        if(canmove(piece, y0, x0, y1, x1, game)){
-                            float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
-                            movepieceto(piece, y0, x0, y1, x1, game);
-                            positions.push_back(game.board);
-                            if(repetition(moves+1, game, positions) || stalemate(50, game) || stalemate(-50, game)){
-                                moveScore.push_back(-fulleval(game));
-                            }else if(partialrepetition(moves+1, game, positions)){
-                                if(bot == 0){
-                                    moveScore.push_back(std::min(evaluate_move(piece, y0, x0, y1, x1, game, true) 
-                                    + evaluation_minus, -fulleval(game)));
+        for(int i = 0; i < 6; i++){
+            int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
+            + 5*(i == 5));
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][piece_sign!=1]; piece_number++){
+                int piece = piece_sign*(10*piece_type+piece_number+int(piece_type == 0));
+                if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
+                    int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
+                    int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
+                    for(int i = 0; i < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)].size(); i++){
+                        for(int j = 0; j+1 < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i].size(); j+=2){
+                            int y1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j];
+                            int x1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j+1];
+                            if(canmove(piece, y0, x0, y1, x1, game, kingy, kingx)){
+                                Move move;
+                                move.move[0] = piece;
+                                move.move[1] = y0;
+                                move.move[2] = x0;
+                                move.move[3] = y1;
+                                move.move[4] = x1;
+                                float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
+                                movepieceto(piece, y0, x0, y1, x1, game);
+                                positions.push_back(game.board);
+                                if(repetition(moves+1, game, positions) || stalemate(50, game) || stalemate(-50, game)){
+                                    move.score = -fulleval(game);
+                                }else if(partialrepetition(moves+1, game, positions)){
+                                    if(piece_sign == 1){
+                                        move.score = std::min(evaluate_move(piece, y0, x0, y1, x1, game, true) 
+                                        + evaluation_minus, -fulleval(game));
+                                    }else{
+                                        move.score = std::max(evaluate_move(piece, y0, x0, y1, x1, game, true) 
+                                        + evaluation_minus, -fulleval(game));
+                                    }    
                                 }else{
-                                    moveScore.push_back(std::max(evaluate_move(piece, y0, x0, y1, x1, game, true) 
-                                    + evaluation_minus, -fulleval(game)));
-                                }    
-                            }else{
-                                moveScore.push_back(
-                                    evaluate_move(piece, y0, x0, y1, x1, game, true) 
-                                    + evaluation_minus);
-                            }
-                            starting_order.insert(starting_order.end(),
-                                {piece, y0, x0, y1, x1});
+                                    move.score = evaluate_move(piece, y0, x0, y1, x1, game, true) 
+                                        + evaluation_minus;
+                                }
+                                order.push_back(move);
 
-                            //return to saved state
-                            game.copy_gameState(game_previous_state);
-                            positions = temp_positions;
+                                //return to saved state
+                                game.copy_gameState(game_previous_state);
+                                positions = temp_positions;
+                            } else if(piece_type > 2 && piece_type < 5 && game.board[y1][x1] != 0){
+                                //if the piece is a bishop, a rook or a queen, break if a piece is in the way
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-        std::vector<std::vector<int>> return_vector;
-        int index;
-        for(int i = 0; i < moveScore.size(); i++){
-            if(bot==0){
-                int maxindex = std::distance(&moveScore[0],
-                    std::max_element(&moveScore[0], &moveScore[0]+moveScore.size()));
-                return_vector.push_back(starting_order[maxindex]);
-                index = maxindex;
-            }else{
-                int minindex = std::distance(&moveScore[0],
-                    std::min_element(&moveScore[0], &moveScore[0]+moveScore.size()));
-                return_vector.push_back(starting_order[minindex]);
-                index = minindex;
-            }
-            moveScore[index] = -1000000*intsign(bot==0);
+        if(piece_sign == 1){
+            std::sort(order.begin(), order.end(), [](const auto& a, const auto& b) {
+                return a.score > b.score;
+            });
+        } else {
+            std::sort(order.begin(), order.end(), [](const auto& a, const auto& b) {
+                return a.score < b.score;
+            });
         }
-        return return_vector;
+        return order;
+    }
+
+    std::vector<Move> reorder_fast(Chess& game, int piece_sign){
+        //save current state
+        GameState game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
+        , game.rookmoved, game.pieces, game.pawns_on_rank);
+
+        //create vectors
+        std::vector<Move> order;
+        int color = int(piece_sign == -1);
+        int kingy = game.piece_positions[49][color][0];
+        int kingx = game.piece_positions[49][color][1];
+
+        //loop through pieces
+        for(int i = 0; i < 6; i++){
+            int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
+            + 5*(i == 5));
+            for(int piece_number = 0; piece_number < game.pieces[piece_type][piece_sign!=1]; piece_number++){
+                int piece = piece_sign*(10*piece_type+piece_number+int(piece_type == 0));
+                if(game.piece_positions[abs(piece)-1][int(piece<0)][0] != -1){
+                    int y0 = game.piece_positions[abs(piece)-1][int(piece<0)][0];
+                    int x0 = game.piece_positions[abs(piece)-1][int(piece<0)][1];
+                    for(int i = 0; i < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)].size(); i++){
+                        for(int j = 0; j+1 < game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i].size(); j+=2){
+                            int y1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j];
+                            int x1 = game.can_move_positions[CAN_MOVE_POSITION_INDEX(piece_type, color, y0, x0)][i][j+1];
+                            if(canmove(piece, y0, x0, y1, x1, game, kingy, kingx)){
+                                Move move;
+                                move.move[0] = piece;
+                                move.move[1] = y0;
+                                move.move[2] = x0;
+                                move.move[3] = y1;
+                                move.move[4] = x1;
+                                float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
+                                move.score = evaluate_move(piece, y0, x0, y1, x1, game, false) + evaluation_minus;
+                                order.push_back(move);
+                            } else if(piece_type > 2 && piece_type < 5 && game.board[y1][x1] != 0){
+                                //if the piece is a bishop, a rook or a queen, break if a piece is in the way
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if(piece_sign == 1){
+            std::sort(order.begin(), order.end(), [](const auto& a, const auto& b) {
+                return a.score > b.score;
+            });
+        } else {
+            std::sort(order.begin(), order.end(), [](const auto& a, const auto& b) {
+                return a.score < b.score;
+            });
+        }
+        return order;
     }
 
     float last_move(int previous_piece, int previous_y0, int previous_x0, int previous_y1, int previous_x1, float best
@@ -1493,6 +1560,39 @@ extern "C" {
         //get evaluation change for previous move
         float previous_moveScore = evaluate_move(previous_piece, previous_y0, previous_x0, previous_y1, previous_x1, game, true);
 
+        if(nmoremoves > 1) {
+            std::vector<Move> order = reorder_fast(game, piece_sign);
+            if(order.size() == 0){
+                return 0.0;
+            }
+            for(int i = 0; i < order.size(); i++){
+                int piece = order[i].move[0];
+                int y0 = order[i].move[1];
+                int x0 = order[i].move[2];
+                int y1 = order[i].move[3];
+                int x1 = order[i].move[4];
+                float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0;
+                float current_moveScore;
+                movepieceto(piece, y0, x0, y1, x1, game);
+                current_moveScore = nth_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus, nmoremoves-1
+                    , game, bot, ntimes) + evaluation_minus;
+                float total_moveScore = current_moveScore + previous_moveScore;
+                //return to saved state
+                game.copy_gameState(game_previous_state);
+                //prune if worse than previously found branch
+                if((total_moveScore <= best && (piece_sign!=1))
+                    || (total_moveScore >= best && (piece_sign==1))){
+                    return total_moveScore;
+                }
+                //check for new best moveScore
+                if((total_moveScore < best_moveScore && (piece_sign!=1))
+                    || (total_moveScore > best_moveScore && (piece_sign==1))){
+                    best_moveScore = total_moveScore;
+                }
+            }
+            return best_moveScore;
+        }
+
         for(int i = 0; i < 6; i++){
             int piece_type = int(1*(i == 0)+2*(i == 1)+3*(i == 2)+4*(i == 3)
             + 5*(i == 5));
@@ -1546,7 +1646,7 @@ extern "C" {
         }
     }
 
-    void sortMoves(std::vector<std::vector<int>>& bestMoves, int bot, std::vector<float>& moveScore, std::vector<std::vector<int>>& order) {
+    void sortMoves(std::vector<Move>& bestMoves, int bot, std::vector<float>& moveScore, std::vector<Move>& order) {
         int numberOfMoves = moveScore.size();
         std::vector<int> indices(numberOfMoves);
         for(int i = 0; i < numberOfMoves; i++){
@@ -1563,14 +1663,13 @@ extern "C" {
         bestMoves.clear();
         for(int i = 0; i < numberOfMoves; i++) {
             int index = indices[i];
-            bestMoves.push_back({});
-            bestMoves.back().insert(bestMoves.back().end(), order[index].begin(), order[index].begin() + 5);
-            bestMoves.back().push_back(moveScore[index]);
+            bestMoves.push_back(order[index]);
+            bestMoves[i].score = moveScore[index];
         }
     }
 
-    std::vector<std::vector<int>> firstmove(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
-        , std::vector<std::vector<int>> bestMoves, Chess& game, int bot, int ntimes
+    std::vector<Move> firstmove(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
+        , std::vector<Move> bestMoves, Chess& game, int bot, int ntimes
         , double maxSearchTime, bool allowBailout, int& calculatedMoves, bool& bailedOut)
     {
 
@@ -1582,31 +1681,28 @@ extern "C" {
 
         std::vector<float> moveScore;
         float best_moveScore = -intsign(bot == 0)*1000000.0f;
-        std::vector<std::vector<int>> order;
+        std::vector<Move> order;
         int opponent_piece_sign = int(bot == 1)-int(bot == 0);
 
         if(calculatedMoves == 0){
-            order = reorder(moves, positions, game, bot);
+            order = reorder(moves, positions, game, int(bot==0)-int(bot == 1));
         }else {
             order = bestMoves;
         }
         
         if(order.size() == 1){
             bestMoves.resize(0);
-            bestMoves.push_back({});
-            for(int i = 0; i < 5; i++){
-                bestMoves[0].push_back(order[0][i]);
-            }
+            bestMoves.push_back(order[0]);
             calculatedMoves = 1;
             return bestMoves;
         }
         for(int i = 0; i < order.size(); i++){
-            int piece = order[i][0];
-            int y0 = order[i][1];
-            int x0 = order[i][2];
-            int y1 = order[i][3];
-            int x1 = order[i][4];
-            float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece < 9) && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
+            int piece = order[i].move[0];
+            int y0 = order[i].move[1];
+            int x0 = order[i].move[2];
+            int y1 = order[i].move[3];
+            int x1 = order[i].move[4];
+            float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0f;
             movepieceto(piece, y0, x0, y1, x1, game);
             positions.push_back(game.board);
             if(repetition(moves+1, game, positions) || stalemate(opponent_piece_sign*50, game)){
@@ -1732,7 +1828,7 @@ extern "C" {
         int calculatedMoves = 0;
         bool bailedOut = false;
         
-        std::vector<std::vector<int>> bestMoves;
+        std::vector<Move> bestMoves;
 
         if(read_openingbook(bot, openingbook_data, size, game)[0]){
             std::vector<int> book_result = read_openingbook(bot, openingbook_data, size, game);
@@ -1748,7 +1844,7 @@ extern "C" {
         while(true){
             stop = std::chrono::high_resolution_clock::now();
             duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-            if(abs(bestMoves[0][5]) > 10000 || calculatedMoves <= 1 || duration.count()/1000.0 > 0.5*maxSearchTime){
+            if(abs(bestMoves[0].score) > 10000 || calculatedMoves <= 1 || duration.count()/1000.0 > 0.5*maxSearchTime){
                 std::cout << "depth = " << (ntimes)/2+1 << '\n';
                 break;
             }
@@ -1757,7 +1853,7 @@ extern "C" {
             if(ntimes%2 == 0){
                 bestMoves = firstmove(moves, positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
             }else{
-                std::vector<std::vector<int>> temp = firstmove(moves, positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
+                firstmove(moves, positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
             }
 
             if(bailedOut){
@@ -1771,12 +1867,12 @@ extern "C" {
             }
         }
 
-        score += bestMoves[0][5];
-        int piece = bestMoves[0][0];
-        int y0 = bestMoves[0][1];
-        int x0 = bestMoves[0][2];
-        int y1 = bestMoves[0][3];
-        int x1 = bestMoves[0][4];
+        score += bestMoves[0].score;
+        int piece = bestMoves[0].move[0];
+        int y0 = bestMoves[0].move[1];
+        int x0 = bestMoves[0].move[2];
+        int y1 = bestMoves[0].move[3];
+        int x1 = bestMoves[0].move[4];
         movepieceto(piece, y0, x0, y1, x1, game);
         stop = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast
