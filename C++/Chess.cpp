@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <map>
 
 #define WHITE 0
 #define BLACK 1
@@ -19,15 +20,15 @@ extern "C" {
         int kingmoved; //%2 == 0 if white king has moved, %3 == 0 if black king has moved
         int enpassant; //x*8+y, -1 if no chance to enpassant
         int castled; //%2 == 0 if white has castled, %3 == 0 if black has castled
-        std::array<std::array<int, 8>, 8> board;
-        std::array<std::array<std::array<int, 2>,2>, 50> piece_positions;
+        std::array<std::array<int8_t, 8>, 8> board;
+        std::array<std::array<std::array<int8_t, 2>,2>, 50> piece_positions;
         std::array<std::array<int, 2>,2> rookmoved; //black left, right - white left, right
         std::array<std::array<int, 2>,6> pieces; //number of pawns, knights, bishops, rooks, queens and kings (W,B)
         std::array<std::array<int, 8>,2> pawns_on_rank; //number of pawns on a given rank for each color
 
         //constructor
-        GameState(int kingmoved_input, int enpassant_input, int castled_input, std::array<std::array<int, 8>, 8> board_input
-        , std::array<std::array<std::array<int, 2>,2>, 50> piece_positions_input, std::array<std::array<int, 2>,2> rookmoved_input
+        GameState(int kingmoved_input, int enpassant_input, int castled_input, std::array<std::array<int8_t, 8>, 8> board_input
+        , std::array<std::array<std::array<int8_t, 2>,2>, 50> piece_positions_input, std::array<std::array<int, 2>,2> rookmoved_input
         , std::array<std::array<int, 2>,6> pieces_input, std::array<std::array<int, 8>,2> pawns_on_rank_input){
             kingmoved = kingmoved_input;
             enpassant = enpassant_input;
@@ -65,12 +66,15 @@ extern "C" {
         int kingmoved; //%2 == 0 if white king has moved, %3 == 0 if black king has moved
         int enpassant; //x*8+y, -1 if no chance to enpassant
         int castled; //%2 == 0 if white has castled, %3 == 0 if black has castled
-        std::array<std::array<int, 8>, 8> board;
-        std::array<std::array<std::array<int, 2>,2>, 50> piece_positions;
+        std::array<std::array<int8_t, 8>, 8> board;
+        std::array<std::array<std::array<int8_t, 2>,2>, 50> piece_positions;
         std::array<std::array<int, 2>,2> rookmoved; //black left, right - white left, right
         std::array<std::array<int, 2>,6> pieces; //number of pawns, knights, bishops, rooks, queens and kings (W,B)
         std::array<std::vector<std::vector<int>>,768> can_move_positions;
         std::array<std::array<int, 8>,2> pawns_on_rank; //number of pawns on a given rank for each color
+        std::map<std::array<std::array<int8_t, 8>, 8>, float> permutations;
+        int max_permutations = 50000;
+        int permutation_count = 0;
 
 
         void update_can_move_positions(int color, int piece, int y, int x) {
@@ -265,8 +269,8 @@ extern "C" {
         }
 
         //constructor
-        Chess(int kingmoved_input, int enpassant_input, int castled_input, std::array<std::array<int, 8>, 8> board_input
-        , std::array<std::array<std::array<int, 2>,2>, 50> piece_positions_input, std::array<std::array<int, 2>,2> rookmoved_input
+        Chess(int kingmoved_input, int enpassant_input, int castled_input, std::array<std::array<int8_t, 8>, 8> board_input
+        , std::array<std::array<std::array<int8_t, 2>,2>, 50> piece_positions_input, std::array<std::array<int, 2>,2> rookmoved_input
         , std::array<std::array<int, 2>,6> pieces_input, std::array<std::array<int, 8>, 2> pawns_on_rank_input){
             kingmoved = kingmoved_input;
             enpassant = enpassant_input;
@@ -467,11 +471,11 @@ extern "C" {
     }
 
     //Converts the variable piece_positions from string to array
-    std::array<std::array<std::array<int, 2>,2>, 50> convert_piece_positions(const char* can_move_positions_str){
+    std::array<std::array<std::array<int8_t, 2>,2>, 50> convert_piece_positions(const char* can_move_positions_str){
         int i = 1;
         int j = -1;
         int k = -1;
-        std::array<std::array<std::array<int, 2>,2>, 50> result;
+        std::array<std::array<std::array<int8_t, 2>,2>, 50> result;
         while(i < strlen(can_move_positions_str)){
             j++;
             k = -1;
@@ -529,9 +533,9 @@ extern "C" {
     }
 
     //Converts the variable board from string to array
-    std::array<std::array<int, 8>, 8> convert_board(const char* board_string){
+    std::array<std::array<int8_t, 8>, 8> convert_board(const char* board_string){
         int i = 2;
-        std::array<std::array<int, 8>, 8> result;
+        std::array<std::array<int8_t, 8>, 8> result;
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
                 std::string element = "";
@@ -557,9 +561,9 @@ extern "C" {
     }
 
     //Converts the variable positions from string to array
-    std::vector<std::array<std::array<int, 8>, 8>> convert_positions(const char* positions_string, int moves){
+    std::vector<std::array<std::array<int8_t, 8>, 8>> convert_positions(const char* positions_string, int moves){
         int i = 0;
-        std::vector<std::array<std::array<int, 8>, 8>> result;
+        std::vector<std::array<std::array<int8_t, 8>, 8>> result;
         for(int move = 0; move <= moves; move++){
             result.push_back({});
             for(int y = 0; y < 8; y++){
@@ -589,7 +593,7 @@ extern "C" {
 
     //prints out the elements in board
     void printboard(const char* board_string){
-        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
+        std::array<std::array<int8_t, 8>, 8> board = convert_board(board_string);
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
                 std::cout << board[i][j] << " ";
@@ -598,7 +602,7 @@ extern "C" {
         };
     }
 
-    std::array<std::array<int, 8>, 2> get_pawns_on_rank (std::array<std::array<int, 8>, 8>& board) {
+    std::array<std::array<int, 8>, 2> get_pawns_on_rank (std::array<std::array<int8_t, 8>, 8>& board) {
         std::array<int, 8> pawns_on_rank_white = {0,0,0,0,0,0,0,0};
         std::array<int, 8> pawns_on_rank_black = {0,0,0,0,0,0,0,0};
         for(int y = 0; y < 8; y++){
@@ -1132,7 +1136,7 @@ extern "C" {
         return true;
     }
 
-    bool compareposition(int moment, Chess& game, std::vector<std::array<std::array<int, 8>, 8>> positions){
+    bool compareposition(int moment, Chess& game, std::vector<std::array<std::array<int8_t, 8>, 8>> positions){
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
                 if(positions[moment][y][x] != game.board[y][x]){
@@ -1143,7 +1147,7 @@ extern "C" {
         return true;
     }
 
-    bool repetition(int this_moment, Chess& game, std::vector<std::array<std::array<int, 8>, 8>> positions){
+    bool repetition(int this_moment, Chess& game, std::vector<std::array<std::array<int8_t, 8>, 8>> positions){
         int repetitions = 0;
         for(int moment = 0; moment < this_moment; moment++){
             if(compareposition(moment, game, positions)){
@@ -1159,9 +1163,9 @@ extern "C" {
     int gameend(int turn, int moves, const char* board_string, const char* positions_string
     , const char* piece_positions_str, const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
         //returns 2 if white won, 1 if black won, 0 if draw, -1 if game continues
-        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
-        std::vector<std::array<std::array<int, 8>, 8>> positions = convert_positions(positions_string, moves);
-        std::array<std::array<std::array<int, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
+        std::array<std::array<int8_t, 8>, 8> board = convert_board(board_string);
+        std::vector<std::array<std::array<int8_t, 8>, 8>> positions = convert_positions(positions_string, moves);
+        std::array<std::array<std::array<int8_t, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
         std::array<std::array<int, 2>,6> pieces = pieces_to_array(string_to_vector_2d(pieces_str));
         std::array<std::array<int, 2>,2> rookmoved = rookmoved_to_array(string_to_vector_2d(rookmoved_str));
         std::array<std::array<int, 8>, 2> pawns_on_rank = get_pawns_on_rank(board);
@@ -1189,8 +1193,8 @@ extern "C" {
 
     int movepiece(int y0, int x0, int movetoy, int movetox, int turn, const char* board_string, int castled
     , const char* piece_positions_str, const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str){
-        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
-        std::array<std::array<std::array<int, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
+        std::array<std::array<int8_t, 8>, 8> board = convert_board(board_string);
+        std::array<std::array<std::array<int8_t, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
         std::array<std::array<int, 2>,6> pieces = pieces_to_array(string_to_vector_2d(pieces_str));
         std::array<std::array<int, 2>,2> rookmoved = rookmoved_to_array(string_to_vector_2d(rookmoved_str));
         std::array<std::array<int, 8>, 2> pawns_on_rank = get_pawns_on_rank(board);
@@ -1213,7 +1217,7 @@ extern "C" {
         return 1;
     }
 
-    bool partialrepetition(int current_moment, Chess& game, std::vector<std::array<std::array<int, 8>, 8>> positions){
+    bool partialrepetition(int current_moment, Chess& game, std::vector<std::array<std::array<int8_t, 8>, 8>> positions){
         for(int moment = 0; moment < current_moment; moment++){
             if(compareposition(moment, game, positions)){
                 return true;
@@ -1342,7 +1346,7 @@ extern "C" {
         return evaluation;
     }
 
-    std::vector<Move> reorder(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
+    std::vector<Move> reorder(int moves, std::vector<std::array<std::array<int8_t, 8>, 8>> positions
     , Chess& game, int piece_sign){
         //save current state
         GameState game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
@@ -1353,7 +1357,7 @@ extern "C" {
         int color = int(piece_sign == -1);
         int kingy = game.piece_positions[49][color][0];
         int kingx = game.piece_positions[49][color][1];
-        std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
+        std::vector<std::array<std::array<int8_t, 8>, 8>> temp_positions = positions;
 
         //loop through pieces
         for(int i = 0; i < 6; i++){
@@ -1574,8 +1578,21 @@ extern "C" {
                 float evaluation_minus = evaluate_change(y1, x1, -1, game, game.board[y1][x1], intsign(game.board[y1][x1]))+(abs(piece) < 9 && x1*8+y1 == game.enpassant)*intsign(piece)*1.0;
                 float current_moveScore;
                 movepieceto(piece, y0, x0, y1, x1, game);
-                current_moveScore = nth_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus, nmoremoves-1
-                    , game, bot, ntimes) + evaluation_minus;
+                if(ntimes - nmoremoves == 3){
+                    if (game.permutations.find(game.board) != game.permutations.end()) {
+                        current_moveScore = game.permutations[game.board] + evaluation_minus;
+                    } else {
+                        current_moveScore = nth_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus, nmoremoves-1
+                            , game, bot, ntimes) + evaluation_minus;
+                        if(game.permutation_count < game.max_permutations) {
+                            game.permutations[game.board] = current_moveScore - evaluation_minus;
+                            game.permutation_count++;
+                        }
+                    }
+                } else {
+                    current_moveScore = nth_move(piece, y0, x0, y1, x1, best_moveScore-evaluation_minus, nmoremoves-1
+                        , game, bot, ntimes) + evaluation_minus;
+                }
                 float total_moveScore = current_moveScore + previous_moveScore;
                 //return to saved state
                 game.copy_gameState(game_previous_state);
@@ -1668,7 +1685,7 @@ extern "C" {
         }
     }
 
-    std::vector<Move> firstmove(int moves, std::vector<std::array<std::array<int, 8>, 8>> positions
+    std::vector<Move> firstmove(int moves, std::vector<std::array<std::array<int8_t, 8>, 8>> positions
         , std::vector<Move> bestMoves, Chess& game, int bot, int ntimes
         , double maxSearchTime, bool allowBailout, int& calculatedMoves, bool& bailedOut)
     {
@@ -1677,7 +1694,7 @@ extern "C" {
         //save current state
         GameState game_previous_state(game.kingmoved, game.enpassant, game.castled, game.board, game.piece_positions
         , game.rookmoved, game.pieces, game.pawns_on_rank);
-        std::vector<std::array<std::array<int, 8>, 8>> temp_positions = positions;
+        std::vector<std::array<std::array<int8_t, 8>, 8>> temp_positions = positions;
 
         std::vector<float> moveScore;
         float best_moveScore = -intsign(bot == 0)*1000000.0f;
@@ -1734,10 +1751,12 @@ extern "C" {
 
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-            if(static_cast<double>(i+2)/static_cast<double>(i+1)*duration.count()/1000.0 >= maxSearchTime && allowBailout){
+            if(duration.count()/1000.0 >= maxSearchTime && allowBailout){
                 calculatedMoves = i+1;
                 bailedOut = true;
                 sortMoves(bestMoves, bot, moveScore, order);
+                game.permutations.clear();
+                game.permutation_count = 0;
                 return bestMoves;
             }
         }
@@ -1745,6 +1764,8 @@ extern "C" {
         calculatedMoves = order.size();
         bailedOut = false;
         sortMoves(bestMoves, bot, moveScore, order);
+        game.permutations.clear();
+        game.permutation_count = 0;
         return bestMoves;
     }
 
@@ -1810,9 +1831,9 @@ extern "C" {
     , const char* pieces_str, int kingmoved, int enpassant, const char* rookmoved_str, int bot){
         std::cout << "updated" << '\n';
         //define vectors
-        std::array<std::array<int, 8>, 8> board = convert_board(board_string);
-        std::vector<std::array<std::array<int, 8>, 8>> positions = convert_positions(positions_string, moves);
-        std::array<std::array<std::array<int, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
+        std::array<std::array<int8_t, 8>, 8> board = convert_board(board_string);
+        std::vector<std::array<std::array<int8_t, 8>, 8>> positions = convert_positions(positions_string, moves);
+        std::array<std::array<std::array<int8_t, 2>,2>, 50> piece_positions = convert_piece_positions(piece_positions_str);
         std::array<std::array<int, 2>,6> pieces = pieces_to_array(string_to_vector_2d(pieces_str));
         std::array<std::array<int, 2>,2> rookmoved = rookmoved_to_array(string_to_vector_2d(rookmoved_str));
         std::array<std::array<int, 8>, 2> pawns_on_rank = get_pawns_on_rank(board);
@@ -1848,13 +1869,9 @@ extern "C" {
                 std::cout << "depth = " << (ntimes)/2+1 << '\n';
                 break;
             }
-            ntimes++;
+            ntimes+=2;
             
-            if(ntimes%2 == 0){
-                bestMoves = firstmove(moves, positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
-            }else{
-                firstmove(moves, positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
-            }
+            bestMoves = firstmove(moves, positions, bestMoves, game, bot, ntimes, maxSearchTime, true, calculatedMoves, bailedOut);
 
             if(bailedOut){
                 std::cout << "depth = " << (ntimes-1)/2+1;
